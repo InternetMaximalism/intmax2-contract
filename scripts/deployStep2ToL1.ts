@@ -1,20 +1,50 @@
-import { ethers } from 'hardhat'
+import { ethers, upgrades, network } from 'hardhat'
 import 'dotenv/config'
 import contractAddresses from './contractAddresses.json'
 import { saveJsonToFile } from './utils/saveJsonToFile'
 
-async function main() {
-	const l1MessengerAddress = '0x50c7d3e7f7c656493D1D76aaa1a836CedfCBB16A'
+const getL1MessengerAddress = () => {
+	if (network.name === 'sepolia') {
+		return '0x50c7d3e7f7c656493D1D76aaa1a836CedfCBB16A'
+	}
+	//TODO mainnet messenger address
+	throw new Error('Unsupported network')
+}
 
+const getUSDCAddress = () => {
+	if (network.name === 'sepolia') {
+		return '0xf08A50178dfcDe18524640EA6618a1f965821715'
+	}
+	//TODO mainnet usdc address
+	throw new Error('Unsupported network')
+}
+
+const getWBTCAddress = () => {
+	if (network.name === 'sepolia') {
+		return '0x92f3B59a79bFf5dc60c0d59eA13a44D082B2bdFC'
+	}
+	//TODO mainnet usdc address
+	throw new Error('Unsupported network')
+}
+
+async function main() {
 	const rollupContractAddress = contractAddresses.rollup
 	if (!rollupContractAddress) {
 		throw new Error('rollupContractAddress is not set')
 	}
 
 	const liquidityFactory = await ethers.getContractFactory('Liquidity')
-	const liquidity = await liquidityFactory.deploy(
-		l1MessengerAddress,
-		rollupContractAddress,
+	const liquidity = await upgrades.deployProxy(
+		liquidityFactory,
+		[
+			getL1MessengerAddress(),
+			rollupContractAddress,
+			getUSDCAddress(),
+			getWBTCAddress(),
+		],
+		{
+			kind: 'uups',
+		},
 	)
 	await liquidity.waitForDeployment()
 	const liquidityAddress = await liquidity.getAddress()

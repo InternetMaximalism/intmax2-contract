@@ -22,7 +22,7 @@ async function main() {
 
 	const rollup = await ethers.getContractAt('Rollup', rollupContractAddress)
 
-	const lastProcessedWithdrawalId = await rollup.getLastProcessedWithdrawalId()
+	const lastProcessedWithdrawalId = await rollup.lastProcessedWithdrawId()
 	const tx = await rollup.submitWithdrawals(lastProcessedWithdrawalId)
 	console.log('tx hash:', tx.hash)
 	await tx.wait()

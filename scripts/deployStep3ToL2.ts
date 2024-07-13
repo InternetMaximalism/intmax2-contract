@@ -1,6 +1,14 @@
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import 'dotenv/config'
 import contractAddresses from './contractAddresses.json'
+
+const getL2MessengerAddress = () => {
+	if (network.name === 'sepolia') {
+		return '0xBa50f5340FB9F3Bd074bD638c9BE13eCB36E603d'
+	}
+	//TODO scroll messenger address
+	throw new Error('Unsupported network')
+}
 
 async function main() {
 	const liquidityContractAddress = contractAddresses.liquidity
@@ -18,13 +26,17 @@ async function main() {
 	if (!rollupContractAddress) {
 		throw new Error('rollupContractAddress is not set')
 	}
-
+	const plonkVerifierAddress = contractAddresses.plonkVerifier
+	if (!plonkVerifierAddress) {
+		throw new Error('plonkVerifierAddress is not set')
+	}
 	const owner = (await ethers.getSigners())[0].address
 	console.log('owner address', owner)
 
 	const rollup = await ethers.getContractAt('Rollup', rollupContractAddress)
-
-	const tx = await rollup.updateDependentContract(
+	const tx = await rollup.initialize(
+		getL2MessengerAddress(),
+		plonkVerifierAddress,
 		liquidityContractAddress,
 		blockBuilderRegistryContractAddress,
 	)

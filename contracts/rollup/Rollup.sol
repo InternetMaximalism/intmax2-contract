@@ -32,11 +32,11 @@ contract Rollup is
 	IBlockBuilderRegistry private blockBuilderRegistry;
 	address private liquidity;
 	uint256 public lastProcessedWithdrawId;
+	uint256 public lastProcessedDepositId;
 	bytes32[] public blockHashes;
 	Withdrawal[] private withdrawalRequests;
 	mapping(bytes32 => bool) private withdrawnTransferHash;
 	mapping(uint32 => bool) private slashedBlockNumbers;
-	uint256 public lastProcessedDepositId;
 
 	modifier onlyLiquidityContract() {
 		// note

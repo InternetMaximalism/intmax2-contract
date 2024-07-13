@@ -92,7 +92,7 @@ async function main() {
 	}
 	console.log('deposit data:', depositData)
 
-	console.log('pending deposit', await liquidity.getPendingDeposit(depositId))
+	console.log('pending deposit', await liquidity.pendingDepositData(depositId))
 
 	// cancel the deposit
 	const tx2 = await liquidity.cancelPendingDeposit(depositId, depositData)

@@ -20,7 +20,7 @@ async function main() {
 
 	console.log('balance', (await ethers.provider.getBalance(owner)).toString())
 
-	const lastAnalyzedDepositId = await liquidity.getLastAnalyzedDepositId()
+	const lastAnalyzedDepositId = await liquidity.lastAnalyzedDepositId()
 	const gasLimit = await liquidity.submitDeposits.estimateGas(
 		lastAnalyzedDepositId,
 		{
@@ -69,10 +69,7 @@ async function main() {
 		await tx2.wait()
 		console.log('Process deposits')
 
-		console.log(
-			'deposit tree root',
-			(await rollup.getDepositTreeRoot()).toString(),
-		)
+		console.log('deposit tree root', (await rollup.getDepositRoot()).toString())
 	}
 }
 

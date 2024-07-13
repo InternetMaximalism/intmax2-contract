@@ -1,9 +1,7 @@
-import { ethers, upgrades } from 'hardhat'
+import { ethers, upgrades, network } from 'hardhat'
 import 'dotenv/config'
 import contractAddresses from './contractAddresses.json'
 import { saveJsonToFile } from './utils/saveJsonToFile'
-
-const l2MessengerAddress = '0xBa50f5340FB9F3Bd074bD638c9BE13eCB36E603d'
 
 async function main() {
 	let newContractAddresses: { [contractName: string]: string } =
@@ -11,17 +9,13 @@ async function main() {
 
 	let rollupContractAddress = (newContractAddresses as any).rollup
 	if (!rollupContractAddress) {
-		const plonkVerifierAddress = contractAddresses.plonkVerifier
-		if (!plonkVerifierAddress) {
-			throw new Error('plonkVerifierAddress is not set')
-		}
-
 		const rollupFactory = await ethers.getContractFactory('Rollup')
-		const rollup = await rollupFactory.deploy(
-			l2MessengerAddress,
-			plonkVerifierAddress,
-		)
-		await rollup.waitForDeployment()
+		// The execution of initialize will be done later.
+		const rollup = await upgrades.deployProxy(rollupFactory, [], {
+			initializer: false,
+			kind: 'uups',
+		})
+		await rollup.deployed()
 		rollupContractAddress = await rollup.getAddress()
 		console.log('Rollup deployed to:', rollupContractAddress)
 

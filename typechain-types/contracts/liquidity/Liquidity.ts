@@ -66,7 +66,10 @@ export interface LiquidityInterface extends Interface {
       | "depositERC721"
       | "depositETH"
       | "initialize"
+      | "lastAnalyzedDepositId"
+      | "lastProcessedDepositId"
       | "owner"
+      | "pendingDepositData"
       | "processWithdrawals"
       | "proxiableUUID"
       | "rejectDeposits"
@@ -128,7 +131,19 @@ export interface LiquidityInterface extends Interface {
     functionFragment: "initialize",
     values: [AddressLike, AddressLike, AddressLike, AddressLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "lastAnalyzedDepositId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "lastProcessedDepositId",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingDepositData",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "processWithdrawals",
     values: [IRollup.WithdrawalStruct[]]
@@ -192,7 +207,19 @@ export interface LiquidityInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "depositETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "lastAnalyzedDepositId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "lastProcessedDepositId",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingDepositData",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "processWithdrawals",
     data: BytesLike
@@ -463,7 +490,17 @@ export interface Liquidity extends BaseContract {
     "nonpayable"
   >;
 
+  lastAnalyzedDepositId: TypedContractMethod<[], [bigint], "view">;
+
+  lastProcessedDepositId: TypedContractMethod<[], [bigint], "view">;
+
   owner: TypedContractMethod<[], [string], "view">;
+
+  pendingDepositData: TypedContractMethod<
+    [arg0: BigNumberish],
+    [[string, string] & { depositHash: string; sender: string }],
+    "view"
+  >;
 
   processWithdrawals: TypedContractMethod<
     [withdrawals: IRollup.WithdrawalStruct[]],
@@ -580,8 +617,21 @@ export interface Liquidity extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "lastAnalyzedDepositId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "lastProcessedDepositId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "pendingDepositData"
+  ): TypedContractMethod<
+    [arg0: BigNumberish],
+    [[string, string] & { depositHash: string; sender: string }],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "processWithdrawals"
   ): TypedContractMethod<
