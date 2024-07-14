@@ -17,6 +17,7 @@ npx hardhat node
 Open a new terminal and run the following commands:
 
 ```sh
+echo "{}" > ./scripts/contractAddresses.json # initialize contract addresses
 npx hardhat run ./scripts/deployTestErc20.ts --network localhost
 npx hardhat run ./scripts/deployPlonkVerifier.ts --network localhost
 npx hardhat run ./scripts/deployStep1ToL2.ts --network localhost

@@ -20,7 +20,6 @@ contract TokenData is Initializable, ITokenData {
 		address _usdc,
 		address _wbtc
 	) public onlyInitializing {
-		nextTokenIndex = 0;
 		_createTokenIndex(TokenType.NATIVE, NATIVE_CURRENCY_ADDRESS, 0, true);
 		_createTokenIndex(TokenType.ERC20, _usdc, 0, true);
 		_createTokenIndex(TokenType.ERC20, _wbtc, 0, true);
