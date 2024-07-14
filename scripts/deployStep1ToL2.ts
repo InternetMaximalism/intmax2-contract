@@ -15,7 +15,6 @@ async function main() {
 			initializer: false,
 			kind: 'uups',
 		})
-		await rollup.deployed()
 		rollupContractAddress = await rollup.getAddress()
 		console.log('Rollup deployed to:', rollupContractAddress)
 

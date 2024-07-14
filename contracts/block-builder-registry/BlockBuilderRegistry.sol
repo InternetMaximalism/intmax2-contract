@@ -13,7 +13,7 @@ contract BlockBuilderRegistry is
 	IBlockBuilderRegistry
 {
 	address private rollup;
-	address private burnAddress = 0x000000000000000000000000000000000000dEaD;
+	address private burnAddress;
 	mapping(address => BlockBuilderInfo) private blockBuilders;
 	using BlockBuilderInfoLib for BlockBuilderInfo;
 
@@ -42,6 +42,7 @@ contract BlockBuilderRegistry is
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
 		_rollup = _rollup;
+		burnAddress = 0x000000000000000000000000000000000000dEaD;
 	}
 
 	function updateBlockBuilder(string memory url) public payable {

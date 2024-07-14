@@ -28,7 +28,7 @@ contract Liquidity is
 
 	IL1ScrollMessenger private l1ScrollMessenger;
 	address private rollup;
-	uint256 private withdrawalIdCounter = 0;
+	uint256 private withdrawalIdCounter;
 	mapping(uint256 => IRollup.Withdrawal) private claimableWithdrawals;
 
 	/**
@@ -74,6 +74,7 @@ contract Liquidity is
 		__TokenInfo_init(_usdc, _wbtc);
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		rollup = _rollup;
+		withdrawalIdCounter = 0;
 	}
 
 	function depositETH(bytes32 recipientSaltHash) external payable {

@@ -6,6 +6,11 @@ const getL2MessengerAddress = () => {
 	if (network.name === 'sepolia') {
 		return '0xBa50f5340FB9F3Bd074bD638c9BE13eCB36E603d'
 	}
+	if (network.name === 'localhost') {
+		// provisional measures
+		return ethers.ZeroAddress
+	}
+
 	//TODO scroll messenger address
 	throw new Error('Unsupported network')
 }

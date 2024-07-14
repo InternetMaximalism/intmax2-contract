@@ -9,7 +9,7 @@ contract TokenData is Initializable, ITokenData {
 	using EnumerableSet for EnumerableSet.UintSet;
 	EnumerableSet.UintSet internal directWithdrawalTokenIndexes;
 	address private constant NATIVE_CURRENCY_ADDRESS = address(0);
-	uint256 private nextTokenIndex = 0;
+	uint256 private nextTokenIndex;
 	TokenInfo[] private tokenInfoList;
 	mapping(address => uint32) private fungibleTokenIndexMap;
 	mapping(address => mapping(uint256 => uint32))
@@ -20,6 +20,7 @@ contract TokenData is Initializable, ITokenData {
 		address _usdc,
 		address _wbtc
 	) public onlyInitializing {
+		nextTokenIndex = 0;
 		_createTokenIndex(TokenType.NATIVE, NATIVE_CURRENCY_ADDRESS, 0, true);
 		_createTokenIndex(TokenType.ERC20, _usdc, 0, true);
 		_createTokenIndex(TokenType.ERC20, _wbtc, 0, true);
