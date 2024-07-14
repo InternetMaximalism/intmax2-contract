@@ -48,8 +48,6 @@ export type { Address } from "./@openzeppelin/contracts/utils/Address";
 export { Address__factory } from "./factories/@openzeppelin/contracts/utils/Address__factory";
 export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
-export type { ReentrancyGuard } from "./@openzeppelin/contracts/utils/ReentrancyGuard";
-export { ReentrancyGuard__factory } from "./factories/@openzeppelin/contracts/utils/ReentrancyGuard__factory";
 export type { IL1ScrollMessenger } from "./@scroll-tech/contracts/L1/IL1ScrollMessenger";
 export { IL1ScrollMessenger__factory } from "./factories/@scroll-tech/contracts/L1/IL1ScrollMessenger__factory";
 export type { IL2ScrollMessenger } from "./@scroll-tech/contracts/L2/IL2ScrollMessenger";
