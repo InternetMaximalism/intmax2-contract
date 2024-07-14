@@ -5,7 +5,7 @@
 		"@nomicfoundation/hardhat-toolbox": "5.0.0",
 		"axios": "1.7.2",
 		"dotenv": "16.4.5",
-		"hardhat": "2.22.6",
+		"hardhat": "2.22.5",
 		"prettier": "3.3.2",
 		"prettier-plugin-solidity": "1.3.1",
 		"solhint": "5.0.1"
@@ -16,7 +16,7 @@
 		"lint": "npm run format && npm run solhint",
 		"solhint": "solhint --fix --max-warnings 0 \"contracts/**/*.sol\"",
 		"format": "prettier --write '**/*.{sol,ts,json,md,yml}'",
-		"deploy": "npm run deploy-plonk-verifier && npm run deploy-step1 && npm run deploy-step2 && npm run deploy-step3",
+		"deploy": "echo '{}' > ./scripts/contractAddresses.json && npm run deploy-plonk-verifier && npm run deploy-step1 && npm run deploy-step2 && npm run deploy-step3",
 		"deploy-plonk-verifier": "npx hardhat run ./scripts/deployPlonkVerifier.ts --network scrollsepolia",
 		"deploy-step1": "npx hardhat run ./scripts/deployStep1ToL2.ts --network scrollsepolia",
 		"deploy-step2": "npx hardhat run ./scripts/deployStep2ToL1.ts --network sepolia",
