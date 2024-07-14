@@ -3,7 +3,7 @@ import 'dotenv/config'
 import contractAddresses from './contractAddresses.json'
 
 const getL2MessengerAddress = () => {
-	if (network.name === 'sepolia') {
+	if (network.name === 'scrollsepolia') {
 		return '0xBa50f5340FB9F3Bd074bD638c9BE13eCB36E603d'
 	}
 	if (network.name === 'localhost') {

@@ -2,7 +2,6 @@ import { ethers } from 'hardhat'
 import 'dotenv/config'
 import contractAddresses from './contractAddresses.json'
 import { ILiquidity, Liquidity } from '../typechain-types'
-import { testTokenSol } from '../typechain-types/contracts/token'
 import { getPubkeySaltHash } from './utils/hash'
 
 const getLatestDepositEvent = async (
