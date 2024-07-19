@@ -3,5 +3,6 @@
 /* eslint-disable */
 export * as testTokenSol from "./TestToken.sol";
 export * as blockBuilderRegistry from "./block-builder-registry";
+export * as lib from "./lib";
 export { MockL1GasPriceOracle__factory } from "./MockL1GasPriceOracle__factory";
 export { MockPlonkVerifier__factory } from "./MockPlonkVerifier__factory";

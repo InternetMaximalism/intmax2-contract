@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as queue from "./queue";
+export { DepositContract__factory } from "./DepositContract__factory";

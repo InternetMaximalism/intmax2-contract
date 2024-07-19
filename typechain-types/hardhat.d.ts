@@ -94,6 +94,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
+      name: "ReentrancyGuard",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ReentrancyGuard__factory>;
+    getContractFactory(
       name: "IL1ScrollMessenger",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IL1ScrollMessenger__factory>;
@@ -117,6 +121,10 @@ declare module "hardhat/types/runtime" {
       name: "IBlockBuilderRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IBlockBuilderRegistry__factory>;
+    getContractFactory(
+      name: "DepositContract",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DepositContract__factory>;
     getContractFactory(
       name: "Bytes32QueueLib",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -185,6 +193,10 @@ declare module "hardhat/types/runtime" {
       name: "UnstakeReentrancyTest",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UnstakeReentrancyTest__factory>;
+    getContractFactory(
+      name: "DepositLibTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DepositLibTest__factory>;
     getContractFactory(
       name: "MockL1GasPriceOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -299,6 +311,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
     getContractAt(
+      name: "ReentrancyGuard",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ReentrancyGuard>;
+    getContractAt(
       name: "IL1ScrollMessenger",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -328,6 +345,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.IBlockBuilderRegistry>;
+    getContractAt(
+      name: "DepositContract",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DepositContract>;
     getContractAt(
       name: "Bytes32QueueLib",
       address: string | ethers.Addressable,
@@ -413,6 +435,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.UnstakeReentrancyTest>;
+    getContractAt(
+      name: "DepositLibTest",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DepositLibTest>;
     getContractAt(
       name: "MockL1GasPriceOracle",
       address: string | ethers.Addressable,
@@ -510,6 +537,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC165>;
     deployContract(
+      name: "ReentrancyGuard",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ReentrancyGuard>;
+    deployContract(
       name: "IL1ScrollMessenger",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IL1ScrollMessenger>;
@@ -533,6 +564,10 @@ declare module "hardhat/types/runtime" {
       name: "IBlockBuilderRegistry",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IBlockBuilderRegistry>;
+    deployContract(
+      name: "DepositContract",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositContract>;
     deployContract(
       name: "Bytes32QueueLib",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -601,6 +636,10 @@ declare module "hardhat/types/runtime" {
       name: "UnstakeReentrancyTest",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.UnstakeReentrancyTest>;
+    deployContract(
+      name: "DepositLibTest",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositLibTest>;
     deployContract(
       name: "MockL1GasPriceOracle",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -715,6 +754,11 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC165>;
     deployContract(
+      name: "ReentrancyGuard",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ReentrancyGuard>;
+    deployContract(
       name: "IL1ScrollMessenger",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -744,6 +788,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IBlockBuilderRegistry>;
+    deployContract(
+      name: "DepositContract",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositContract>;
     deployContract(
       name: "Bytes32QueueLib",
       args: any[],
@@ -829,6 +878,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.UnstakeReentrancyTest>;
+    deployContract(
+      name: "DepositLibTest",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.DepositLibTest>;
     deployContract(
       name: "MockL1GasPriceOracle",
       args: any[],

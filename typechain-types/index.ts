@@ -48,6 +48,8 @@ export type { Address } from "./@openzeppelin/contracts/utils/Address";
 export { Address__factory } from "./factories/@openzeppelin/contracts/utils/Address__factory";
 export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
+export type { ReentrancyGuard } from "./@openzeppelin/contracts/utils/ReentrancyGuard";
+export { ReentrancyGuard__factory } from "./factories/@openzeppelin/contracts/utils/ReentrancyGuard__factory";
 export type { IL1ScrollMessenger } from "./@scroll-tech/contracts/L1/IL1ScrollMessenger";
 export { IL1ScrollMessenger__factory } from "./factories/@scroll-tech/contracts/L1/IL1ScrollMessenger__factory";
 export type { IL2ScrollMessenger } from "./@scroll-tech/contracts/L2/IL2ScrollMessenger";
@@ -60,6 +62,8 @@ export type { BlockBuilderRegistry } from "./contracts/block-builder-registry/Bl
 export { BlockBuilderRegistry__factory } from "./factories/contracts/block-builder-registry/BlockBuilderRegistry__factory";
 export type { IBlockBuilderRegistry } from "./contracts/block-builder-registry/IBlockBuilderRegistry";
 export { IBlockBuilderRegistry__factory } from "./factories/contracts/block-builder-registry/IBlockBuilderRegistry__factory";
+export type { DepositContract } from "./contracts/lib/DepositContract";
+export { DepositContract__factory } from "./factories/contracts/lib/DepositContract__factory";
 export type { Bytes32QueueLib } from "./contracts/lib/queue/Bytes32QueueLib";
 export { Bytes32QueueLib__factory } from "./factories/contracts/lib/queue/Bytes32QueueLib__factory";
 export type { WithdrawalQueueLib } from "./contracts/lib/queue/WithdrawalQueueLib";
@@ -94,6 +98,8 @@ export type { SlashBlockBuilderReentrancyTest } from "./contracts/test/block-bui
 export { SlashBlockBuilderReentrancyTest__factory } from "./factories/contracts/test/block-builder-registry/SlashBlockBuilderReentrancyTest__factory";
 export type { UnstakeReentrancyTest } from "./contracts/test/block-builder-registry/UnstakeReentrancyTest";
 export { UnstakeReentrancyTest__factory } from "./factories/contracts/test/block-builder-registry/UnstakeReentrancyTest__factory";
+export type { DepositLibTest } from "./contracts/test/lib/DepositLibTest";
+export { DepositLibTest__factory } from "./factories/contracts/test/lib/DepositLibTest__factory";
 export type { MockL1GasPriceOracle } from "./contracts/test/MockL1GasPriceOracle";
 export { MockL1GasPriceOracle__factory } from "./factories/contracts/test/MockL1GasPriceOracle__factory";
 export type { MockPlonkVerifier } from "./contracts/test/MockPlonkVerifier";

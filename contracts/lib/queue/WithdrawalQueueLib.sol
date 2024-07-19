@@ -41,7 +41,7 @@ library WithdrawalQueueLib {
 		return queue.front == queue.rear;
 	}
 
-	function size(Queue storage queue) internal view returns (uint) {
+	function size(Queue storage queue) internal view returns (uint256) {
 		return queue.rear - queue.front;
 	}
 
