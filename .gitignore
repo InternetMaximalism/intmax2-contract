@@ -10,3 +10,5 @@ artifacts
 
 scripts/contractAddresses.json
 /.openzeppelin
+
+typechain-types/
