@@ -144,6 +144,14 @@ contract Liquidity is
 		_deposit(_msgSender(), recipientSaltHash, tokenIndex, amount);
 	}
 
+	function lastAnalyzedDepositId() external view returns (uint256) {
+		return depositQueue.lastAnalyzedDepositId;
+	}
+
+	function lastRelayedDepositId() external view returns (uint256) {
+		return depositQueue.front - 1;
+	}
+
 	function analyzeDeposits(
 		uint256 upToDepositId,
 		uint256[] memory rejectDepositIndices
@@ -218,7 +226,7 @@ contract Liquidity is
 	function cancelDeposit(
 		uint256 depositId,
 		DepositLib.Deposit memory deposit
-	) public {
+	) external {
 		DepositQueueLib.DepositData memory depositData = depositQueue
 			.deleteDeposit(depositId);
 		if (depositData.sender != _msgSender()) {

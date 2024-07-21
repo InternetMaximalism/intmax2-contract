@@ -2,6 +2,9 @@
 pragma solidity 0.8.24;
 
 interface ITokenData {
+	error InvalidTokenAddress();
+	error InvalidTokenInfo();
+
 	enum TokenType {
 		NATIVE,
 		ERC20,
@@ -14,9 +17,6 @@ interface ITokenData {
 		address tokenAddress;
 		uint256 tokenId;
 	}
-
-	error InvalidTokenAddress();
-	error InvalidTokenInfo();
 
 	function getTokenInfo(
 		uint32 tokenIndex

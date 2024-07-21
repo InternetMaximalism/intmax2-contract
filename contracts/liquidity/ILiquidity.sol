@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import {DepositLib} from "../common/DepositLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 
 interface ILiquidity {
@@ -51,25 +52,47 @@ interface ILiquidity {
 		uint256 indexed lastProcessedClaimableWithdrawalId
 	);
 
+	/// @notice Allows users to deposit Ether
+	/// @dev The deposit amount should be sent as msg.value
+	/// @param recipientSaltHash A Poseidon hash commitment of the INTMAX address with salt
 	function depositETH(bytes32 recipientSaltHash) external payable;
 
+	/// @notice Allows users to deposit ERC20 tokens
+	/// @param tokenAddress The address of the ERC20 token contract
+	/// @param recipientSaltHash A Poseidon hash commitment of the INTMAX address with salt
+	/// @param amount The amount of tokens the user wants to deposit
 	function depositERC20(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 amount
 	) external;
 
+	/// @notice Allows users to deposit ERC721 tokens
+	/// @param tokenAddress The address of the ERC721 token contract
+	/// @param recipientSaltHash A Poseidon hash commitment of the INTMAX address with salt
+	/// @param tokenId The ID of the token the user wants to deposit
 	function depositERC721(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 tokenId
 	) external;
 
-	function depositERC1155(
-		address tokenAddress,
-		bytes32 recipientSaltHash,
-		uint256 tokenId,
-		uint256 amount
+	/// @notice Allows users to cancel their own deposits and get their funds back
+	/// @dev This function is used in two scenarios:
+	///      1. To cancel deposits that have been rejected
+	///      2. To cancel deposits that are stuck due to analyzer node inactivity, even if not rejected
+	/// @param depositId The unique identifier of the deposit to be cancelled
+	/// @param deposit The deposit structure containing all relevant information
+	function cancelDeposit(
+		uint256 depositId,
+		DepositLib.Deposit memory deposit
+	) external;
+
+	/// @notice Allows users to claim their own withdrawals
+	/// @dev The contract stores hashes of claimable withdrawals. The claim is successful if the provided withdrawal hash matches a stored hash.
+	/// @param withdrawals An array of Withdrawal structures to be claimed
+	function claimWithdrawals(
+		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external;
 
 	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method.
@@ -88,11 +111,11 @@ interface ILiquidity {
 	 * @dev The messaging fee calculated from the `gasLimit` must be sent as `msg.value`. Any excess amount will be refunded to the caller.
 	 *      However, if the `gasLimit` is set higher than the actual gas consumed, the excess messaging fee will still be charged. There will be no refund for the unused gas.
 	 * @dev Note: If the transaction fails on the L2 Rollup due to insufficient gas, it can be retried using `replayDeposits`.
-	 * @param lastProcessedDepositId The ID of the last deposit to be relayed.
+	 * @param upToDepositId The ID of the last deposit to be relayed.
 	 * @param gasLimit The gas limit for the transaction.
 	 */
 	function relayDeposits(
-		uint256 lastProcessedDepositId,
+		uint256 upToDepositId,
 		uint256 gasLimit
 	) external payable;
 
@@ -112,6 +135,16 @@ interface ILiquidity {
 		uint256 messageNonce
 	) external payable;
 
+	/*****************************
+	 * Public System Functions *
+	 *****************************/
+
+	/// @notice Process both direct withdrawals and claimable withdrawals in a single transaction
+	/// @dev This function is called by the L2 Withdrawal contract via the L1 Scroll Messenger
+	/// @param lastProcessedDirectWithdrawalId The ID of the last processed direct withdrawal
+	/// @param withdrawals An array of Withdrawal structures for direct processing
+	/// @param lastProcessedClaimableWithdrawalId The ID of the last processed claimable withdrawal
+	/// @param withdrawalHahes An array of hashes for claimable withdrawals
 	function processWithdrawals(
 		uint256 lastProcessedDirectWithdrawalId,
 		WithdrawalLib.Withdrawal[] calldata withdrawals,
@@ -119,17 +152,22 @@ interface ILiquidity {
 		bytes32[] calldata withdrawalHahes
 	) external;
 
+	/// @notice Process direct withdrawals by sending funds directly to users' wallets
+	/// @dev This function is called by the L2 Withdrawal contract via the L1 Scroll Messenger
+	/// @param lastProcessedDirectWithdrawalId The ID of the last processed direct withdrawal
+	/// @param withdrawals An array of Withdrawal structures to be processed
 	function processDirectWithdrawals(
 		uint256 lastProcessedDirectWithdrawalId,
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external;
 
+	/// @notice Process claimable withdrawals by storing withdrawal hashes in storage
+	/// @dev This function is called by the L2 Withdrawal contract via the L1 Scroll Messenger
+	/// @dev Users need to call claimWithdrawals manually to complete the withdrawal process
+	/// @param lastProcessedClaimableWithdrawalId The ID of the last processed claimable withdrawal
+	/// @param withdrawalHahes An array of hashes for claimable withdrawals to be stored
 	function processClaimableWithdrawals(
 		uint256 lastProcessedClaimableWithdrawalId,
 		bytes32[] calldata withdrawalHahes
-	) external;
-
-	function claimWithdrawals(
-		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external;
 }

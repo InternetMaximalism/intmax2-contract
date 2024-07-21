@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-// interfaces
 import {IRollup} from "./IRollup.sol";
 import {IBlockBuilderRegistry} from "../block-builder-registry/IBlockBuilderRegistry.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
@@ -9,7 +8,6 @@ import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.s
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-// libs
 import {DepositTreeLib} from "./lib/DepositTreeLib.sol";
 import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
@@ -145,17 +143,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
-	function processDeposits(
-		uint256 _lastProcessedDepositId,
-		bytes32[] calldata depositHashes
-	) external onlyLiquidityContract {
-		for (uint256 i = 0; i < depositHashes.length; i++) {
-			depositTree.deposit(depositHashes[i]);
-		}
-		lastProcessedDepositId = _lastProcessedDepositId;
-		emit DepositsProcessed(lastProcessedDepositId, depositTree.getRoot());
-	}
-
 	function _postBlock(
 		bool isRegistrationBlock,
 		bytes32 txTreeRoot,
@@ -166,6 +153,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) internal returns (uint32 blockNumber) {
+		if (senderFlags == 0) {
+			revert SenderFlagsIsZero();
+		}
+
 		if (!blockBuilderRegistry.isValidBlockBuilder(_msgSender())) {
 			revert InvalidBlockBuilder();
 		}
@@ -221,6 +212,17 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			revert BlockNumberOutOfRange();
 		}
 		return blockHashes[blockNumber];
+	}
+
+	function processDeposits(
+		uint256 _lastProcessedDepositId,
+		bytes32[] calldata depositHashes
+	) external onlyLiquidityContract {
+		for (uint256 i = 0; i < depositHashes.length; i++) {
+			depositTree.deposit(depositHashes[i]);
+		}
+		lastProcessedDepositId = _lastProcessedDepositId;
+		emit DepositsProcessed(lastProcessedDepositId, depositTree.getRoot());
 	}
 
 	function _authorizeUpgrade(address) internal override onlyOwner {}
