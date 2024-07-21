@@ -185,23 +185,6 @@ contract Liquidity is
 		emit DepositsRelayed(upToDepositId, gasLimit, message);
 	}
 
-	function replayDeposits(
-		bytes memory message,
-		uint32 newGasLimit,
-		uint256 messageNonce
-	) external payable nonReentrant {
-		l1ScrollMessenger.replayMessage{value: msg.value}(
-			address(this), // from
-			rollup, // to
-			0, // value
-			messageNonce,
-			message,
-			newGasLimit,
-			_msgSender()
-		);
-		emit DepositsReplayed(newGasLimit, messageNonce, message);
-	}
-
 	function claimWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external {
