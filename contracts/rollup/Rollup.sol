@@ -24,6 +24,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	uint256 public lastProcessedDepositId;
 	bytes32[] public blockHashes;
 	address[] public blockBuilders;
+	bytes32 public depositTreeRoot;
 
 	IL2ScrollMessenger private l2ScrollMessenger;
 	DepositTreeLib.DepositTree private depositTree;
@@ -52,12 +53,13 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	) public initializer {
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
-		depositTree.initialize();
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		liquidity = _liquidity;
 		blockBuilderRegistry = IBlockBuilderRegistry(_blockBuilderRegistry);
 
-		blockHashes.pushGenesisBlockHash(depositTree.getRoot());
+		depositTree.initialize();
+		depositTreeRoot = depositTree.getRoot();
+		blockHashes.pushGenesisBlockHash(depositTreeRoot);
 		blockBuilders.push(address(0));
 	}
 
@@ -184,7 +186,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 		blockNumber = blockHashes.getBlockNumber();
 		bytes32 prevBlockHash = blockHashes.getPrevHash();
-		bytes32 depositTreeRoot = depositTree.getRoot();
 		blockHashes.pushBlockHash(depositTreeRoot, signatureHash);
 		blockBuilders.push(_msgSender());
 		emit BlockPosted(
@@ -222,7 +223,8 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			depositTree.deposit(depositHashes[i]);
 		}
 		lastProcessedDepositId = _lastProcessedDepositId;
-		emit DepositsProcessed(lastProcessedDepositId, depositTree.getRoot());
+		depositTreeRoot = depositTree.getRoot();
+		emit DepositsProcessed(lastProcessedDepositId, depositTreeRoot);
 	}
 
 	function _authorizeUpgrade(address) internal override onlyOwner {}
