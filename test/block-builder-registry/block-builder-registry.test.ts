@@ -13,7 +13,7 @@ import {
 	FraudProofPublicInputsLib,
 	UnstakeReentrancyTest,
 	MockPlonkVerifier,
-	RollupTestForBlockBuilderRegistory,
+	RollupTestForBlockBuilderRegistry,
 	IBlockBuilderRegistry,
 	SubmitBlockFraudProofReentrancyTest,
 } from '../../typechain-types'
@@ -30,17 +30,13 @@ describe('BlockBuilderRegistry', () => {
 	const DUMMY_PROOF = new Uint8Array([1, 2, 3, 4, 5])
 	////////////////////////////////////////////////////////////////////////
 	const setup = async (): Promise<
-		[
-			BlockBuilderRegistry,
-			RollupTestForBlockBuilderRegistory,
-			MockPlonkVerifier,
-		]
+		[BlockBuilderRegistry, RollupTestForBlockBuilderRegistry, MockPlonkVerifier]
 	> => {
 		const rollupFactory = await ethers.getContractFactory(
-			'RollupTestForBlockBuilderRegistory',
+			'RollupTestForBlockBuilderRegistry',
 		)
 		const rollup =
-			(await rollupFactory.deploy()) as unknown as RollupTestForBlockBuilderRegistory
+			(await rollupFactory.deploy()) as unknown as RollupTestForBlockBuilderRegistry
 
 		const verifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
 		const verifier =
@@ -124,7 +120,7 @@ describe('BlockBuilderRegistry', () => {
 	const slashBlockBuilderSetup = async (): Promise<
 		[
 			BlockBuilderRegistry,
-			RollupTestForBlockBuilderRegistory,
+			RollupTestForBlockBuilderRegistry,
 			MockPlonkVerifier,
 			bigint,
 			FraudProofPublicInputsLib.FraudProofPublicInputsStruct,
