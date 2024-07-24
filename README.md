@@ -1,4 +1,4 @@
-# INTMAX2 Contract Interface
+# INTMAX2 Contract
 
 ## Environment Variables
 
