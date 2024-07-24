@@ -17,8 +17,6 @@ npx hardhat run ./scripts/deploy/3_initializeOnL2.ts --network scrollSepolia
 
 ## How run scripts
 
-### Deposit on L1
-
 #### 1. Deposit Eth and cancel deposit
 
 **User** deposits Eth to the contract and cancels the deposit.
