@@ -205,6 +205,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
+	function getLatestBlockNumber() external view returns (uint32) {
+		return blockHashes.getBlockNumber() - 1;
+	}
+
 	function getBlockBuilder(
 		uint32 blockNumber
 	) external view returns (address) {
