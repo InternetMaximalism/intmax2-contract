@@ -80,6 +80,8 @@ interface IRollup {
 		bytes32[] calldata depositHashes
 	) external;
 
+	function getLatestBlockNumber() external view returns (uint32);
+
 	function getBlockBuilder(
 		uint32 blockNumber
 	) external view returns (address);
