@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
-
+import { INITIAL_ERC20_TOKEN_ADDRESSES } from '../common.test'
 import { TokenDataTest } from '../../typechain-types'
 
 describe('TokenData', () => {
@@ -12,11 +12,6 @@ describe('TokenData', () => {
 		ERC721,
 		ERC1155,
 	}
-	// WBTC and USDC token addresses in mainnet
-	const INITIAL_ERC20_TOKEN_ADDRESSES = [
-		'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-		'0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-	]
 
 	const setup = async (): Promise<TokenDataTest> => {
 		const tokenDataFactory = await ethers.getContractFactory('TokenDataTest')
