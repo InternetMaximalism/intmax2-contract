@@ -85,7 +85,7 @@ async function main() {
 		await sleep(30)
 	}
 
-	if (!deployedContracts.mockL2ScrollMessenger && network.name !== 'mainnet') {
+	if (!deployedContracts.mockL2ScrollMessenger && network.name !== 'scroll') {
 		console.log('deploying mockL2ScrollMessenger')
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
