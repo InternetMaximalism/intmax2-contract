@@ -9,6 +9,9 @@ export const getUSDCAddress = () => {
 		// provisional measures
 		return '0x0000000000000000000000000000000000000001'
 	}
+	if (network.name === 'mainnet') {
+		return '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+	}
 	//TODO mainnet usdc address
 	throw new Error('Unsupported network')
 }
@@ -20,6 +23,9 @@ export const getWBTCAddress = () => {
 	if (network.name === 'localhost') {
 		// provisional measures
 		return '0x0000000000000000000000000000000000000002'
+	}
+	if (network.name === 'mainnet') {
+		return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
 	}
 	//TODO mainnet usdc address
 	throw new Error('Unsupported network')
@@ -34,6 +40,10 @@ export const getL1MessengerAddress = async () => {
 			return deployedContracts.mockL1ScrollMessenger
 		}
 	}
+	if (network.name === 'mainnet') {
+		return '0x6774bcbd5cecef1336b5300fb5186a12ddd8b367'
+	}
+
 	if (network.name === 'localhost') {
 		// provisional measures
 		return ethers.ZeroAddress
@@ -50,6 +60,9 @@ export const getL2MessengerAddress = async () => {
 		} else {
 			return deployedContracts.mockL2ScrollMessenger // mock address
 		}
+	}
+	if (network.name === 'scroll') {
+		return '0x781e90f1c8Fc4611c9b7497C3B47F99Ef6969CbC'
 	}
 	if (network.name === 'localhost') {
 		// provisional measures

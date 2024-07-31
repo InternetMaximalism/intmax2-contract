@@ -29,6 +29,14 @@ const config: HardhatUserConfig = {
 			url: 'https://scroll-testnet.rpc.grove.city/v1/a7a7c8e2',
 			accounts,
 		},
+		mainnet: {
+			url: `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
+			accounts,
+		},
+		scroll: {
+			url: 'https://scroll.drpc.org',
+			accounts,
+		},
 	},
 }
 

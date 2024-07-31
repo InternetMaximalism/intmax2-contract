@@ -7,13 +7,10 @@ import {
 } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 
-if (network.name !== 'sepolia') {
-	throw new Error('This script should be run on sepolia network')
-}
 
 async function main() {
 	let deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.mockL1ScrollMessenger) {
+	if (!deployedContracts.mockL1ScrollMessenger && network.name !== 'mainnet') {
 		console.log('deploying mockL1ScrollMessenger')
 		const MockL1ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL1ScrollMessenger',
@@ -57,7 +54,7 @@ async function main() {
 		})
 	}
 
-	if (!deployedContracts.testErc20) {
+	if (!deployedContracts.testErc20 && network.name !== 'mainnet') {
 		console.log('deploying testErc20')
 		const TestERC20 = await ethers.getContractFactory('TestERC20')
 		const owner = (await ethers.getSigners())[0]

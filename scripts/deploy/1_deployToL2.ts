@@ -2,10 +2,6 @@ import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { sleep } from '../../utils/sleep'
 
-if (network.name !== 'scrollSepolia') {
-	throw new Error('This script should be run on scrollSepolia network')
-}
-
 async function main() {
 	const deployedContracts = await readDeployedContracts()
 
@@ -89,7 +85,7 @@ async function main() {
 		await sleep(30)
 	}
 
-	if (!deployedContracts.mockL2ScrollMessenger) {
+	if (!deployedContracts.mockL2ScrollMessenger && network.name !== 'mainnet') {
 		console.log('deploying mockL2ScrollMessenger')
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
