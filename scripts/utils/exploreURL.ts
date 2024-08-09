@@ -1,17 +1,28 @@
 import { DeployedContracts } from '../schema/deployedContractsSchema'
+import { getCounterPartNetwork } from './counterPartNetwork'
 import { readDeployedContracts } from './io'
 
 async function main() {
-	const deployedContracts = await readDeployedContracts()
+	const deployedL1Contracts = await readDeployedContracts()
 	if (
-		!deployedContracts.rollup ||
-		!deployedContracts.withdrawal ||
-		!deployedContracts.blockBuilderRegistry ||
-		!deployedContracts.withdrawalPlonkVerifier ||
-		!deployedContracts.fraudPlonkVerifier ||
-		!deployedContracts.liquidity
+		!deployedL1Contracts.mockL1ScrollMessenger ||
+		!deployedL1Contracts.testErc20 ||
+		!deployedL1Contracts.liquidity
 	) {
-		throw new Error('all contracts should be deployed')
+		throw new Error('all l1 contracts should be deployed')
+	}
+
+	const deployedL2Contracts = await readDeployedContracts(
+		getCounterPartNetwork(),
+	)
+	if (
+		!deployedL2Contracts.rollup ||
+		!deployedL2Contracts.withdrawal ||
+		!deployedL2Contracts.blockBuilderRegistry ||
+		!deployedL2Contracts.withdrawalPlonkVerifier ||
+		!deployedL2Contracts.fraudPlonkVerifier
+	) {
+		throw new Error('all l2 contracts should be deployed')
 	}
 
 	console.log('----------L1 contracts----------')
@@ -20,7 +31,7 @@ async function main() {
 
 	// l1 contracts
 	for (const contract of l1Contracts) {
-		const address = deployedContracts[contract as keyof DeployedContracts]
+		const address = deployedL1Contracts[contract as keyof DeployedContracts]
 		if (!address) {
 			throw new Error(`${contract} should be deployed`)
 		}
@@ -41,7 +52,7 @@ async function main() {
 
 	// l2 contracts
 	for (const contract of l2Contracts) {
-		const address = deployedContracts[contract as keyof DeployedContracts]
+		const address = deployedL2Contracts[contract as keyof DeployedContracts]
 		if (!address) {
 			throw new Error(`${contract} should be deployed`)
 		}

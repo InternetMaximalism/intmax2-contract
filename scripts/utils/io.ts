@@ -8,8 +8,10 @@ import { network } from 'hardhat'
 
 const deployedContractPath = 'scripts/data/{networkName}-deployedContracts.json'
 
-export async function readDeployedContracts(): Promise<DeployedContracts> {
-	const path = deployedContractPath.replace('{networkName}', network.name)
+export async function readDeployedContracts(
+	networkName: string = network.name,
+): Promise<DeployedContracts> {
+	const path = deployedContractPath.replace('{networkName}', networkName)
 	try {
 		const data = await fs.readJson(path)
 		return DeployedContractsSchema.parse(data)
@@ -25,8 +27,9 @@ export async function readDeployedContracts(): Promise<DeployedContracts> {
 
 export async function writeDeployedContracts(
 	data: DeployedContracts,
+	networkName: string = network.name,
 ): Promise<void> {
-	const path = deployedContractPath.replace('{networkName}', network.name)
+	const path = deployedContractPath.replace('{networkName}', networkName)
 	try {
 		const validatedUsers = DeployedContractsSchema.parse(data)
 		await fs.writeJson(path, validatedUsers, { spaces: 4 })

@@ -6,6 +6,7 @@ import {
 	getWBTCAddress,
 } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
+import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 
 async function main() {
 	let deployedContracts = await readDeployedContracts()
@@ -31,20 +32,26 @@ async function main() {
 		})
 		const deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
-			l2Contribution: await l1Contribution.getAddress(),
+			l1Contribution: await l1Contribution.getAddress(),
 			...deployedContracts,
 		})
 	}
 
-	deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.liquidity) {
 		console.log('deploying liquidity')
-		if (!deployedContracts.rollup) {
+		const deployedL2Contracts = await readDeployedContracts(
+			getCounterPartNetwork(),
+		)
+		if (!deployedL2Contracts.rollup) {
 			throw new Error('rollup address is not set')
 		}
-		if (!deployedContracts.withdrawal) {
+		if (!deployedL2Contracts.withdrawal) {
 			throw new Error('withdrawal address is not set')
 		}
+		if (!deployedContracts.l1Contribution) {
+			throw new Error('l1Contribution address is not set')
+		}
+
 		const analyzer = (await ethers.getSigners())[1]
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		const initialERC20Tokens = [getUSDCAddress(), getWBTCAddress()]
@@ -52,8 +59,8 @@ async function main() {
 			liquidityFactory,
 			[
 				await getL1MessengerAddress(),
-				deployedContracts.rollup,
-				deployedContracts.withdrawal,
+				deployedL2Contracts.rollup,
+				deployedL2Contracts.withdrawal,
 				analyzer.address,
 				deployedContracts.l1Contribution,
 				initialERC20Tokens,
@@ -62,6 +69,22 @@ async function main() {
 				kind: 'uups',
 			},
 		)
+
+		// grant roles
+		if (!deployedContracts.l1Contribution) {
+			throw new Error('l1Contribution address is not set')
+		}
+		const l1Contribution = await ethers.getContractAt(
+			'Contribution',
+			deployedContracts.l1Contribution,
+		)
+		await l1Contribution.grantRole(
+			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+			liquidity,
+		)
+		console.log('granted role')
+
+		deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
 			liquidity: await liquidity.getAddress(),
 			...deployedContracts,
