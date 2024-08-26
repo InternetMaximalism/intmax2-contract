@@ -10,19 +10,19 @@ import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 
 async function main() {
 	let deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.mockL1ScrollMessenger) {
-		console.log('deploying mockL1ScrollMessenger')
-		const MockL1ScrollMessenger_ = await ethers.getContractFactory(
-			'MockL1ScrollMessenger',
-		)
-		const l1ScrollMessenger = await MockL1ScrollMessenger_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			mockL1ScrollMessenger: await l1ScrollMessenger.getAddress(),
-			...deployedContracts,
-		})
-		await sleep(30)
-	}
+	// if (!deployedContracts.mockL1ScrollMessenger) {
+	// 	console.log('deploying mockL1ScrollMessenger')
+	// 	const MockL1ScrollMessenger_ = await ethers.getContractFactory(
+	// 		'MockL1ScrollMessenger',
+	// 	)
+	// 	const l1ScrollMessenger = await MockL1ScrollMessenger_.deploy()
+	// 	const deployedContracts = await readDeployedContracts()
+	// 	await writeDeployedContracts({
+	// 		mockL1ScrollMessenger: await l1ScrollMessenger.getAddress(),
+	// 		...deployedContracts,
+	// 	})
+	// 	await sleep(30)
+	// }
 
 	if (!deployedContracts.l1Contribution) {
 		console.log('deploying l1Contribution')
@@ -91,17 +91,17 @@ async function main() {
 		})
 	}
 
-	if (!deployedContracts.testErc20) {
-		console.log('deploying testErc20')
-		const TestERC20 = await ethers.getContractFactory('TestERC20')
-		const owner = (await ethers.getSigners())[0]
-		const testErc20 = await TestERC20.deploy(owner.address)
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			testErc20: await testErc20.getAddress(),
-			...deployedContracts,
-		})
-	}
+	// if (!deployedContracts.testErc20) {
+	// 	console.log('deploying testErc20')
+	// 	const TestERC20 = await ethers.getContractFactory('TestERC20')
+	// 	const owner = (await ethers.getSigners())[0]
+	// 	const testErc20 = await TestERC20.deploy(owner.address)
+	// 	const deployedContracts = await readDeployedContracts()
+	// 	await writeDeployedContracts({
+	// 		testErc20: await testErc20.getAddress(),
+	// 		...deployedContracts,
+	// 	})
+	// }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -110,3 +110,5 @@ main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1
 })
+
+ //npx hardhat run --network mainnet scripts/deploy/2_deployToL1.ts

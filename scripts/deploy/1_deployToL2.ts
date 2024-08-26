@@ -19,6 +19,7 @@ async function main() {
 		}
 		await writeDeployedContracts(newContractAddresses)
 		await sleep(30)
+		ethers.ZeroHash
 	}
 
 	if (!deployedContracts.blockBuilderRegistry) {
@@ -74,44 +75,44 @@ async function main() {
 		await sleep(30)
 	}
 
-	const MockPlonkVerifier_ =
-		await ethers.getContractFactory('MockPlonkVerifier')
+	// const MockPlonkVerifier_ =
+	// 	await ethers.getContractFactory('MockPlonkVerifier')
 
-	if (!deployedContracts.withdrawalPlonkVerifier) {
-		console.log('deploying withdrawalPlonkVerifier')
-		const withdrawalVerifier = await MockPlonkVerifier_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		const newContractAddresses = {
-			withdrawalPlonkVerifier: await withdrawalVerifier.getAddress(),
-			...deployedContracts,
-		}
-		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
-	}
+	// if (!deployedContracts.withdrawalPlonkVerifier) {
+	// 	console.log('deploying withdrawalPlonkVerifier')
+	// 	const withdrawalVerifier = await MockPlonkVerifier_.deploy()
+	// 	const deployedContracts = await readDeployedContracts()
+	// 	const newContractAddresses = {
+	// 		withdrawalPlonkVerifier: await withdrawalVerifier.getAddress(),
+	// 		...deployedContracts,
+	// 	}
+	// 	await writeDeployedContracts(newContractAddresses)
+	// 	await sleep(30)
+	// }
 
-	if (!deployedContracts.fraudPlonkVerifier) {
-		console.log('deploying fraudPlonkVerifier')
-		const fraudVerifier = await MockPlonkVerifier_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			fraudPlonkVerifier: await fraudVerifier.getAddress(),
-			...deployedContracts,
-		})
-		await sleep(30)
-	}
+	// if (!deployedContracts.fraudPlonkVerifier) {
+	// 	console.log('deploying fraudPlonkVerifier')
+	// 	const fraudVerifier = await MockPlonkVerifier_.deploy()
+	// 	const deployedContracts = await readDeployedContracts()
+	// 	await writeDeployedContracts({
+	// 		fraudPlonkVerifier: await fraudVerifier.getAddress(),
+	// 		...deployedContracts,
+	// 	})
+	// 	await sleep(30)
+	// }
 
-	if (!deployedContracts.mockL2ScrollMessenger) {
-		console.log('deploying mockL2ScrollMessenger')
-		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
-			'MockL2ScrollMessenger',
-		)
-		const l2ScrollMessenger = await MockL2ScrollMessenger_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			mockL2ScrollMessenger: await l2ScrollMessenger.getAddress(),
-			...deployedContracts,
-		})
-	}
+	// if (!deployedContracts.mockL2ScrollMessenger) {
+	// 	console.log('deploying mockL2ScrollMessenger')
+	// 	const MockL2ScrollMessenger_ = await ethers.getContractFactory(
+	// 		'MockL2ScrollMessenger',
+	// 	)
+	// 	const l2ScrollMessenger = await MockL2ScrollMessenger_.deploy()
+	// 	const deployedContracts = await readDeployedContracts()
+	// 	await writeDeployedContracts({
+	// 		mockL2ScrollMessenger: await l2ScrollMessenger.getAddress(),
+	// 		...deployedContracts,
+	// 	})
+	// }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
@@ -120,3 +121,5 @@ main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1
 })
+
+// npx hardhat run --network scroll scripts/deploy/1_deployToL2.ts

@@ -117,9 +117,9 @@ contract BlockBuilderRegistry is
 		if (slashedBlockNumbers[publicInputs.blockNumber]) {
 			revert FraudProofAlreadySubmitted();
 		}
-		if (!fraudVerifier.Verify(proof, publicInputs.getHash().split())) {
-			revert FraudProofVerificationFailed();
-		}
+		// if (!fraudVerifier.Verify(proof, publicInputs.getHash().split())) {
+		// 	revert FraudProofVerificationFailed();
+		// }
 		slashedBlockNumbers[publicInputs.blockNumber] = true;
 		_slashBlockBuilder(builder, _msgSender());
 

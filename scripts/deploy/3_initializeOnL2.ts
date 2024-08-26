@@ -10,8 +10,6 @@ async function main() {
 		!deployedL2Contracts.rollup ||
 		!deployedL2Contracts.withdrawal ||
 		!deployedL2Contracts.blockBuilderRegistry ||
-		!deployedL2Contracts.withdrawalPlonkVerifier ||
-		!deployedL2Contracts.fraudPlonkVerifier ||
 		!deployedL2Contracts.l2Contribution
 	) {
 		throw new Error('all l2 contracts should be deployed')
@@ -58,7 +56,7 @@ async function main() {
 		await tx.wait()
 		console.log('Rollup initialized')
 		await sleep(10)
-		await l2Contribution.grantRole(contributorRole, rollup)
+		await l2Contribution.grantRole(contributorRole, await rollup.getAddress())
 		await sleep(20)
 	}
 	if ((await withdrawal.owner()) === ethers.ZeroAddress) {
@@ -66,7 +64,7 @@ async function main() {
 		console.log('Initializing Withdrawal')
 		const tx = await withdrawal.initialize(
 			await getL2MessengerAddress(),
-			deployedL2Contracts.withdrawalPlonkVerifier,
+			ethers.ZeroAddress,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
 			deployedL2Contracts.l2Contribution,
@@ -75,7 +73,7 @@ async function main() {
 		await tx.wait()
 		console.log('Withdrawal initialized')
 		await sleep(10)
-		await l2Contribution.grantRole(contributorRole, withdrawal)
+		await l2Contribution.grantRole(contributorRole, await withdrawal.getAddress())
 		await sleep(20)
 	}
 	if ((await registry.owner()) === ethers.ZeroAddress) {
@@ -83,7 +81,7 @@ async function main() {
 		console.log('Initializing BlockBuilderRegistry')
 		const tx = await registry.initialize(
 			deployedL2Contracts.rollup,
-			deployedL2Contracts.fraudPlonkVerifier,
+			ethers.ZeroAddress,
 		)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
@@ -96,3 +94,5 @@ main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1
 })
+
+//  npx hardhat run --network scroll scripts/deploy/3_initializeOnL2.ts

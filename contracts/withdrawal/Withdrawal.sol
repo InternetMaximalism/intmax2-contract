@@ -62,7 +62,6 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 			calldata publicInputs,
 		bytes calldata proof
 	) external onlyOwner {
-		_validateWithdrawalProof(withdrawals, publicInputs, proof);
 		uint256 directWithdrawalCounter = 0;
 		uint256 claimableWithdrawalCounter = 0;
 		bool[] memory isSkippedFlags = new bool[](withdrawals.length);

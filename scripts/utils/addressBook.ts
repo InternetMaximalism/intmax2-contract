@@ -5,6 +5,9 @@ export const getUSDCAddress = () => {
 	if (network.name === 'sepolia') {
 		return '0xf08A50178dfcDe18524640EA6618a1f965821715'
 	}
+	if (network.name === 'mainnet') {
+		return '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+	}	
 	if (network.name === 'localhost') {
 		// provisional measures
 		return '0x0000000000000000000000000000000000000001'
@@ -16,6 +19,9 @@ export const getUSDCAddress = () => {
 export const getWBTCAddress = () => {
 	if (network.name === 'sepolia') {
 		return '0x92f3B59a79bFf5dc60c0d59eA13a44D082B2bdFC'
+	}
+	if (network.name === 'mainnet') {
+		return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
 	}
 	if (network.name === 'localhost') {
 		// provisional measures
@@ -34,6 +40,11 @@ export const getL1MessengerAddress = async () => {
 			return deployedContracts.mockL1ScrollMessenger
 		}
 	}
+	// https://docs.scroll.io/en/developers/scroll-contracts/
+	// https://etherscan.io/address/0x6774bcbd5cecef1336b5300fb5186a12ddd8b367
+	if (network.name === 'mainnet') {
+		return '0x6774Bcbd5ceCeF1336b5300fb5186a12DDD8b367'
+	}
 	if (network.name === 'localhost') {
 		// provisional measures
 		return ethers.ZeroAddress
@@ -50,6 +61,11 @@ export const getL2MessengerAddress = async () => {
 		} else {
 			return deployedContracts.mockL2ScrollMessenger // mock address
 		}
+	}
+	// https://docs.scroll.io/en/developers/scroll-contracts/
+	// https://scrollscan.com/address/0x781e90f1c8fc4611c9b7497c3b47f99ef6969cbc#code
+	if (network.name === 'scroll') {
+		return '0x781e90f1c8Fc4611c9b7497C3B47F99Ef6969CbC'
 	}
 	if (network.name === 'localhost') {
 		// provisional measures
