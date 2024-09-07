@@ -123,4 +123,8 @@ interface IRollup {
 	/// @param blockNumber The block number to query
 	/// @return The hash of the specified block
 	function getBlockHash(uint32 blockNumber) external view returns (bytes32);
+
+	/// @notice Get the deposit tree root
+	/// @return The deposit tree root
+	function depositTreeRoot() external view returns (bytes32);
 }
