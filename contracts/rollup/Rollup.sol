@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import {IRollup} from "./IRollup.sol";
-import {IBlockBuilderRegistry} from "../block-builder-registry/IBlockBuilderRegistry.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 
@@ -20,7 +19,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	uint256 private constant NUM_SENDERS_IN_BLOCK = 128;
 	uint256 private constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
 
-	IBlockBuilderRegistry private blockBuilderRegistry;
 	address private liquidity;
 	uint256 public lastProcessedDepositId;
 	bytes32[] public blockHashes;
@@ -51,7 +49,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	function initialize(
 		address _scrollMessenger,
 		address _liquidity,
-		address _blockBuilderRegistry,
 		address _contribution
 	) public initializer {
 		__Ownable_init(_msgSender());
@@ -59,7 +56,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		depositTree.initialize();
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		liquidity = _liquidity;
-		blockBuilderRegistry = IBlockBuilderRegistry(_blockBuilderRegistry);
 		contribution = IContribution(_contribution);
 
 		depositTreeRoot = depositTree.getRoot();
@@ -165,9 +161,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		if (!blockBuilderRegistry.isValidBlockBuilder(_msgSender())) {
-			revert InvalidBlockBuilder();
-		}
 		bool success = PairingLib.pairing(
 			aggregatedPublicKey,
 			aggregatedSignature,

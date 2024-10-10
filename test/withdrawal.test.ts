@@ -32,7 +32,6 @@ describe('Withdrawal', function () {
 		await rollup.initialize(
 			ethers.ZeroAddress,
 			ethers.ZeroAddress,
-			await registry.getAddress(),
 			await contribution.getAddress(),
 		)
 		const rollupAddress = await rollup.getAddress()

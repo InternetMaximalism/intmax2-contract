@@ -45,7 +45,6 @@ describe('Rollup', () => {
 			[
 				await l2ScrollMessenger.getAddress(),
 				liquidity,
-				await blockBuilderRegistry.getAddress(),
 				await contribution.getAddress(),
 			],
 			{ kind: 'uups' },
@@ -147,7 +146,6 @@ describe('Rollup', () => {
 
 				await expect(
 					rollup.initialize(
-						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
@@ -283,22 +281,6 @@ describe('Rollup', () => {
 						inputs.senderPublicKeys,
 					),
 				).to.be.revertedWithCustomError(rollup, 'TooManySenderPublicKeys')
-			})
-			it('revert InvalidBlockBuilder', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
-				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(false)
-
-				await expect(
-					rollup.postRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.senderPublicKeys,
-					),
-				).to.be.revertedWithCustomError(rollup, 'InvalidBlockBuilder')
 			})
 			it('revert PairingCheckFailed', async () => {
 				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
@@ -517,23 +499,6 @@ describe('Rollup', () => {
 						inputs.senderAccountIds,
 					),
 				).to.be.revertedWithCustomError(rollup, 'SenderAccountIdsInvalidLength')
-			})
-			it('revert InvalidBlockBuilder', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
-				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(false)
-
-				await expect(
-					rollup.postNonRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.publicKeysHash,
-						inputs.senderAccountIds,
-					),
-				).to.be.revertedWithCustomError(rollup, 'InvalidBlockBuilder')
 			})
 			it('revert PairingCheckFailed', async () => {
 				const [rollup, blockBuilderRegistry] = await loadFixture(setup)

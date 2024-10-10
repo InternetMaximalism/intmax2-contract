@@ -41,7 +41,6 @@ describe('Rollup', function () {
 		await rollup.initialize(
 			await mockL2ScrollMessenger.getAddress(),
 			ethers.ZeroAddress,
-			await registry.getAddress(),
 			await contribution.getAddress(),
 		)
 		await contribution.grantRole(
