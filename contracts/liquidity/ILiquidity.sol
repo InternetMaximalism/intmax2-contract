@@ -6,6 +6,9 @@ import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
 
 interface ILiquidity {
+	/// @notice address is zero address
+	error AddressZero();
+
 	/// @notice Error thrown when someone other than the original depositor tries to cancel a deposit
 	error OnlySenderCanCancelDeposit();
 

@@ -6,6 +6,9 @@ import {ChainedWithdrawalLib} from "./lib/ChainedWithdrawalLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 
 interface IWithdrawal {
+	/// @notice address is zero address
+	error AddressZero();
+
 	/// @notice Error thrown when the verification of the withdrawal proof's public input hash chain fails
 	error WithdrawalChainVerificationFailed();
 

@@ -4,6 +4,9 @@ pragma solidity 0.8.24;
 /// @title IRollup
 /// @notice Interface for the Rollup contract
 interface IRollup {
+	/// @notice address is zero address
+	error AddressZero();
+
 	/// @notice Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
 	error OnlyScrollMessenger();
 
