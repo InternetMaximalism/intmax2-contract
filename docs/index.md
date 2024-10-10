@@ -50,10 +50,10 @@ Initialize the contract.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _rollup | address | The address of the rollup contract. |
-| _fraudVerifier | address |  |
+| Name            | Type    | Description                         |
+| --------------- | ------- | ----------------------------------- |
+| \_rollup        | address | The address of the rollup contract. |
+| \_fraudVerifier | address |                                     |
 
 ### updateBlockBuilder
 
@@ -68,9 +68,9 @@ The block builder must send at least 0.1 ETH to this contract to register._
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL or IP address of Block builder. |
+| Name | Type   | Description                             |
+| ---- | ------ | --------------------------------------- |
+| url  | string | The URL or IP address of Block builder. |
 
 ### stopBlockBuilder
 
@@ -91,8 +91,8 @@ function unstake() external
 unstake after stoping block builder.
 
 _You cannot unstake within one day of the Block Builder's last block submission.
- This is because a fraud proof may be submitted against the posted block, which could result
- in a reduction of the stake._
+This is because a fraud proof may be submitted against the posted block, which could result
+in a reduction of the stake._
 
 ### submitBlockFraudProof
 
@@ -104,10 +104,10 @@ Submits a fraud proof to demonstrate that a block submitted by a block builder i
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type                                                    | Description                       |
+| ------------ | ------------------------------------------------------- | --------------------------------- |
 | publicInputs | struct FraudProofPublicInputsLib.FraudProofPublicInputs | Public inputs of the fraud proof. |
-| proof | bytes | The fraud proof itself. |
+| proof        | bytes                                                   | The fraud proof itself.           |
 
 ### isValidBlockBuilder
 
@@ -121,15 +121,15 @@ _The block builder is valid if the stake amount is greater than or equal to 0.1 
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                       |
+| ------------ | ------- | --------------------------------- |
 | blockBuilder | address | The address of the block builder. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | True if the block builder is valid. |
+| Name | Type | Description                         |
+| ---- | ---- | ----------------------------------- |
+| [0]  | bool | True if the block builder is valid. |
 
 ### setBurnAddress
 
@@ -143,9 +143,9 @@ _The burn address is used to burn the stake amount when the block builder is sla
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _burnAddress | address | The burn address. |
+| Name          | Type    | Description       |
+| ------------- | ------- | ----------------- |
+| \_burnAddress | address | The burn address. |
 
 ### getValidBlockBuilders
 
@@ -157,11 +157,11 @@ Get the block builder information of valid block builders.
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct IBlockBuilderRegistry.BlockBuilderInfoWithAddress[] | The block builder information. |
+| Name | Type                                                       | Description                    |
+| ---- | ---------------------------------------------------------- | ------------------------------ |
+| [0]  | struct IBlockBuilderRegistry.BlockBuilderInfoWithAddress[] | The block builder information. |
 
-### _authorizeUpgrade
+### \_authorizeUpgrade
 
 ```solidity
 function _authorizeUpgrade(address) internal
@@ -233,10 +233,10 @@ Error thrown when the block hash in public input doesn't match the contract's re
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| given | bytes32 | The block hash provided in the public input |
-| expected | bytes32 | The block hash expected by the contract |
+| Name     | Type    | Description                                 |
+| -------- | ------- | ------------------------------------------- |
+| given    | bytes32 | The block hash provided in the public input |
+| expected | bytes32 | The block hash expected by the contract     |
 
 ### FraudProofChallengerMismatch
 
@@ -256,11 +256,11 @@ Event emitted when a fraud proof is submitted
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockNumber | uint32 | The number of the block being challenged |
-| blockBuilder | address | The address of the block builder being challenged |
-| challenger | address | The address of the challenger submitting the fraud proof |
+| Name         | Type    | Description                                              |
+| ------------ | ------- | -------------------------------------------------------- |
+| blockNumber  | uint32  | The number of the block being challenged                 |
+| blockBuilder | address | The address of the block builder being challenged        |
+| challenger   | address | The address of the challenger submitting the fraud proof |
 
 ### BlockBuilderUpdated
 
@@ -272,11 +272,11 @@ Event emitted when a block builder is updated
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockBuilder | address | The address of the updated block builder |
-| url | string | The new URL of the block builder |
-| stakeAmount | uint256 | The new stake amount of the block builder |
+| Name         | Type    | Description                               |
+| ------------ | ------- | ----------------------------------------- |
+| blockBuilder | address | The address of the updated block builder  |
+| url          | string  | The new URL of the block builder          |
+| stakeAmount  | uint256 | The new stake amount of the block builder |
 
 ### BlockBuilderStopped
 
@@ -288,8 +288,8 @@ Event emitted when a block builder stops operations
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                                   |
+| ------------ | ------- | --------------------------------------------- |
 | blockBuilder | address | The address of the block builder that stopped |
 
 ### BlockBuilderSlashed
@@ -302,10 +302,10 @@ Event emitted when a block builder is slashed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockBuilder | address | The address of the slashed block builder |
-| challenger | address | The address of the challenger who submitted the fraud proof |
+| Name         | Type    | Description                                                 |
+| ------------ | ------- | ----------------------------------------------------------- |
+| blockBuilder | address | The address of the slashed block builder                    |
+| challenger   | address | The address of the challenger who submitted the fraud proof |
 
 ### BlockBuilderInfo
 
@@ -318,11 +318,11 @@ Block builder information.
 
 ```solidity
 struct BlockBuilderInfo {
-  string blockBuilderUrl;
-  uint256 stakeAmount;
-  uint256 stopTime;
-  uint256 numSlashes;
-  bool isValid;
+	string blockBuilderUrl;
+	uint256 stakeAmount;
+	uint256 stopTime;
+	uint256 numSlashes;
+	bool isValid;
 }
 ```
 
@@ -355,9 +355,9 @@ The block builder must send at least 0.1 ETH to this contract to register._
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL or IP address of Block builder. |
+| Name | Type   | Description                             |
+| ---- | ------ | --------------------------------------- |
+| url  | string | The URL or IP address of Block builder. |
 
 ### stopBlockBuilder
 
@@ -378,8 +378,8 @@ function unstake() external
 unstake after stoping block builder.
 
 _You cannot unstake within one day of the Block Builder's last block submission.
- This is because a fraud proof may be submitted against the posted block, which could result
- in a reduction of the stake._
+This is because a fraud proof may be submitted against the posted block, which could result
+in a reduction of the stake._
 
 ### submitBlockFraudProof
 
@@ -391,10 +391,10 @@ Submits a fraud proof to demonstrate that a block submitted by a block builder i
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type                                                    | Description                       |
+| ------------ | ------------------------------------------------------- | --------------------------------- |
 | publicInputs | struct FraudProofPublicInputsLib.FraudProofPublicInputs | Public inputs of the fraud proof. |
-| proof | bytes | The fraud proof itself. |
+| proof        | bytes                                                   | The fraud proof itself.           |
 
 ### isValidBlockBuilder
 
@@ -408,15 +408,15 @@ _The block builder is valid if the stake amount is greater than or equal to 0.1 
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                       |
+| ------------ | ------- | --------------------------------- |
 | blockBuilder | address | The address of the block builder. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | True if the block builder is valid. |
+| Name | Type | Description                         |
+| ---- | ---- | ----------------------------------- |
+| [0]  | bool | True if the block builder is valid. |
 
 ### getValidBlockBuilders
 
@@ -428,9 +428,9 @@ Get the block builder information of valid block builders.
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct IBlockBuilderRegistry.BlockBuilderInfoWithAddress[] | The block builder information. |
+| Name | Type                                                       | Description                    |
+| ---- | ---------------------------------------------------------- | ------------------------------ |
+| [0]  | struct IBlockBuilderRegistry.BlockBuilderInfoWithAddress[] | The block builder information. |
 
 ### setBurnAddress
 
@@ -444,9 +444,9 @@ _The burn address is used to burn the stake amount when the block builder is sla
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _burnAddress | address | The burn address. |
+| Name          | Type    | Description       |
+| ------------- | ------- | ----------------- |
+| \_burnAddress | address | The burn address. |
 
 ## FraudProofPublicInputsLib
 
@@ -458,9 +458,9 @@ _This structure contains the necessary public inputs for a fraud proof_
 
 ```solidity
 struct FraudProofPublicInputs {
-  bytes32 blockHash;
-  uint32 blockNumber;
-  address challenger;
+	bytes32 blockHash;
+	uint32 blockNumber;
+	address challenger;
 }
 ```
 
@@ -474,15 +474,15 @@ Calculates the hash of the public inputs
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name   | Type                                                    | Description                          |
+| ------ | ------------------------------------------------------- | ------------------------------------ |
 | inputs | struct FraudProofPublicInputsLib.FraudProofPublicInputs | The FraudProofPublicInputs structure |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The calculated hash of the inputs |
+| Name | Type    | Description                       |
+| ---- | ------- | --------------------------------- |
+| [0]  | bytes32 | The calculated hash of the inputs |
 
 ## Byte32Lib
 
@@ -496,15 +496,15 @@ Splits a bytes32 into an array of uint256, each representing 4 bytes
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name  | Type    | Description                   |
+| ----- | ------- | ----------------------------- |
 | input | bytes32 | The bytes32 value to be split |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of 8 uint256 values, each representing 4 bytes of the input |
+| Name | Type      | Description                                                          |
+| ---- | --------- | -------------------------------------------------------------------- |
+| [0]  | uint256[] | An array of 8 uint256 values, each representing 4 bytes of the input |
 
 ## DepositLib
 
@@ -514,9 +514,9 @@ _Represents a leaf in the Deposit tree_
 
 ```solidity
 struct Deposit {
-  bytes32 recipientSaltHash;
-  uint32 tokenIndex;
-  uint256 amount;
+	bytes32 recipientSaltHash;
+	uint32 tokenIndex;
+	uint256 amount;
 }
 ```
 
@@ -530,15 +530,15 @@ Calculates the hash of a Deposit struct
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name    | Type                      | Description                     |
+| ------- | ------------------------- | ------------------------------- |
 | deposit | struct DepositLib.Deposit | The Deposit struct to be hashed |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The calculated hash of the Deposit |
+| Name | Type    | Description                                |
+| ---- | ------- | ------------------------------------------ |
+| [0]  | bytes32 | bytes32 The calculated hash of the Deposit |
 
 ## IPlonkVerifier
 
@@ -553,15 +553,15 @@ Reverts if the proof or the public inputs are malformed.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
-| publicInputs | uint256[] | (must be reduced) |
+| Name         | Type      | Description                                            |
+| ------------ | --------- | ------------------------------------------------------ |
+| proof        | bytes     | serialised plonk proof (using gnark's MarshalSolidity) |
+| publicInputs | uint256[] | (must be reduced)                                      |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name    | Type | Description                              |
+| ------- | ---- | ---------------------------------------- |
 | success | bool | true if the proof passes false otherwise |
 
 ## WithdrawalLib
@@ -572,10 +572,10 @@ _Represents the information for a withdrawal operation_
 
 ```solidity
 struct Withdrawal {
-  address recipient;
-  uint32 tokenIndex;
-  uint256 amount;
-  uint256 id;
+	address recipient;
+	uint32 tokenIndex;
+	uint256 amount;
+	uint256 id;
 }
 ```
 
@@ -589,15 +589,15 @@ Calculates the hash of a Withdrawal struct
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name       | Type                            | Description                        |
+| ---------- | ------------------------------- | ---------------------------------- |
 | withdrawal | struct WithdrawalLib.Withdrawal | The Withdrawal struct to be hashed |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The calculated hash of the Withdrawal |
+| Name | Type    | Description                                   |
+| ---- | ------- | --------------------------------------------- |
+| [0]  | bytes32 | bytes32 The calculated hash of the Withdrawal |
 
 ## Contribution
 
@@ -671,15 +671,15 @@ Get the list of tags registered for a specific period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32[] | An array of bytes32 representing the tags. |
+| Name | Type      | Description                                |
+| ---- | --------- | ------------------------------------------ |
+| [0]  | bytes32[] | An array of bytes32 representing the tags. |
 
 ### getWeights
 
@@ -691,15 +691,15 @@ Get the weights array for a specified period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of uint256 representing the weights. |
+| Name | Type      | Description                                   |
+| ---- | --------- | --------------------------------------------- |
+| [0]  | uint256[] | An array of uint256 representing the weights. |
 
 ### incrementPeriod
 
@@ -719,11 +719,11 @@ Register tags and their corresponding weights for a period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| periodNumber | uint256 | The number of the period to register for. |
-| tags | bytes32[] | An array of bytes32 representing the tags. |
-| weights | uint256[] | An array of uint256 representing the weights corresponding to the tags. |
+| Name         | Type      | Description                                                             |
+| ------------ | --------- | ----------------------------------------------------------------------- |
+| periodNumber | uint256   | The number of the period to register for.                               |
+| tags         | bytes32[] | An array of bytes32 representing the tags.                              |
+| weights      | uint256[] | An array of uint256 representing the weights corresponding to the tags. |
 
 ### recordContribution
 
@@ -735,11 +735,11 @@ Record a contribution for a specific tag and user.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag associated with the contribution. |
-| user | address | The address of the user making the contribution. |
-| amount | uint256 | The amount of contribution to record. |
+| Name   | Type    | Description                                      |
+| ------ | ------- | ------------------------------------------------ |
+| tag    | bytes32 | The tag associated with the contribution.        |
+| user   | address | The address of the user making the contribution. |
+| amount | uint256 | The amount of contribution to record.            |
 
 ### getCurrentContribution
 
@@ -753,16 +753,16 @@ _This function does not apply any weighting to the contribution_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag (as bytes32) for which the contribution is being queried |
-| user | address | The address of the user whose contribution is being queried |
+| Name | Type    | Description                                                      |
+| ---- | ------- | ---------------------------------------------------------------- |
+| tag  | bytes32 | The tag (as bytes32) for which the contribution is being queried |
+| user | address | The address of the user whose contribution is being queried      |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The unweighted contribution amount as a uint256 |
+| Name | Type    | Description                                     |
+| ---- | ------- | ----------------------------------------------- |
+| [0]  | uint256 | The unweighted contribution amount as a uint256 |
 
 ### getContributionRate
 
@@ -774,29 +774,29 @@ Get the contribution rate of a specific user for a given period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
-| user | address | The address of the user to check. |
+| user         | address | The address of the user to check.  |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | UD60x18 | The contribution rate as a UD60x18 value, representing the user's share of the total contribution. |
+| Name | Type    | Description                                                                                        |
+| ---- | ------- | -------------------------------------------------------------------------------------------------- |
+| [0]  | UD60x18 | The contribution rate as a UD60x18 value, representing the user's share of the total contribution. |
 
-### _authorizeUpgrade
+### \_authorizeUpgrade
 
 ```solidity
 function _authorizeUpgrade(address newImplementation) internal
 ```
 
-_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
+\_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
 {upgradeToAndCall}.
 
 Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
 
-```solidity
+````solidity
 function _authorizeUpgrade(address) internal onlyOwner {}
 ```_
 
@@ -806,7 +806,7 @@ function _authorizeUpgrade(address) internal onlyOwner {}
 
 ```solidity
 error InvalidInputLength()
-```
+````
 
 Error thrown when the input lengths of tags and weights do not match in registerWeights function
 
@@ -822,15 +822,15 @@ Get the list of tags registered for a specific period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32[] | An array of bytes32 representing the tags. |
+| Name | Type      | Description                                |
+| ---- | --------- | ------------------------------------------ |
+| [0]  | bytes32[] | An array of bytes32 representing the tags. |
 
 ### getWeights
 
@@ -842,15 +842,15 @@ Get the weights array for a specified period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of uint256 representing the weights. |
+| Name | Type      | Description                                   |
+| ---- | --------- | --------------------------------------------- |
+| [0]  | uint256[] | An array of uint256 representing the weights. |
 
 ### registerWeights
 
@@ -862,11 +862,11 @@ Register tags and their corresponding weights for a period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| periodNumber | uint256 | The number of the period to register for. |
-| tags | bytes32[] | An array of bytes32 representing the tags. |
-| weights | uint256[] | An array of uint256 representing the weights corresponding to the tags. |
+| Name         | Type      | Description                                                             |
+| ------------ | --------- | ----------------------------------------------------------------------- |
+| periodNumber | uint256   | The number of the period to register for.                               |
+| tags         | bytes32[] | An array of bytes32 representing the tags.                              |
+| weights      | uint256[] | An array of uint256 representing the weights corresponding to the tags. |
 
 ### incrementPeriod
 
@@ -886,11 +886,11 @@ Record a contribution for a specific tag and user.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag associated with the contribution. |
-| user | address | The address of the user making the contribution. |
-| amount | uint256 | The amount of contribution to record. |
+| Name   | Type    | Description                                      |
+| ------ | ------- | ------------------------------------------------ |
+| tag    | bytes32 | The tag associated with the contribution.        |
+| user   | address | The address of the user making the contribution. |
+| amount | uint256 | The amount of contribution to record.            |
 
 ### getCurrentContribution
 
@@ -904,16 +904,16 @@ _This function does not apply any weighting to the contribution_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag (as bytes32) for which the contribution is being queried |
-| user | address | The address of the user whose contribution is being queried |
+| Name | Type    | Description                                                      |
+| ---- | ------- | ---------------------------------------------------------------- |
+| tag  | bytes32 | The tag (as bytes32) for which the contribution is being queried |
+| user | address | The address of the user whose contribution is being queried      |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The unweighted contribution amount as a uint256 |
+| Name | Type    | Description                                     |
+| ---- | ------- | ----------------------------------------------- |
+| [0]  | uint256 | The unweighted contribution amount as a uint256 |
 
 ### getContributionRate
 
@@ -925,16 +925,16 @@ Get the contribution rate of a specific user for a given period.
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type    | Description                        |
+| ------------ | ------- | ---------------------------------- |
 | periodNumber | uint256 | The number of the period to query. |
-| user | address | The address of the user to check. |
+| user         | address | The address of the user to check.  |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | UD60x18 | The contribution rate as a UD60x18 value, representing the user's share of the total contribution. |
+| Name | Type    | Description                                                                                        |
+| ---- | ------- | -------------------------------------------------------------------------------------------------- |
+| [0]  | UD60x18 | The contribution rate as a UD60x18 value, representing the user's share of the total contribution. |
 
 ## ILiquidity
 
@@ -956,10 +956,10 @@ Error thrown when the provided deposit hash doesn't match the calculated hash du
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositDataHash | bytes32 | The hash from the deposit data |
-| calculatedHash | bytes32 | The hash calculated from given input |
+| Name            | Type    | Description                          |
+| --------------- | ------- | ------------------------------------ |
+| depositDataHash | bytes32 | The hash from the deposit data       |
+| calculatedHash  | bytes32 | The hash calculated from given input |
 
 ### SenderIsNotScrollMessenger
 
@@ -995,8 +995,8 @@ Error thrown when trying to claim a non-existent withdrawal
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name           | Type    | Description                                  |
+| -------------- | ------- | -------------------------------------------- |
 | withdrawalHash | bytes32 | The hash of the withdrawal that wasn't found |
 
 ### TriedToDepositZero
@@ -1033,14 +1033,14 @@ Event emitted when a deposit is made
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositId | uint256 | The unique identifier for the deposit |
-| sender | address | The address that made the deposit |
+| Name              | Type    | Description                                                                    |
+| ----------------- | ------- | ------------------------------------------------------------------------------ |
+| depositId         | uint256 | The unique identifier for the deposit                                          |
+| sender            | address | The address that made the deposit                                              |
 | recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address (BLS public key) and a secret salt |
-| tokenIndex | uint32 | The index of the token being deposited |
-| amount | uint256 | The amount of tokens deposited |
-| depositedAt | uint256 | The timestamp of the deposit |
+| tokenIndex        | uint32  | The index of the token being deposited                                         |
+| amount            | uint256 | The amount of tokens deposited                                                 |
+| depositedAt       | uint256 | The timestamp of the deposit                                                   |
 
 ### DepositsAnalyzedAndRelayed
 
@@ -1052,12 +1052,12 @@ Event emitted when deposits are analyzed and relayed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| upToDepositId | uint256 | The highest deposit ID that was analyzed |
-| rejectedIndices | uint256[] | Array of deposit IDs that were rejected |
-| gasLimit | uint256 | The gas limit for the L2 transaction |
-| message | bytes | Additional message data |
+| Name            | Type      | Description                              |
+| --------------- | --------- | ---------------------------------------- |
+| upToDepositId   | uint256   | The highest deposit ID that was analyzed |
+| rejectedIndices | uint256[] | Array of deposit IDs that were rejected  |
+| gasLimit        | uint256   | The gas limit for the L2 transaction     |
+| message         | bytes     | Additional message data                  |
 
 ### DepositCanceled
 
@@ -1069,8 +1069,8 @@ Event emitted when a deposit is canceled
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description                    |
+| --------- | ------- | ------------------------------ |
 | depositId | uint256 | The ID of the canceled deposit |
 
 ### WithdrawalClaimable
@@ -1083,8 +1083,8 @@ Event emitted when a withdrawal becomes claimable
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name           | Type    | Description                          |
+| -------------- | ------- | ------------------------------------ |
 | withdrawalHash | bytes32 | The hash of the claimable withdrawal |
 
 ### DirectWithdrawalsProcessed
@@ -1097,8 +1097,8 @@ Event emitted when direct withdrawals are processed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name                            | Type    | Description                                    |
+| ------------------------------- | ------- | ---------------------------------------------- |
 | lastProcessedDirectWithdrawalId | uint256 | The ID of the last processed direct withdrawal |
 
 ### ClaimableWithdrawalsProcessed
@@ -1111,8 +1111,8 @@ Event emitted when claimable withdrawals are processed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name                               | Type    | Description                                       |
+| ---------------------------------- | ------- | ------------------------------------------------- |
 | lastProcessedClaimableWithdrawalId | uint256 | The ID of the last processed claimable withdrawal |
 
 ### ClaimedWithdrawal
@@ -1125,10 +1125,10 @@ Event emitted when a withdrawal is claimed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| recipient | address | The address that claimed the withdrawal |
-| withdrawalHash | bytes32 | The hash of the claimed withdrawal |
+| Name           | Type    | Description                             |
+| -------------- | ------- | --------------------------------------- |
+| recipient      | address | The address that claimed the withdrawal |
+| withdrawalHash | bytes32 | The hash of the claimed withdrawal      |
 
 ### depositNativeToken
 
@@ -1142,8 +1142,8 @@ _recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a 
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
 
 ### depositERC20
@@ -1159,11 +1159,11 @@ recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a s
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC20 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC20 token contract               |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| amount | uint256 | The amount of tokens to deposit |
+| amount            | uint256 | The amount of tokens to deposit                       |
 
 ### depositERC721
 
@@ -1177,11 +1177,11 @@ _Requires prior approval for this contract to transfer the token_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC721 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC721 token contract              |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId | uint256 | The ID of the token to deposit |
+| tokenId           | uint256 | The ID of the token to deposit                        |
 
 ### depositERC1155
 
@@ -1193,12 +1193,12 @@ Deposit a specified amount of ERC1155 tokens
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC1155 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC1155 token contract             |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId | uint256 | The ID of the token to deposit |
-| amount | uint256 | The amount of tokens to deposit |
+| tokenId           | uint256 | The ID of the token to deposit                        |
+| amount            | uint256 | The amount of tokens to deposit                       |
 
 ### analyzeAndRelayDeposits
 
@@ -1213,11 +1213,11 @@ rejectDepositIndices must be greater than lastAnalyzedDeposit and less than or e
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| upToDepositId | uint256 | The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID. |
-| rejectDepositIds | uint256[] | An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId. |
-| gasLimit | uint256 | The gas limit for the l2 transaction. |
+| Name             | Type      | Description                                                                                                                                            |
+| ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| upToDepositId    | uint256   | The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID. |
+| rejectDepositIds | uint256[] | An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.                |
+| gasLimit         | uint256   | The gas limit for the l2 transaction.                                                                                                                  |
 
 ### cancelDeposit
 
@@ -1231,10 +1231,10 @@ _The deposit ID and its content should be included in the calldata_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit to cancel |
-| deposit | struct DepositLib.Deposit | The deposit data |
+| Name      | Type                      | Description                     |
+| --------- | ------------------------- | ------------------------------- |
+| depositId | uint256                   | The ID of the deposit to cancel |
+| deposit   | struct DepositLib.Deposit | The deposit data                |
 
 ### processWithdrawals
 
@@ -1246,12 +1246,12 @@ Process withdrawals, called by the scroll messenger
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastProcessedDirectWithdrawalId | uint256 | The ID of the last processed direct withdrawal |
-| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to process |
-| lastProcessedClaimableWithdrawalId | uint256 | The ID of the last processed claimable withdrawal |
-| withdrawalHahes | bytes32[] | Array of withdrawal hashes |
+| Name                               | Type                              | Description                                       |
+| ---------------------------------- | --------------------------------- | ------------------------------------------------- |
+| lastProcessedDirectWithdrawalId    | uint256                           | The ID of the last processed direct withdrawal    |
+| withdrawals                        | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to process                   |
+| lastProcessedClaimableWithdrawalId | uint256                           | The ID of the last processed claimable withdrawal |
+| withdrawalHahes                    | bytes32[]                         | Array of withdrawal hashes                        |
 
 ### getLastRelayedDepositId
 
@@ -1263,9 +1263,9 @@ Get the ID of the last deposit relayed to L2
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The ID of the last relayed deposit |
+| Name | Type    | Description                        |
+| ---- | ------- | ---------------------------------- |
+| [0]  | uint256 | The ID of the last relayed deposit |
 
 ### getLastDepositId
 
@@ -1277,9 +1277,9 @@ Get the ID of the last deposit to L2
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The ID of the last deposit |
+| Name | Type    | Description                |
+| ---- | ------- | -------------------------- |
+| [0]  | uint256 | The ID of the last deposit |
 
 ### getDepositData
 
@@ -1291,15 +1291,15 @@ Get deposit data for a given deposit ID
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description           |
+| --------- | ------- | --------------------- |
 | depositId | uint256 | The ID of the deposit |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData | The deposit data |
+| Name | Type                               | Description      |
+| ---- | ---------------------------------- | ---------------- |
+| [0]  | struct DepositQueueLib.DepositData | The deposit data |
 
 ### getDepositDataHash
 
@@ -1311,15 +1311,15 @@ Get deposit data hash for a given deposit ID
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description           |
+| --------- | ------- | --------------------- |
 | depositId | uint256 | The ID of the deposit |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The deposit data hash |
+| Name | Type    | Description           |
+| ---- | ------- | --------------------- |
+| [0]  | bytes32 | The deposit data hash |
 
 ### claimWithdrawals
 
@@ -1331,8 +1331,8 @@ Claim withdrawals for tokens that are not direct withdrawals
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                   |
+| ----------- | --------------------------------- | ----------------------------- |
 | withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to claim |
 
 ### isDepositOngoing
@@ -1345,19 +1345,19 @@ Check if the deposit is valid
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| Name              | Type    | Description                                                                    |
+| ----------------- | ------- | ------------------------------------------------------------------------------ |
+| depositId         | uint256 | The ID of the deposit                                                          |
 | recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address (BLS public key) and a secret salt |
-| tokenIndex | uint32 | The index of the token being deposited |
-| amount | uint256 | The amount of tokens deposited |
-| sender | address | The address that made the deposit |
+| tokenIndex        | uint32  | The index of the token being deposited                                         |
+| amount            | uint256 | The amount of tokens deposited                                                 |
+| sender            | address | The address that made the deposit                                              |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | if deposit is valid, return true |
+| Name | Type | Description                      |
+| ---- | ---- | -------------------------------- |
+| [0]  | bool | if deposit is valid, return true |
 
 ### onERC1155Received
 
@@ -1369,9 +1369,9 @@ ERC1155 token receiver function
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes4 | bytes4 The function selector |
+| Name | Type   | Description                  |
+| ---- | ------ | ---------------------------- |
+| [0]  | bytes4 | bytes4 The function selector |
 
 ## ITokenData
 
@@ -1389,10 +1389,10 @@ Enum representing different token types
 
 ```solidity
 enum TokenType {
-  NATIVE,
-  ERC20,
-  ERC721,
-  ERC1155
+	NATIVE,
+	ERC20,
+	ERC721,
+	ERC1155
 }
 ```
 
@@ -1418,15 +1418,15 @@ Retrieves token information for a given token index
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name       | Type   | Description            |
+| ---------- | ------ | ---------------------- |
 | tokenIndex | uint32 | The index of the token |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
+| Name | Type                        | Description                                         |
+| ---- | --------------------------- | --------------------------------------------------- |
+| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
 
 ### getTokenIndex
 
@@ -1438,18 +1438,18 @@ Retrieves the token index for given token parameters
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenType | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155) |
-| tokenAddress | address | The address of the token contract (zero address for native tokens) |
-| tokenId | uint256 | The ID of the token (used for ERC721 and ERC1155) |
+| Name         | Type                      | Description                                                        |
+| ------------ | ------------------------- | ------------------------------------------------------------------ |
+| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
+| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
+| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool Indicating whether the token index was found |
-| [1] | uint32 | uint32 The index of the token if found |
+| Name | Type   | Description                                       |
+| ---- | ------ | ------------------------------------------------- |
+| [0]  | bool   | bool Indicating whether the token index was found |
+| [1]  | uint32 | uint32 The index of the token if found            |
 
 ### getNativeTokenIndex
 
@@ -1461,9 +1461,9 @@ Retrieves the index of the native token
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | uint32 The index of the native token |
+| Name | Type   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| [0]  | uint32 | uint32 The index of the native token |
 
 ## Liquidity
 
@@ -1511,8 +1511,8 @@ _recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a 
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
 
 ### depositERC20
@@ -1528,11 +1528,11 @@ recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a s
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC20 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC20 token contract               |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| amount | uint256 | The amount of tokens to deposit |
+| amount            | uint256 | The amount of tokens to deposit                       |
 
 ### depositERC721
 
@@ -1546,11 +1546,11 @@ _Requires prior approval for this contract to transfer the token_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC721 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC721 token contract              |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId | uint256 | The ID of the token to deposit |
+| tokenId           | uint256 | The ID of the token to deposit                        |
 
 ### depositERC1155
 
@@ -1562,12 +1562,12 @@ Deposit a specified amount of ERC1155 tokens
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenAddress | address | The address of the ERC1155 token contract |
+| Name              | Type    | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| tokenAddress      | address | The address of the ERC1155 token contract             |
 | recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId | uint256 | The ID of the token to deposit |
-| amount | uint256 | The amount of tokens to deposit |
+| tokenId           | uint256 | The ID of the token to deposit                        |
+| amount            | uint256 | The amount of tokens to deposit                       |
 
 ### analyzeAndRelayDeposits
 
@@ -1582,11 +1582,11 @@ rejectDepositIndices must be greater than lastAnalyzedDeposit and less than or e
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| upToDepositId | uint256 | The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID. |
-| rejectDepositIds | uint256[] | An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId. |
-| gasLimit | uint256 | The gas limit for the l2 transaction. |
+| Name             | Type      | Description                                                                                                                                            |
+| ---------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| upToDepositId    | uint256   | The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID. |
+| rejectDepositIds | uint256[] | An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.                |
+| gasLimit         | uint256   | The gas limit for the l2 transaction.                                                                                                                  |
 
 ### claimWithdrawals
 
@@ -1598,8 +1598,8 @@ Claim withdrawals for tokens that are not direct withdrawals
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                   |
+| ----------- | --------------------------------- | ----------------------------- |
 | withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to claim |
 
 ### cancelDeposit
@@ -1614,10 +1614,10 @@ _The deposit ID and its content should be included in the calldata_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit to cancel |
-| deposit | struct DepositLib.Deposit | The deposit data |
+| Name      | Type                      | Description                     |
+| --------- | ------------------------- | ------------------------------- |
+| depositId | uint256                   | The ID of the deposit to cancel |
+| deposit   | struct DepositLib.Deposit | The deposit data                |
 
 ### processWithdrawals
 
@@ -1635,19 +1635,19 @@ Check if the deposit is valid
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| Name              | Type    | Description                                                                    |
+| ----------------- | ------- | ------------------------------------------------------------------------------ |
+| depositId         | uint256 | The ID of the deposit                                                          |
 | recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address (BLS public key) and a secret salt |
-| tokenIndex | uint32 | The index of the token being deposited |
-| amount | uint256 | The amount of tokens deposited |
-| sender | address | The address that made the deposit |
+| tokenIndex        | uint32  | The index of the token being deposited                                         |
+| amount            | uint256 | The amount of tokens deposited                                                 |
+| sender            | address | The address that made the deposit                                              |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | if deposit is valid, return true |
+| Name | Type | Description                      |
+| ---- | ---- | -------------------------------- |
+| [0]  | bool | if deposit is valid, return true |
 
 ### onERC1155Received
 
@@ -1659,9 +1659,9 @@ ERC1155 token receiver function
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes4 | bytes4 The function selector |
+| Name | Type   | Description                  |
+| ---- | ------ | ---------------------------- |
+| [0]  | bytes4 | bytes4 The function selector |
 
 ### getDepositData
 
@@ -1673,15 +1673,15 @@ Get deposit data for a given deposit ID
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description           |
+| --------- | ------- | --------------------- |
 | depositId | uint256 | The ID of the deposit |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData | The deposit data |
+| Name | Type                               | Description      |
+| ---- | ---------------------------------- | ---------------- |
+| [0]  | struct DepositQueueLib.DepositData | The deposit data |
 
 ### getDepositDataHash
 
@@ -1693,15 +1693,15 @@ Get deposit data hash for a given deposit ID
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description           |
+| --------- | ------- | --------------------- |
 | depositId | uint256 | The ID of the deposit |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The deposit data hash |
+| Name | Type    | Description           |
+| ---- | ------- | --------------------- |
+| [0]  | bytes32 | The deposit data hash |
 
 ### getLastRelayedDepositId
 
@@ -1713,9 +1713,9 @@ Get the ID of the last deposit relayed to L2
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The ID of the last relayed deposit |
+| Name | Type    | Description                        |
+| ---- | ------- | ---------------------------------- |
+| [0]  | uint256 | The ID of the last relayed deposit |
 
 ### getLastDepositId
 
@@ -1727,11 +1727,11 @@ Get the ID of the last deposit to L2
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The ID of the last deposit |
+| Name | Type    | Description                |
+| ---- | ------- | -------------------------- |
+| [0]  | uint256 | The ID of the last deposit |
 
-### _authorizeUpgrade
+### \_authorizeUpgrade
 
 ```solidity
 function _authorizeUpgrade(address) internal
@@ -1739,13 +1739,13 @@ function _authorizeUpgrade(address) internal
 
 ## TokenData
 
-### __TokenData_init
+### \_\_TokenData_init
 
 ```solidity
 function __TokenData_init(address[] initialERC20Tokens) public
 ```
 
-### _getOrCreateTokenIndex
+### \_getOrCreateTokenIndex
 
 ```solidity
 function _getOrCreateTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) internal returns (uint32)
@@ -1761,9 +1761,9 @@ Retrieves the index of the native token
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | uint32 The index of the native token |
+| Name | Type   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| [0]  | uint32 | uint32 The index of the native token |
 
 ### getTokenIndex
 
@@ -1775,18 +1775,18 @@ Retrieves the token index for given token parameters
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenType | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155) |
-| tokenAddress | address | The address of the token contract (zero address for native tokens) |
-| tokenId | uint256 | The ID of the token (used for ERC721 and ERC1155) |
+| Name         | Type                      | Description                                                        |
+| ------------ | ------------------------- | ------------------------------------------------------------------ |
+| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
+| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
+| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool Indicating whether the token index was found |
-| [1] | uint32 | uint32 The index of the token if found |
+| Name | Type   | Description                                       |
+| ---- | ------ | ------------------------------------------------- |
+| [0]  | bool   | bool Indicating whether the token index was found |
+| [1]  | uint32 | uint32 The index of the token if found            |
 
 ### getTokenInfo
 
@@ -1798,15 +1798,15 @@ Retrieves token information for a given token index
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name       | Type   | Description            |
+| ---------- | ------ | ---------------------- |
 | tokenIndex | uint32 | The index of the token |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
+| Name | Type                        | Description                                         |
+| ---- | --------------------------- | --------------------------------------------------- |
+| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
 
 ## DepositQueueLib
 
@@ -1822,10 +1822,10 @@ Error thrown when trying to analyze a non-existent deposit
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name          | Type    | Description                               |
+| ------------- | ------- | ----------------------------------------- |
 | upToDepositId | uint256 | The requested deposit ID to analyze up to |
-| lastDepositId | uint256 | The last valid deposit ID in the queue |
+| lastDepositId | uint256 | The last valid deposit ID in the queue    |
 
 ### TriedToRejectOutOfRange
 
@@ -1837,11 +1837,11 @@ Error thrown when trying to reject a deposit outside the analyzed range
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| rejectIndex | uint256 | The index of the deposit to be rejected |
-| front | uint256 | The front index of the queue |
-| upToDepositId | uint256 | The upper bound of the analyzed range |
+| Name          | Type    | Description                             |
+| ------------- | ------- | --------------------------------------- |
+| rejectIndex   | uint256 | The index of the deposit to be rejected |
+| front         | uint256 | The front index of the queue            |
+| upToDepositId | uint256 | The upper bound of the analyzed range   |
 
 ### DepositQueue
 
@@ -1863,9 +1863,9 @@ _Includes deposit hash, sender address, and rejection status_
 
 ```solidity
 struct DepositData {
-  bytes32 depositHash;
-  address sender;
-  bool isRejected;
+	bytes32 depositHash;
+	address sender;
+	bool isRejected;
 }
 ```
 
@@ -1881,8 +1881,8 @@ _Pushes a dummy element to make the queue 1-indexed_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type                                | Description                                      |
+| ------------ | ----------------------------------- | ------------------------------------------------ |
 | depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
 
 ### enqueue
@@ -1895,16 +1895,16 @@ Adds a new deposit to the queue
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type                                | Description                                      |
+| ------------ | ----------------------------------- | ------------------------------------------------ |
 | depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
-| depositHash | bytes32 | The hash of the deposit |
-| sender | address | The address of the depositor |
+| depositHash  | bytes32                             | The hash of the deposit                          |
+| sender       | address                             | The address of the depositor                     |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description                       |
+| --------- | ------- | --------------------------------- |
 | depositId | uint256 | The ID of the newly added deposit |
 
 ### deleteDeposit
@@ -1917,15 +1917,15 @@ Deletes a deposit from the queue
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type                                | Description                                      |
+| ------------ | ----------------------------------- | ------------------------------------------------ |
 | depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
-| depositId | uint256 | The ID of the deposit to be deleted |
+| depositId    | uint256                             | The ID of the deposit to be deleted              |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                               | Description                     |
+| ----------- | ---------------------------------- | ------------------------------- |
 | depositData | struct DepositQueueLib.DepositData | The data of the deleted deposit |
 
 ### analyze
@@ -1940,17 +1940,17 @@ _Collects deposit hashes from front to upToDepositId, skipping rejected ones_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
-| upToDepositId | uint256 | The upper bound deposit ID for analysis |
-| rejectIndices | uint256[] | Array of deposit IDs to be marked as rejected |
+| Name          | Type                                | Description                                      |
+| ------------- | ----------------------------------- | ------------------------------------------------ |
+| depositQueue  | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
+| upToDepositId | uint256                             | The upper bound deposit ID for analysis          |
+| rejectIndices | uint256[]                           | Array of deposit IDs to be marked as rejected    |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32[] | An array of deposit hashes that were not rejected |
+| Name | Type      | Description                                       |
+| ---- | --------- | ------------------------------------------------- |
+| [0]  | bytes32[] | An array of deposit hashes that were not rejected |
 
 ## IRollup
 
@@ -2030,10 +2030,10 @@ Event emitted when deposits bridged from the liquidity contract are processed
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
-| depositTreeRoot | bytes32 | The root of the deposit tree after processing |
+| Name                   | Type    | Description                                   |
+| ---------------------- | ------- | --------------------------------------------- |
+| lastProcessedDepositId | uint256 | The ID of the last processed deposit          |
+| depositTreeRoot        | bytes32 | The root of the deposit tree after processing |
 
 ### BlockPosted
 
@@ -2045,13 +2045,13 @@ Event emitted when a new block is posted
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| prevBlockHash | bytes32 | The hash of the previous block |
-| blockBuilder | address | The address of the block builder |
-| blockNumber | uint256 | The number of the posted block |
-| depositTreeRoot | bytes32 | The root of the deposit tree |
-| signatureHash | bytes32 | The hash of the signature |
+| Name            | Type    | Description                      |
+| --------------- | ------- | -------------------------------- |
+| prevBlockHash   | bytes32 | The hash of the previous block   |
+| blockBuilder    | address | The address of the block builder |
+| blockNumber     | uint256 | The number of the posted block   |
+| depositTreeRoot | bytes32 | The root of the deposit tree     |
+| signatureHash   | bytes32 | The hash of the signature        |
 
 ### PubKeysPosted
 
@@ -2063,10 +2063,10 @@ Event emitted to ensure data availability of posted public keys
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockNumber | uint256 | The block number associated with the public keys |
-| senderPublicKeys | uint256[] | The array of sender public keys |
+| Name             | Type      | Description                                      |
+| ---------------- | --------- | ------------------------------------------------ |
+| blockNumber      | uint256   | The block number associated with the public keys |
+| senderPublicKeys | uint256[] | The array of sender public keys                  |
 
 ### AccountIdsPosted
 
@@ -2078,10 +2078,10 @@ Event emitted to ensure data availability of posted account IDs
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type    | Description                                      |
+| ----------- | ------- | ------------------------------------------------ |
 | blockNumber | uint256 | The block number associated with the account IDs |
-| accountIds | bytes | The byte sequence of account IDs |
+| accountIds  | bytes   | The byte sequence of account IDs                 |
 
 ### postRegistrationBlock
 
@@ -2095,14 +2095,14 @@ _The function caller must have staked in the block builder registry beforehand_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| senderFlags | bytes16 | Flags indicating whether senders' signatures are included in the aggregated signature |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| senderPublicKeys | uint256[] | The public keys of the senders |
+| Name                | Type       | Description                                                                           |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------- |
+| txTreeRoot          | bytes32    | The root of the transaction tree                                                      |
+| senderFlags         | bytes16    | Flags indicating whether senders' signatures are included in the aggregated signature |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key                                                             |
+| aggregatedSignature | bytes32[4] | The aggregated signature                                                              |
+| messagePoint        | bytes32[4] | The hash of the tx tree root to G2                                                    |
+| senderPublicKeys    | uint256[]  | The public keys of the senders                                                        |
 
 ### postNonRegistrationBlock
 
@@ -2116,15 +2116,15 @@ _The function caller must have staked in the block builder registry beforehand_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| senderFlags | bytes16 | Sender flags |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| publicKeysHash | bytes32 | The hash of the public keys |
-| senderAccountIds | bytes | The account IDs arranged in a byte sequence |
+| Name                | Type       | Description                                 |
+| ------------------- | ---------- | ------------------------------------------- |
+| txTreeRoot          | bytes32    | The root of the transaction tree            |
+| senderFlags         | bytes16    | Sender flags                                |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key                   |
+| aggregatedSignature | bytes32[4] | The aggregated signature                    |
+| messagePoint        | bytes32[4] | The hash of the tx tree root to G2          |
+| publicKeysHash      | bytes32    | The hash of the public keys                 |
+| senderAccountIds    | bytes      | The account IDs arranged in a byte sequence |
 
 ### processDeposits
 
@@ -2138,10 +2138,10 @@ _Only Liquidity contract can call this function via Scroll Messenger_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
-| depositHashes | bytes32[] | The hashes of the deposits |
+| Name                   | Type      | Description                          |
+| ---------------------- | --------- | ------------------------------------ |
+| lastProcessedDepositId | uint256   | The ID of the last processed deposit |
+| depositHashes          | bytes32[] | The hashes of the deposits           |
 
 ### getLatestBlockNumber
 
@@ -2153,9 +2153,9 @@ Get the block number of the latest posted block
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The latest block number |
+| Name | Type   | Description             |
+| ---- | ------ | ----------------------- |
+| [0]  | uint32 | The latest block number |
 
 ### getBlockBuilder
 
@@ -2167,15 +2167,15 @@ Get the block builder for a specific block number
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
 | blockNumber | uint32 | The block number to query |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | address | The address of the block builder |
+| Name | Type    | Description                      |
+| ---- | ------- | -------------------------------- |
+| [0]  | address | The address of the block builder |
 
 ### getBlockHash
 
@@ -2187,15 +2187,15 @@ Get the block hash for a specific block number
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
 | blockNumber | uint32 | The block number to query |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the specified block |
+| Name | Type    | Description                     |
+| ---- | ------- | ------------------------------- |
+| [0]  | bytes32 | The hash of the specified block |
 
 ## Rollup
 
@@ -2247,14 +2247,14 @@ _The function caller must have staked in the block builder registry beforehand_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| senderFlags | bytes16 | Flags indicating whether senders' signatures are included in the aggregated signature |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| senderPublicKeys | uint256[] | The public keys of the senders |
+| Name                | Type       | Description                                                                           |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------- |
+| txTreeRoot          | bytes32    | The root of the transaction tree                                                      |
+| senderFlags         | bytes16    | Flags indicating whether senders' signatures are included in the aggregated signature |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key                                                             |
+| aggregatedSignature | bytes32[4] | The aggregated signature                                                              |
+| messagePoint        | bytes32[4] | The hash of the tx tree root to G2                                                    |
+| senderPublicKeys    | uint256[]  | The public keys of the senders                                                        |
 
 ### postNonRegistrationBlock
 
@@ -2268,15 +2268,15 @@ _The function caller must have staked in the block builder registry beforehand_
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| senderFlags | bytes16 | Sender flags |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| publicKeysHash | bytes32 | The hash of the public keys |
-| senderAccountIds | bytes | The account IDs arranged in a byte sequence |
+| Name                | Type       | Description                                 |
+| ------------------- | ---------- | ------------------------------------------- |
+| txTreeRoot          | bytes32    | The root of the transaction tree            |
+| senderFlags         | bytes16    | Sender flags                                |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key                   |
+| aggregatedSignature | bytes32[4] | The aggregated signature                    |
+| messagePoint        | bytes32[4] | The hash of the tx tree root to G2          |
+| publicKeysHash      | bytes32    | The hash of the public keys                 |
+| senderAccountIds    | bytes      | The account IDs arranged in a byte sequence |
 
 ### processDeposits
 
@@ -2294,9 +2294,9 @@ Get the block number of the latest posted block
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The latest block number |
+| Name | Type   | Description             |
+| ---- | ------ | ----------------------- |
+| [0]  | uint32 | The latest block number |
 
 ### getBlockBuilder
 
@@ -2308,15 +2308,15 @@ Get the block builder for a specific block number
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
 | blockNumber | uint32 | The block number to query |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | address | The address of the block builder |
+| Name | Type    | Description                      |
+| ---- | ------- | -------------------------------- |
+| [0]  | address | The address of the block builder |
 
 ### getBlockHash
 
@@ -2328,17 +2328,17 @@ Get the block hash for a specific block number
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
 | blockNumber | uint32 | The block number to query |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the specified block |
+| Name | Type    | Description                     |
+| ---- | ------- | ------------------------------- |
+| [0]  | bytes32 | The hash of the specified block |
 
-### _authorizeUpgrade
+### \_authorizeUpgrade
 
 ```solidity
 function _authorizeUpgrade(address) internal
@@ -2356,10 +2356,10 @@ Pushes the genesis block hash to the block hashes array
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-| initialDepositTreeRoot | bytes32 | The initial deposit tree root for the genesis block |
+| Name                   | Type      | Description                                         |
+| ---------------------- | --------- | --------------------------------------------------- |
+| blockHashes            | bytes32[] | The storage array of block hashes                   |
+| initialDepositTreeRoot | bytes32   | The initial deposit tree root for the genesis block |
 
 ### getBlockNumber
 
@@ -2371,15 +2371,15 @@ Gets the current block number based on the number of block hashes
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type      | Description                      |
+| ----------- | --------- | -------------------------------- |
 | blockHashes | bytes32[] | The memory array of block hashes |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The current block number |
+| Name | Type   | Description              |
+| ---- | ------ | ------------------------ |
+| [0]  | uint32 | The current block number |
 
 ### getPrevHash
 
@@ -2391,15 +2391,15 @@ Gets the hash of the previous block
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type      | Description                      |
+| ----------- | --------- | -------------------------------- |
 | blockHashes | bytes32[] | The memory array of block hashes |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the previous block |
+| Name | Type    | Description                    |
+| ---- | ------- | ------------------------------ |
+| [0]  | bytes32 | The hash of the previous block |
 
 ### pushBlockHash
 
@@ -2411,16 +2411,16 @@ Pushes a new block hash to the block hashes array
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-| depositTreeRoot | bytes32 | The deposit tree root for the new block |
-| signatureHash | bytes32 | The signature hash for the new block |
+| Name            | Type      | Description                             |
+| --------------- | --------- | --------------------------------------- |
+| blockHashes     | bytes32[] | The storage array of block hashes       |
+| depositTreeRoot | bytes32   | The deposit tree root for the new block |
+| signatureHash   | bytes32   | The signature hash for the new block    |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description                                |
+| --------- | ------- | ------------------------------------------ |
 | blockHash | bytes32 | The newly calculated and pushed block hash |
 
 ## DepositTreeLib
@@ -2437,7 +2437,7 @@ error MerkleTreeFull()
 
 Error thrown when the Merkle tree is full
 
-### _DEPOSIT_CONTRACT_TREE_DEPTH
+### \_DEPOSIT_CONTRACT_TREE_DEPTH
 
 ```solidity
 uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
@@ -2451,13 +2451,13 @@ Structure representing the deposit tree
 
 ```solidity
 struct DepositTree {
-  bytes32[32] _branch;
-  uint256 depositCount;
-  bytes32 defaultHash;
+	bytes32[32] _branch;
+	uint256 depositCount;
+	bytes32 defaultHash;
 }
 ```
 
-### _MAX_DEPOSIT_COUNT
+### \_MAX_DEPOSIT_COUNT
 
 ```solidity
 uint256 _MAX_DEPOSIT_COUNT
@@ -2475,8 +2475,8 @@ Initializes the deposit tree
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
 | depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
 
 ### getRoot
@@ -2489,15 +2489,15 @@ Computes and returns the Merkle root
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                                    |
+| ----------- | --------------------------------- | ---------------------------------------------- |
 | depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The computed Merkle root |
+| Name | Type    | Description              |
+| ---- | ------- | ------------------------ |
+| [0]  | bytes32 | The computed Merkle root |
 
 ### deposit
 
@@ -2509,10 +2509,10 @@ Adds a new leaf to the Merkle tree
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
 | depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-| leafHash | bytes32 | The hash of the new leaf to be added |
+| leafHash    | bytes32                           | The hash of the new leaf to be added            |
 
 ### getBranch
 
@@ -2524,15 +2524,15 @@ Retrieves the current branch of the Merkle tree
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
 | depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32[32] | The current branch of the Merkle tree |
+| Name | Type        | Description                           |
+| ---- | ----------- | ------------------------------------- |
+| [0]  | bytes32[32] | The current branch of the Merkle tree |
 
 ## PairingLib
 
@@ -2570,17 +2570,17 @@ Performs an elliptic curve pairing operation
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name                | Type       | Description                                    |
+| ------------------- | ---------- | ---------------------------------------------- |
 | aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements) |
-| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements) |
-| messagePoint | bytes32[4] | The message point (4 32-byte elements) |
+| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements)  |
+| messagePoint        | bytes32[4] | The message point (4 32-byte elements)         |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool True if the pairing is valid, false otherwise |
+| Name | Type | Description                                        |
+| ---- | ---- | -------------------------------------------------- |
+| [0]  | bool | bool True if the pairing is valid, false otherwise |
 
 ## IWithdrawal
 
@@ -2610,8 +2610,8 @@ Error thrown when the block hash in the withdrawal proof's public input doesn't 
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name      | Type    | Description                 |
+| --------- | ------- | --------------------------- |
 | blockHash | bytes32 | The non-existent block hash |
 
 ### WithdrawalProofVerificationFailed
@@ -2632,8 +2632,8 @@ Error thrown when attempting to add a token to direct withdrawal tokens that alr
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type    | Description                                |
+| ----------- | ------- | ------------------------------------------ |
 | tokenIndice | uint256 | The index of the token that already exists |
 
 ### TokenNotExist
@@ -2646,8 +2646,8 @@ Error thrown when attempting to remove a non-existent token from direct withdraw
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name        | Type    | Description                         |
+| ----------- | ------- | ----------------------------------- |
 | tokenIndice | uint256 | The index of the non-existent token |
 
 ### ClaimableWithdrawalQueued
@@ -2660,11 +2660,11 @@ Emitted when a claimable withdrawal is queued
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| claimableWithdrawalId | uint256 | The ID of the claimable withdrawal |
-| recipient | address | The address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The withdrawal details |
+| Name                  | Type                            | Description                        |
+| --------------------- | ------------------------------- | ---------------------------------- |
+| claimableWithdrawalId | uint256                         | The ID of the claimable withdrawal |
+| recipient             | address                         | The address of the recipient       |
+| withdrawal            | struct WithdrawalLib.Withdrawal | The withdrawal details             |
 
 ### DirectWithdrawalQueued
 
@@ -2676,11 +2676,11 @@ Emitted when a direct withdrawal is queued
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| directWithdrawalId | uint256 | The ID of the direct withdrawal |
-| recipient | address | The address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The withdrawal details |
+| Name               | Type                            | Description                     |
+| ------------------ | ------------------------------- | ------------------------------- |
+| directWithdrawalId | uint256                         | The ID of the direct withdrawal |
+| recipient          | address                         | The address of the recipient    |
+| withdrawal         | struct WithdrawalLib.Withdrawal | The withdrawal details          |
 
 ### WithdrawalsQueued
 
@@ -2692,9 +2692,9 @@ Emitted when withdrawals are queued
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastDirectWithdrawalId | uint256 | The ID of the last direct withdrawal |
+| Name                      | Type    | Description                             |
+| ------------------------- | ------- | --------------------------------------- |
+| lastDirectWithdrawalId    | uint256 | The ID of the last direct withdrawal    |
 | lastClaimableWithdrawalId | uint256 | The ID of the last claimable withdrawal |
 
 ### submitWithdrawalProof
@@ -2707,11 +2707,11 @@ Submit withdrawal proof from intmax2
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | List of chained withdrawals |
+| Name         | Type                                                              | Description                            |
+| ------------ | ----------------------------------------------------------------- | -------------------------------------- |
+| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | List of chained withdrawals            |
 | publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof |
-| proof | bytes | The proof data |
+| proof        | bytes                                                             | The proof data                         |
 
 ### getDirectWithdrawalTokenIndices
 
@@ -2723,9 +2723,9 @@ Get the token indices for direct withdrawals
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices |
+| Name | Type      | Description               |
+| ---- | --------- | ------------------------- |
+| [0]  | uint256[] | An array of token indices |
 
 ### addDirectWithdrawalTokenIndices
 
@@ -2737,8 +2737,8 @@ Add token indices to the list of direct withdrawal token indices
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type      | Description              |
+| ------------ | --------- | ------------------------ |
 | tokenIndices | uint256[] | The token indices to add |
 
 ### removeDirectWithdrawalTokenIndices
@@ -2751,8 +2751,8 @@ Remove token indices from the list of direct withdrawal token indices
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type      | Description                 |
+| ------------ | --------- | --------------------------- |
 | tokenIndices | uint256[] | The token indices to remove |
 
 ## Withdrawal
@@ -2791,11 +2791,11 @@ Submit withdrawal proof from intmax2
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | List of chained withdrawals |
+| Name         | Type                                                              | Description                            |
+| ------------ | ----------------------------------------------------------------- | -------------------------------------- |
+| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | List of chained withdrawals            |
 | publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof |
-| proof | bytes | The proof data |
+| proof        | bytes                                                             | The proof data                         |
 
 ### getDirectWithdrawalTokenIndices
 
@@ -2807,9 +2807,9 @@ Get the token indices for direct withdrawals
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices |
+| Name | Type      | Description               |
+| ---- | --------- | ------------------------- |
+| [0]  | uint256[] | An array of token indices |
 
 ### addDirectWithdrawalTokenIndices
 
@@ -2821,8 +2821,8 @@ Add token indices to the list of direct withdrawal token indices
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type      | Description              |
+| ------------ | --------- | ------------------------ |
 | tokenIndices | uint256[] | The token indices to add |
 
 ### removeDirectWithdrawalTokenIndices
@@ -2835,11 +2835,11 @@ Remove token indices from the list of direct withdrawal token indices
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name         | Type      | Description                 |
+| ------------ | --------- | --------------------------- |
 | tokenIndices | uint256[] | The token indices to remove |
 
-### _authorizeUpgrade
+### \_authorizeUpgrade
 
 ```solidity
 function _authorizeUpgrade(address) internal
@@ -2855,12 +2855,12 @@ Represents a withdrawal linked in a hash chain, used in withdrawal proof public 
 
 ```solidity
 struct ChainedWithdrawal {
-  address recipient;
-  uint32 tokenIndex;
-  uint256 amount;
-  bytes32 nullifier;
-  bytes32 blockHash;
-  uint32 blockNumber;
+	address recipient;
+	uint32 tokenIndex;
+	uint256 amount;
+	bytes32 nullifier;
+	bytes32 blockHash;
+	uint32 blockNumber;
 }
 ```
 
@@ -2874,16 +2874,16 @@ Verifies the integrity of a withdrawal hash chain
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify |
-| lastWithdrawalHash | bytes32 | The expected hash of the last withdrawal in the chain |
+| Name               | Type                                            | Description                                           |
+| ------------------ | ----------------------------------------------- | ----------------------------------------------------- |
+| withdrawals        | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify                 |
+| lastWithdrawalHash | bytes32                                         | The expected hash of the last withdrawal in the chain |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool True if the chain is valid, false otherwise |
+| Name | Type | Description                                      |
+| ---- | ---- | ------------------------------------------------ |
+| [0]  | bool | bool True if the chain is valid, false otherwise |
 
 ## WithdrawalProofPublicInputsLib
 
@@ -2893,8 +2893,8 @@ Represents the public inputs for a withdrawal proof
 
 ```solidity
 struct WithdrawalProofPublicInputs {
-  bytes32 lastWithdrawalHash;
-  address withdrawalAggregator;
+	bytes32 lastWithdrawalHash;
+	address withdrawalAggregator;
 }
 ```
 
@@ -2908,13 +2908,12 @@ Computes the hash of the WithdrawalProofPublicInputs
 
 #### Parameters
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
+| Name   | Type                                                              | Description                                  |
+| ------ | ----------------------------------------------------------------- | -------------------------------------------- |
 | inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs to be hashed |
 
 #### Return Values
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The resulting hash |
-
+| Name | Type    | Description                |
+| ---- | ------- | -------------------------- |
+| [0]  | bytes32 | bytes32 The resulting hash |

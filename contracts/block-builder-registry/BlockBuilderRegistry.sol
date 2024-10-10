@@ -42,6 +42,12 @@ contract BlockBuilderRegistry is
 		address _rollup,
 		address _fraudVerifier
 	) public initializer {
+		if (_rollup == address(0)) {
+			revert AddressZero();
+		}
+		if (_fraudVerifier == address(0)) {
+			revert AddressZero();
+		}
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
 		rollup = IRollup(_rollup);

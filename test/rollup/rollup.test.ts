@@ -154,6 +154,54 @@ describe('Rollup', () => {
 					),
 				).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 			})
+			it('scrollMessenger is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
+			it('liquidity is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
+			it('blockBuilderRegistry is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
+			it('contribution is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
 		})
 	})
 	describe('postRegistrationBlock', () => {

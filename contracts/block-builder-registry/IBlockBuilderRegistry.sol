@@ -4,6 +4,9 @@ pragma solidity 0.8.24;
 import {FraudProofPublicInputsLib} from "./lib/FraudProofPublicInputsLib.sol";
 
 interface IBlockBuilderRegistry {
+	/// @notice address is zero address
+	error AddressZero();
+
 	/// @notice Error thrown when trying to register a block builder with an empty URL
 	error URLIsEmpty();
 

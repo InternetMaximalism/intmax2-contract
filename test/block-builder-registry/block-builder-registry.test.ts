@@ -150,21 +150,70 @@ describe('BlockBuilderRegistry', () => {
 		return [blockBuilderRegistry, rollup, verifier, stakeAmount, fraudProof]
 	}
 	describe('initialize', () => {
-		it('should revert when initializing for the second time', async () => {
-			const [blockBuilderRegistry] = await loadFixture(setup)
-			await expect(
-				blockBuilderRegistry.initialize(ethers.ZeroAddress, ethers.ZeroAddress),
-			).to.be.revertedWithCustomError(
-				blockBuilderRegistry,
-				'InvalidInitialization',
-			)
+		describe('success', () => {
+			it('should revert when initializing for the second time', async () => {
+				const [blockBuilderRegistry] = await loadFixture(setup)
+				await expect(
+					blockBuilderRegistry.initialize(
+						ethers.ZeroAddress,
+						ethers.ZeroAddress,
+					),
+				).to.be.revertedWithCustomError(
+					blockBuilderRegistry,
+					'InvalidInitialization',
+				)
+			})
+			it('should set the deployer as the owner', async () => {
+				const [blockBuilderRegistry] = await loadFixture(setup)
+				const signers = await getSigners()
+				expect(await blockBuilderRegistry.owner()).to.equal(
+					signers.deployer.address,
+				)
+			})
 		})
-		it('should set the deployer as the owner', async () => {
-			const [blockBuilderRegistry] = await loadFixture(setup)
-			const signers = await getSigners()
-			expect(await blockBuilderRegistry.owner()).to.equal(
-				signers.deployer.address,
-			)
+		describe('fail', () => {
+			it('should revert when initializing twice', async () => {
+				const [blockBuilderRegistry] = await loadFixture(setup)
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					blockBuilderRegistry.initialize(tmpAddress, tmpAddress),
+				).to.be.revertedWithCustomError(
+					blockBuilderRegistry,
+					'InvalidInitialization',
+				)
+			})
+			it('rollup address should not be zero address', async () => {
+				const blockBuilderRegistryFactory = await ethers.getContractFactory(
+					'BlockBuilderRegistry',
+				)
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						blockBuilderRegistryFactory,
+						[ethers.ZeroAddress, tmpAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(
+					blockBuilderRegistryFactory,
+					'AddressZero',
+				)
+			})
+			it('verifier address should not be zero address', async () => {
+				const blockBuilderRegistryFactory = await ethers.getContractFactory(
+					'BlockBuilderRegistry',
+				)
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						blockBuilderRegistryFactory,
+						[tmpAddress, ethers.ZeroAddress],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(
+					blockBuilderRegistryFactory,
+					'AddressZero',
+				)
+			})
 		})
 	})
 	describe('updateBlockBuilder', () => {
