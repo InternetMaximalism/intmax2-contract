@@ -359,7 +359,7 @@ contract Liquidity is
 	) internal {
 		TokenInfo memory tokenInfo = getTokenInfo(withdrawal_.tokenIndex);
 
-		bool result;
+		bool result = true;
 		if (tokenInfo.tokenType == TokenType.NATIVE) {
 			bool success = payable(withdrawal_.recipient).send(
 				withdrawal_.amount
