@@ -74,7 +74,7 @@ contract Liquidity is
 			revert InvalidDepositHash(depositData.depositHash, depositHash);
 		}
 		if (depositId <= getLastRelayedDepositId()) {
-			if (depositData.isRejected == false) {
+			if (!depositData.isRejected) {
 				revert AlreadyAnalyzed();
 			}
 		}
@@ -341,7 +341,7 @@ contract Liquidity is
 		if (depositData.sender != sender) {
 			return false;
 		}
-		if (depositData.isRejected == true) {
+		if (depositData.isRejected) {
 			return false;
 		}
 		return true;

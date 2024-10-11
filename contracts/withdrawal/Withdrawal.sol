@@ -69,7 +69,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 			bool result = directWithdrawalTokenIndices.add(
 				_directWithdrawalTokenIndices[i]
 			);
-			if (result == false) {
+			if (!result) {
 				revert TokenAlreadyExist(_directWithdrawalTokenIndices[i]);
 			}
 		}
@@ -89,7 +89,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		for (uint256 i = 0; i < withdrawals.length; i++) {
 			ChainedWithdrawalLib.ChainedWithdrawal
 				memory chainedWithdrawal = withdrawals[i];
-			if (nullifiers[chainedWithdrawal.nullifier] == true) {
+			if (nullifiers[chainedWithdrawal.nullifier]) {
 				isSkippedFlags[i] = true;
 				continue; // already withdrawn
 			}
@@ -231,7 +231,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	) external onlyOwner {
 		for (uint256 i = 0; i < tokenIndices.length; i++) {
 			bool result = directWithdrawalTokenIndices.add(tokenIndices[i]);
-			if (result == false) {
+			if (!result) {
 				revert TokenAlreadyExist(tokenIndices[i]);
 			}
 		}
@@ -242,7 +242,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	) external onlyOwner {
 		for (uint256 i = 0; i < tokenIndices.length; i++) {
 			bool result = directWithdrawalTokenIndices.remove(tokenIndices[i]);
-			if (result == false) {
+			if (!result) {
 				revert TokenNotExist(tokenIndices[i]);
 			}
 		}
