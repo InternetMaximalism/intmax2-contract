@@ -169,8 +169,9 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			revert InsufficientPenaltyFee();
 		}
 		// refund the excess fee
-		if (msg.value > 0) {
-			payable(_msgSender()).transfer(msg.value - penalty);
+		uint256 excessFee = msg.value - penalty;
+		if (excessFee > 0) {
+			payable(_msgSender()).transfer(excessFee);
 		}
 
 		bool success = PairingLib.pairing(
