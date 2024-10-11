@@ -42,7 +42,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		address _rollup,
 		address _contribution,
 		uint256[] memory _directWithdrawalTokenIndices
-	) public initializer {
+	) external initializer {
 		if (_scrollMessenger == address(0)) {
 			revert AddressZero();
 		}

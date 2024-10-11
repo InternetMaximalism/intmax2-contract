@@ -41,7 +41,7 @@ contract BlockBuilderRegistry is
 	function initialize(
 		address _rollup,
 		address _fraudVerifier
-	) public initializer {
+	) external initializer {
 		if (_rollup == address(0)) {
 			revert AddressZero();
 		}

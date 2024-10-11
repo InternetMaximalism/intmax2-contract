@@ -37,7 +37,7 @@ contract Contribution is
 	/// @dev period => array of tags
 	mapping(uint256 => bytes32[]) private allTags;
 
-	function initialize() public initializer {
+	function initialize() external initializer {
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
 		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());

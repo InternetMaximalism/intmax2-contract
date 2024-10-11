@@ -88,7 +88,7 @@ contract Liquidity is
 		address _analyzer,
 		address _contribution,
 		address[] memory initialERC20Tokens
-	) public initializer {
+	) external initializer {
 		if (_l1ScrollMessenger == address(0)) {
 			revert AddressZero();
 		}
