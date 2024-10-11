@@ -385,6 +385,7 @@ contract Liquidity is
 
 		bool result = true;
 		if (tokenInfo.tokenType == TokenType.NATIVE) {
+			// solhint-disable-next-line check-send-result
 			bool success = payable(withdrawal_.recipient).send(
 				withdrawal_.amount
 			);
@@ -425,6 +426,7 @@ contract Liquidity is
 		}
 		if (!result) {
 			bytes32 withdrawalHash = withdrawal_.getHash();
+			// solhint-disable-next-line reentrancy
 			claimableWithdrawals[withdrawalHash] = block.timestamp;
 			emit DirectWithdrawalFailed(withdrawalHash, withdrawal_);
 			emit WithdrawalClaimable(withdrawalHash);
