@@ -89,6 +89,21 @@ contract Liquidity is
 		address _contribution,
 		address[] memory initialERC20Tokens
 	) public initializer {
+		if (_l1ScrollMessenger == address(0)) {
+			revert AddressZero();
+		}
+		if (_rollup == address(0)) {
+			revert AddressZero();
+		}
+		if (_withdrawal == address(0)) {
+			revert AddressZero();
+		}
+		if (_analyzer == address(0)) {
+			revert AddressZero();
+		}
+		if (_contribution == address(0)) {
+			revert AddressZero();
+		}
 		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 		_grantRole(ANALYZER, _analyzer);
 		__UUPSUpgradeable_init();
@@ -337,7 +352,16 @@ contract Liquidity is
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) private {
 		for (uint256 i = 0; i < withdrawals.length; i++) {
-			_processDirectWithdrawal(withdrawals[i]);
+			TokenInfo memory tokenInfo = getTokenInfo(
+				withdrawals[i].tokenIndex
+			);
+			_sendToken(
+				tokenInfo.tokenType,
+				tokenInfo.tokenAddress,
+				withdrawals[i].recipient,
+				withdrawals[i].amount,
+				tokenInfo.tokenId
+			);
 		}
 		if (withdrawals.length > 0) {
 			emit DirectWithdrawalsProcessed(_lastProcessedDirectWithdrawalId);

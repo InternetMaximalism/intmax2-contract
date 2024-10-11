@@ -30,8 +30,8 @@ describe('Withdrawal', function () {
 			kind: 'uups',
 		})) as unknown as Rollup
 		await rollup.initialize(
-			ethers.ZeroAddress,
-			ethers.ZeroAddress,
+			ethers.Wallet.createRandom().address,
+			ethers.Wallet.createRandom().address,
 			await registry.getAddress(),
 			await contribution.getAddress(),
 		)
@@ -58,7 +58,7 @@ describe('Withdrawal', function () {
 		await withdrawal.initialize(
 			mockL2ScrollMessengerAddress,
 			mockPlonkVerifierAddress,
-			ethers.ZeroAddress,
+			ethers.Wallet.createRandom().address,
 			rollupAddress,
 			await contribution.getAddress(),
 			[],
