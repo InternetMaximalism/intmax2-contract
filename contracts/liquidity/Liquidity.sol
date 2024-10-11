@@ -352,16 +352,7 @@ contract Liquidity is
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) private {
 		for (uint256 i = 0; i < withdrawals.length; i++) {
-			TokenInfo memory tokenInfo = getTokenInfo(
-				withdrawals[i].tokenIndex
-			);
-			_sendToken(
-				tokenInfo.tokenType,
-				tokenInfo.tokenAddress,
-				withdrawals[i].recipient,
-				withdrawals[i].amount,
-				tokenInfo.tokenId
-			);
+			_processDirectWithdrawal(withdrawals[i]);
 		}
 		if (withdrawals.length > 0) {
 			emit DirectWithdrawalsProcessed(_lastProcessedDirectWithdrawalId);
