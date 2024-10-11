@@ -7,4 +7,8 @@ contract Withdrawal2Test is Withdrawal {
 	function getVal() external pure returns (uint256) {
 		return 3;
 	}
+
+	function addOwner(address _owner) external {
+		_transferOwnership(_owner);
+	}
 }

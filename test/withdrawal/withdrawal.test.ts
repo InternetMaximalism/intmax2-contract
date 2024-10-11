@@ -191,6 +191,28 @@ describe('Withdrawal', () => {
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
+
+			it('token index is already exist', async () => {
+				const withdrawalFactory =
+					await ethers.getContractFactory('Withdrawal2Test')
+				const withdrawal = await withdrawalFactory.deploy()
+				const { deployer } = await getSigners()
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await withdrawal.addOwner(deployer.address)
+				await withdrawal.addDirectWithdrawalTokenIndices([1])
+				await expect(
+					withdrawal.initialize(
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
+						[1],
+					),
+				)
+					.to.be.revertedWithCustomError(withdrawalFactory, 'TokenAlreadyExist')
+					.withArgs(1)
+			})
 		})
 	})
 	describe('submitWithdrawalProof', () => {

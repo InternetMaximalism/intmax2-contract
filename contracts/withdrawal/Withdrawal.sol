@@ -66,7 +66,12 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		contribution = IContribution(_contribution);
 		liquidity = _liquidity;
 		for (uint256 i = 0; i < _directWithdrawalTokenIndices.length; i++) {
-			directWithdrawalTokenIndices.add(_directWithdrawalTokenIndices[i]);
+			bool result = directWithdrawalTokenIndices.add(
+				_directWithdrawalTokenIndices[i]
+			);
+			if (result == false) {
+				revert TokenAlreadyExist(_directWithdrawalTokenIndices[i]);
+			}
 		}
 	}
 
