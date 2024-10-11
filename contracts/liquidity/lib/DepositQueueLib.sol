@@ -4,10 +4,15 @@ pragma solidity 0.8.24;
 /// @title Deposit Queue Library
 /// @notice A library for managing a queue of pending deposits
 library DepositQueueLib {
-	/// @notice Error thrown when trying to analyze a non-existent deposit
+	/// @notice Error thrown when trying to analyze deposits outside the queue range
 	/// @param upToDepositId The requested deposit ID to analyze up to
-	/// @param lastDepositId The last valid deposit ID in the queue
-	error TriedAnalyzeNotExists(uint256 upToDepositId, uint256 lastDepositId);
+	/// @param firstDepositId The first deposit ID in the queue
+	/// @param lastDepositId The last deposit ID in the queue
+	error TriedAnalyzeOutOfRange(
+		uint256 upToDepositId,
+		uint256 firstDepositId,
+		uint256 lastDepositId
+	);
 
 	/// @notice Error thrown when trying to reject a deposit outside the analyzed range
 	/// @param rejectIndex The index of the deposit to be rejected
@@ -81,8 +86,15 @@ library DepositQueueLib {
 		uint256 upToDepositId,
 		uint256[] memory rejectIndices
 	) internal returns (bytes32[] memory) {
-		if (upToDepositId >= depositQueue.rear) {
-			revert TriedAnalyzeNotExists(upToDepositId, depositQueue.rear - 1);
+		if (
+			upToDepositId >= depositQueue.rear ||
+			upToDepositId < depositQueue.front
+		) {
+			revert TriedAnalyzeOutOfRange(
+				upToDepositId,
+				depositQueue.front,
+				depositQueue.rear - 1
+			);
 		}
 		for (uint256 i = 0; i < rejectIndices.length; i++) {
 			uint256 rejectIndex = rejectIndices[i];
