@@ -235,6 +235,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 				revert TokenAlreadyExist(tokenIndices[i]);
 			}
 		}
+		emit DirectWithdrawalTokenIndicesAdded(tokenIndices);
 	}
 
 	function removeDirectWithdrawalTokenIndices(
@@ -246,6 +247,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 				revert TokenNotExist(tokenIndices[i]);
 			}
 		}
+		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
 	}
 
 	function _authorizeUpgrade(address) internal override onlyOwner {}
