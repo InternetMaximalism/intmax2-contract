@@ -352,16 +352,7 @@ contract Liquidity is
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) private {
 		for (uint256 i = 0; i < withdrawals.length; i++) {
-			TokenInfo memory tokenInfo = getTokenInfo(
-				withdrawals[i].tokenIndex
-			);
-			_sendToken(
-				tokenInfo.tokenType,
-				tokenInfo.tokenAddress,
-				withdrawals[i].recipient,
-				withdrawals[i].amount,
-				tokenInfo.tokenId
-			);
+			_processDirectWithdrawal(withdrawals[i]);
 		}
 		if (withdrawals.length > 0) {
 			emit DirectWithdrawalsProcessed(_lastProcessedDirectWithdrawalId);
@@ -375,6 +366,59 @@ contract Liquidity is
 				tx.origin, // msg.sender is ScrollMessenger, so we use tx.origin
 				withdrawals.length
 			);
+		}
+	}
+
+	function _processDirectWithdrawal(
+		WithdrawalLib.Withdrawal memory withdrawal_
+	) internal {
+		TokenInfo memory tokenInfo = getTokenInfo(withdrawal_.tokenIndex);
+
+		bool result;
+		if (tokenInfo.tokenType == TokenType.NATIVE) {
+			bool success = payable(withdrawal_.recipient).send(
+				withdrawal_.amount
+			);
+			result = success;
+		} else if (tokenInfo.tokenType == TokenType.ERC20) {
+			try
+				IERC20(tokenInfo.tokenAddress).transfer(
+					withdrawal_.recipient,
+					withdrawal_.amount
+				)
+			returns (bool success) {
+				result = success;
+			} catch {
+				result = false;
+			}
+		} else if (tokenInfo.tokenType == TokenType.ERC721) {
+			try
+				IERC721(tokenInfo.tokenAddress).safeTransferFrom(
+					address(this),
+					withdrawal_.recipient,
+					tokenInfo.tokenId
+				)
+			{} catch {
+				result = false;
+			}
+		} else if (tokenInfo.tokenType == TokenType.ERC1155) {
+			try
+				IERC1155(tokenInfo.tokenAddress).safeTransferFrom(
+					address(this),
+					withdrawal_.recipient,
+					tokenInfo.tokenId,
+					withdrawal_.amount,
+					bytes("")
+				)
+			{} catch {
+				result = false;
+			}
+		}
+		if (!result) {
+			bytes32 withdrawalHash = withdrawal_.getHash();
+			claimableWithdrawals[withdrawalHash] = block.timestamp;
+			emit DirectWithdrawalFailed(withdrawalHash, withdrawal_);
+			emit WithdrawalClaimable(withdrawalHash);
 		}
 	}
 
