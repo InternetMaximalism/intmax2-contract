@@ -141,8 +141,9 @@ contract BlockBuilderRegistry is
 		}
 		emit BlockBuilderSlashed(blockBuilder, _owner);
 		if (info.stakeAmount < MIN_STAKE_AMOUNT) {
-			// The Block Builder cannot post a block unless it has a minimum amount of stakes,
-			// so it does not normally enter into this process.
+			// A Block Builder may end up in this situation if, for example, they initially staked 0.15 ETH and posted two invalid blocks.
+			// After the first slashing, their stake would be reduced to 0.05 ETH. If they post another invalid block and are slashed again,
+			// this condition will be triggered, leaving their stake below the required minimum.
 			uint256 slashAmount = info.stakeAmount;
 			info.stakeAmount = 0;
 			blockBuilders[blockBuilder] = info;
