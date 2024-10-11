@@ -53,7 +53,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		address _liquidity,
 		address _blockBuilderRegistry,
 		address _contribution
-	) public initializer {
+	) external initializer {
 		if (_scrollMessenger == address(0)) {
 			revert AddressZero();
 		}

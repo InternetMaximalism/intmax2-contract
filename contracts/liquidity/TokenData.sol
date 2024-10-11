@@ -15,7 +15,7 @@ abstract contract TokenData is Initializable, ITokenData {
 	// solhint-disable-next-line func-name-mixedcase
 	function __TokenData_init(
 		address[] memory initialERC20Tokens
-	) public onlyInitializing {
+	) internal onlyInitializing {
 		_createTokenIndex(TokenType.NATIVE, NATIVE_CURRENCY_ADDRESS, 0);
 		for (uint256 i = 0; i < initialERC20Tokens.length; i++) {
 			_createTokenIndex(TokenType.ERC20, initialERC20Tokens[i], 0);

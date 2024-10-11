@@ -74,7 +74,7 @@ contract Liquidity is
 			revert InvalidDepositHash(depositData.depositHash, depositHash);
 		}
 		if (depositId <= getLastRelayedDepositId()) {
-			if (depositData.isRejected == false) {
+			if (!depositData.isRejected) {
 				revert AlreadyAnalyzed();
 			}
 		}
@@ -88,7 +88,7 @@ contract Liquidity is
 		address _analyzer,
 		address _contribution,
 		address[] memory initialERC20Tokens
-	) public initializer {
+	) external initializer {
 		if (_l1ScrollMessenger == address(0)) {
 			revert AddressZero();
 		}
@@ -107,6 +107,7 @@ contract Liquidity is
 		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 		_grantRole(ANALYZER, _analyzer);
 		__UUPSUpgradeable_init();
+		__AccessControl_init();
 		__TokenData_init(initialERC20Tokens);
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
@@ -341,7 +342,7 @@ contract Liquidity is
 		if (depositData.sender != sender) {
 			return false;
 		}
-		if (depositData.isRejected == true) {
+		if (depositData.isRejected) {
 			return false;
 		}
 		return true;

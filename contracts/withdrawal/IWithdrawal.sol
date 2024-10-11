@@ -58,6 +58,14 @@ interface IWithdrawal {
 		uint256 lastClaimableWithdrawalId
 	);
 
+	/// @notice Emitted when direct withdrawal token indices are added
+	/// @param tokenIndices The token indices that were added
+	event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices);
+
+	/// @notice Emitted when direct withdrawal token indices are removed
+	/// @param tokenIndices The token indices that were removed
+	event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices);
+
 	/// @notice Submit withdrawal proof from intmax2
 	/// @param withdrawals List of chained withdrawals
 	/// @param publicInputs Public inputs for the withdrawal proof

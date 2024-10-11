@@ -28,7 +28,7 @@ contract BlockBuilderRegistry is
 	using Byte32Lib for bytes32;
 
 	modifier isStaking() {
-		if (blockBuilders[_msgSender()].isStaking() == false) {
+		if (!blockBuilders[_msgSender()].isStaking()) {
 			revert BlockBuilderNotFound();
 		}
 		_;
@@ -41,7 +41,7 @@ contract BlockBuilderRegistry is
 	function initialize(
 		address _rollup,
 		address _fraudVerifier
-	) public initializer {
+	) external initializer {
 		if (_rollup == address(0)) {
 			revert AddressZero();
 		}
@@ -89,7 +89,7 @@ contract BlockBuilderRegistry is
 	function unstake() external isStaking {
 		// Check if the last block submission is not within 24 hour.
 		BlockBuilderInfo memory info = blockBuilders[_msgSender()];
-		if (info.isChallengeDuration() == false) {
+		if (!info.isChallengeDuration()) {
 			revert CannotUnstakeWithinChallengeDuration();
 		}
 		string memory url = info.blockBuilderUrl;
@@ -138,7 +138,7 @@ contract BlockBuilderRegistry is
 
 	function _slashBlockBuilder(address blockBuilder, address _owner) private {
 		BlockBuilderInfo memory info = blockBuilders[blockBuilder];
-		if (info.isStaking() == false) {
+		if (!info.isStaking()) {
 			revert BlockBuilderNotFound();
 		}
 		info.numSlashes += 1;
