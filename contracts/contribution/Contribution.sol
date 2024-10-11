@@ -101,7 +101,7 @@ contract Contribution is
 		UD60x18 totalContribution = ud(0);
 		UD60x18 userContribution = ud(0);
 		for (uint256 i = 0; i < allTags[periodNumber].length; i++) {
-			bytes32 tag = allTags[currentPeriod][i];
+			bytes32 tag = allTags[periodNumber][i];
 			UD60x18 weight = convert(allWeights[periodNumber][tag]);
 			totalContribution =
 				totalContribution +
