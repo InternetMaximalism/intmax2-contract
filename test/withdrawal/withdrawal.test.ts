@@ -89,17 +89,107 @@ describe('Withdrawal', () => {
 		describe('fail', () => {
 			it('should revert when initializing twice', async () => {
 				const [withdrawal] = await loadFixture(setup)
-
+				const tmpAddress = ethers.Wallet.createRandom().address
 				await expect(
 					withdrawal.initialize(
-						ethers.ZeroAddress,
-						ethers.ZeroAddress,
-						ethers.ZeroAddress,
-						ethers.ZeroAddress,
-						ethers.ZeroAddress,
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
+						tmpAddress,
 						[0, 1],
 					),
 				).to.be.revertedWithCustomError(withdrawal, 'InvalidInitialization')
+			})
+			it('scrollMessenger is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
+			})
+			it('withdrawalVerifier is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
+			})
+			it('liquidity is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
+			})
+			it('rollup is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
+			})
+			it('contribution is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups' },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
 		})
 	})
