@@ -33,37 +33,11 @@ describe('RateLimiterLibTest', function () {
 		await expect(lib.update()).to.emit(lib, 'UpdateResult').withArgs(0)
 	})
 
-	// it('should return non-zero penalty when interval is less than target', async function () {
-	// 	const lib = await loadFixture(setup)
-	// 	await lib.update()
-
-	// const expectedPenalty = 0.025
-	// await expect(lib.update()).to.emit(lib, 'UpdateResult').withArgs(0)
-	// })
-
-	// it('should correctly update EMA over multiple calls', async function () {
-	// 	const lib = await loadFixture(setup)
-	// 	for (let i = 0; i < 5; i++) {
-	// 		await lib.update()
-	// 		await time.increase(10) // Consistently call every 10 seconds
-	// 	}
-	// 	const state = await lib.state()
-	// 	expect(state.emaInterval).to.be.lt(ethers.utils.parseUnits('15', 18)) // EMA should be less than 15 seconds
-	// })
-
-	// it('should increase penalty for consecutive rapid calls', async function () {
-	// 	const lib = await loadFixture(setup)
-	// 	let previousPenalty = 0
-	// 	for (let i = 0; i < 5; i++) {
-	// 		await time.increase(5) // Call every 5 seconds (less than target)
-
-	// 		const tx = await lib.update()
-	// 		const receipt = await tx.wait()
-	// 		const event = receipt?.events?.find((e) => e.event === 'Updated')
-	// 		const penalty = event?.args?.[0]
-
-	// 		expect(penalty).to.be.gte(previousPenalty) // Penalty should increase or stay the same
-	// 		previousPenalty = penalty
-	// 	}
-	// })
+	it('should return non-zero penalty when interval is less than target', async function () {
+		const lib = await loadFixture(setup)
+		await lib.update()
+		await expect(lib.update())
+			.to.emit(lib, 'UpdateResult')
+			.withArgs(21_344_400_000_000_000n)
+	})
 })
