@@ -106,16 +106,15 @@ describe('Rollup', () => {
 	): Promise<void> => {
 		await blockBuilderRegistry.setResult(true)
 		const inputs = generateValidInputs()
-		await rollup
-			.connect(signer)
-			.postRegistrationBlock(
-				inputs.txTreeRoot,
-				inputs.senderFlags,
-				inputs.aggregatedPublicKey,
-				inputs.aggregatedSignature,
-				inputs.messagePoint,
-				inputs.senderPublicKeys,
-			)
+		await rollup.connect(signer).postRegistrationBlock(
+			inputs.txTreeRoot,
+			inputs.senderFlags,
+			inputs.aggregatedPublicKey,
+			inputs.aggregatedSignature,
+			inputs.messagePoint,
+			inputs.senderPublicKeys,
+			{ value: ethers.parseEther('1') }, // pay enough penalty
+		)
 	}
 	describe('initialize', () => {
 		describe('success', () => {

@@ -11,10 +11,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {DepositTreeLib} from "./lib/DepositTreeLib.sol";
 import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
+import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
 
 contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
+	using RateLimiterLib for RateLimiterLib.RateLimitState;
 
 	uint256 private constant NUM_SENDERS_IN_BLOCK = 128;
 	uint256 private constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
@@ -27,6 +29,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	IL2ScrollMessenger private l2ScrollMessenger;
 	IContribution private contribution;
 	DepositTreeLib.DepositTree private depositTree;
+	RateLimiterLib.RateLimitState private rateLimitState;
 	bytes32 public depositTreeRoot;
 
 	modifier onlyLiquidityContract() {
@@ -70,7 +73,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint,
 		uint256[] calldata senderPublicKeys
-	) external {
+	) external payable {
 		uint256 length = senderPublicKeys.length;
 		if (length > NUM_SENDERS_IN_BLOCK) {
 			revert TooManySenderPublicKeys();
@@ -107,7 +110,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata messagePoint,
 		bytes32 publicKeysHash,
 		bytes calldata senderAccountIds
-	) external {
+	) external payable {
 		uint256 length = senderAccountIds.length;
 		if (length > FULL_ACCOUNT_IDS_BYTES) {
 			revert TooManyAccountIds();
@@ -161,6 +164,15 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
+		uint256 penalty = rateLimitState.update();
+		if (penalty > msg.value) {
+			revert InsufficientPenaltyFee();
+		}
+		// refund the excess fee
+		if (msg.value > 0) {
+			payable(_msgSender()).transfer(msg.value - penalty);
+		}
+
 		bool success = PairingLib.pairing(
 			aggregatedPublicKey,
 			aggregatedSignature,
@@ -200,6 +212,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			_msgSender(),
 			1
 		);
+	}
+
+	function withdrawPenaltyFee(address to) external onlyOwner {
+		payable(to).transfer(address(this).balance);
 	}
 
 	function getLatestBlockNumber() external view returns (uint32) {

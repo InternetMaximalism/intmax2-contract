@@ -19,7 +19,7 @@ library RateLimiterLib {
 
 	/// @notice Updates the rate limit state and calculates penalty
 	/// @param state The current state of the rate limiter
-	/// @return uint256 The calculated penalty (if any)
+	/// @return uint256 The calculated penalty
 	function update(RateLimitState storage state) internal returns (uint256) {
 		uint256 currentTime = block.timestamp;
 
@@ -35,11 +35,10 @@ library RateLimiterLib {
 		// Formula: emaInterval = alpha * interval + (1 - alpha) * emaInterval
 		SD59x18 alpha = sd(ALPHA);
 		SD59x18 interval = convert(int256(currentTime - state.lastCallTime));
+
 		state.emaInterval = alpha.mul(interval).add(
 			(convert(1).sub(alpha)).mul(state.emaInterval)
 		);
-
-		// Update last call time
 		state.lastCallTime = currentTime;
 
 		// Check if the EMA is less than the target interval
