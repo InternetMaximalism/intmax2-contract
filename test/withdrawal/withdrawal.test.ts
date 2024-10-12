@@ -56,7 +56,7 @@ describe('Withdrawal', () => {
 				await contribution.getAddress(),
 				DIRECT_WITHDRAWAL_TOKEN_INDICES,
 			],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Withdrawal
 		return [
 			withdrawal,
@@ -115,7 +115,7 @@ describe('Withdrawal', () => {
 							tmpAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
@@ -133,7 +133,7 @@ describe('Withdrawal', () => {
 							tmpAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
@@ -151,7 +151,7 @@ describe('Withdrawal', () => {
 							tmpAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
@@ -169,7 +169,7 @@ describe('Withdrawal', () => {
 							tmpAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
@@ -187,7 +187,7 @@ describe('Withdrawal', () => {
 							ethers.ZeroAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
 			})
@@ -789,6 +789,7 @@ describe('Withdrawal', () => {
 			const next = await upgrades.upgradeProxy(
 				await withdrawal.getAddress(),
 				withdrawal2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const owner = await withdrawal.owner()
 			expect(owner).to.equal(deployer.address)
@@ -806,6 +807,7 @@ describe('Withdrawal', () => {
 				upgrades.upgradeProxy(
 					await withdrawal.getAddress(),
 					withdrawal2Factory,
+					{ unsafeAllow: ['constructor'] },
 				),
 			)
 				.to.be.revertedWithCustomError(withdrawal, 'OwnableUnauthorizedAccount')

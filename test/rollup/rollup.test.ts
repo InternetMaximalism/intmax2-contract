@@ -48,7 +48,7 @@ describe('Rollup', () => {
 				await blockBuilderRegistry.getAddress(),
 				await contribution.getAddress(),
 			],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Rollup
 		return [rollup, blockBuilderRegistry, l2ScrollMessenger, contribution]
 	}
@@ -162,7 +162,7 @@ describe('Rollup', () => {
 					upgrades.deployProxy(
 						rollupFactory,
 						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
@@ -174,7 +174,7 @@ describe('Rollup', () => {
 					upgrades.deployProxy(
 						rollupFactory,
 						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
@@ -186,7 +186,7 @@ describe('Rollup', () => {
 					upgrades.deployProxy(
 						rollupFactory,
 						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
@@ -198,7 +198,7 @@ describe('Rollup', () => {
 					upgrades.deployProxy(
 						rollupFactory,
 						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
@@ -788,6 +788,7 @@ describe('Rollup', () => {
 			const next = await upgrades.upgradeProxy(
 				await rollup.getAddress(),
 				rollup2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const hash = await rollup.blockHashes(0)
 			expect(hash).to.equal(FIRST_BLOCK_HASH)
@@ -802,7 +803,9 @@ describe('Rollup', () => {
 				signers.user1,
 			)
 			await expect(
-				upgrades.upgradeProxy(await rollup.getAddress(), rollupFactory),
+				upgrades.upgradeProxy(await rollup.getAddress(), rollupFactory, {
+					unsafeAllow: ['constructor'],
+				}),
 			)
 				.to.be.revertedWithCustomError(rollup, 'OwnableUnauthorizedAccount')
 				.withArgs(signers.user1.address)

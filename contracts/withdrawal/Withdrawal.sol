@@ -35,6 +35,10 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	uint256 public lastDirectWithdrawalId;
 	uint256 public lastClaimableWithdrawalId;
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize(
 		address _scrollMessenger,
 		address _withdrawalVerifier,

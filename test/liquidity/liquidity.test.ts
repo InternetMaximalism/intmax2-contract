@@ -44,7 +44,7 @@ describe('Liquidity', () => {
 				await contribution.getAddress(),
 				INITIAL_ERC20_TOKEN_ADDRESSES,
 			],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Liquidity
 		await l1ScrollMessenger.setLiquidity(await liquidity.getAddress())
 		return {
@@ -112,7 +112,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
@@ -130,7 +130,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
@@ -148,7 +148,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
@@ -166,7 +166,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
@@ -184,7 +184,7 @@ describe('Liquidity', () => {
 							ethers.ZeroAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
@@ -2064,6 +2064,7 @@ describe('Liquidity', () => {
 			const next = await upgrades.upgradeProxy(
 				await liquidity.getAddress(),
 				liquidity2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const beforeRole = await liquidity.ANALYZER()
 
@@ -2081,7 +2082,9 @@ describe('Liquidity', () => {
 			)
 			const role = await liquidity.DEFAULT_ADMIN_ROLE()
 			await expect(
-				upgrades.upgradeProxy(await liquidity.getAddress(), liquidity2Factory),
+				upgrades.upgradeProxy(await liquidity.getAddress(), liquidity2Factory, {
+					unsafeAllow: ['constructor'],
+				}),
 			)
 				.to.be.revertedWithCustomError(
 					liquidity,

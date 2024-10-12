@@ -34,6 +34,10 @@ contract BlockBuilderRegistry is
 		_;
 	}
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	/**
 	 * @notice Initialize the contract.
 	 * @param _rollup The address of the rollup contract.

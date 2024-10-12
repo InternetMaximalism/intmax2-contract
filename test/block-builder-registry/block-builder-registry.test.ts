@@ -43,7 +43,7 @@ describe('BlockBuilderRegistry', () => {
 		const blockBuilderRegistry = (await upgrades.deployProxy(
 			blockBuilderRegistryFactory,
 			[await rollup.getAddress(), await verifier.getAddress()],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as BlockBuilderRegistry
 		return [blockBuilderRegistry, rollup, verifier]
 	}
@@ -191,7 +191,7 @@ describe('BlockBuilderRegistry', () => {
 					upgrades.deployProxy(
 						blockBuilderRegistryFactory,
 						[ethers.ZeroAddress, tmpAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(
 					blockBuilderRegistryFactory,
@@ -207,7 +207,7 @@ describe('BlockBuilderRegistry', () => {
 					upgrades.deployProxy(
 						blockBuilderRegistryFactory,
 						[tmpAddress, ethers.ZeroAddress],
-						{ kind: 'uups' },
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(
 					blockBuilderRegistryFactory,
@@ -1030,6 +1030,7 @@ describe('BlockBuilderRegistry', () => {
 			const next = await upgrades.upgradeProxy(
 				await blockBuilderRegistry.getAddress(),
 				registry2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const blockBuilderInfo = await blockBuilderRegistry.blockBuilders(
 				signers.blockBuilder1.address,
@@ -1049,6 +1050,7 @@ describe('BlockBuilderRegistry', () => {
 				upgrades.upgradeProxy(
 					await blockBuilderRegistry.getAddress(),
 					registryFactory,
+					{ unsafeAllow: ['constructor'] },
 				),
 			)
 				.to.be.revertedWithCustomError(

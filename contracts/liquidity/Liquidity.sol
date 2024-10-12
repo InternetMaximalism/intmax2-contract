@@ -81,6 +81,10 @@ contract Liquidity is
 		_;
 	}
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize(
 		address _l1ScrollMessenger,
 		address _rollup,
