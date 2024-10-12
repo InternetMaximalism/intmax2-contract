@@ -41,13 +41,18 @@ contract Liquidity is
 	DepositQueueLib.DepositQueue private depositQueue;
 
 	modifier onlyWithdrawal() {
-		if (withdrawal == address(0)) {
+		// Cache the values to avoid multiple storage reads
+		address withdrawalCashed = withdrawal;
+		IL1ScrollMessenger l1ScrollMessengerCashed = l1ScrollMessenger;
+		if (withdrawalCashed == address(0)) {
 			revert WithdrawalAddressNotSet();
 		}
-		if (_msgSender() != address(l1ScrollMessenger)) {
+		if (_msgSender() != address(l1ScrollMessengerCashed)) {
 			revert SenderIsNotScrollMessenger();
 		}
-		if (withdrawal != l1ScrollMessenger.xDomainMessageSender()) {
+		if (
+			withdrawalCashed != l1ScrollMessengerCashed.xDomainMessageSender()
+		) {
 			revert InvalidWithdrawalAddress();
 		}
 		_;
@@ -473,7 +478,7 @@ contract Liquidity is
 	}
 
 	function getLastDepositId() external view returns (uint256) {
-		return depositQueue.rear - 1;
+		return depositQueue.depositData.length - 1;
 	}
 
 	function _authorizeUpgrade(
