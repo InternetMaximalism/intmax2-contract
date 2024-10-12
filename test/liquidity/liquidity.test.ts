@@ -44,7 +44,7 @@ describe('Liquidity', () => {
 				await contribution.getAddress(),
 				INITIAL_ERC20_TOKEN_ADDRESSES,
 			],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Liquidity
 		await l1ScrollMessenger.setLiquidity(await liquidity.getAddress())
 		return {
@@ -97,6 +97,96 @@ describe('Liquidity', () => {
 						[ethers.ZeroAddress, ethers.ZeroAddress],
 					),
 				).to.be.revertedWithCustomError(liquidity, 'InvalidInitialization')
+			})
+			it('l1ScrollMessenger is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+			it('rollup is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+			it('withdrawal is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+			it('analyzer is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+			it('contribution is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
 		})
 	})
@@ -1323,32 +1413,6 @@ describe('Liquidity', () => {
 			})
 		})
 		describe('fail', () => {
-			it('revert WithdrawalAddressNotSet', async () => {
-				const { scrollMessenger, rollup, contribution } =
-					await loadFixture(setup)
-				const { analyzer } = await getSigners()
-
-				// Deploy a new Liquidity contract without setting the withdrawal address
-				const liquidityFactory = await ethers.getContractFactory('Liquidity')
-				const newLiquidity = (await upgrades.deployProxy(
-					liquidityFactory,
-					[
-						await scrollMessenger.getAddress(),
-						rollup,
-						ethers.ZeroAddress, // Set withdrawal address to zero
-						analyzer.address,
-						await contribution.getAddress(),
-						INITIAL_ERC20_TOKEN_ADDRESSES,
-					],
-					{ kind: 'uups' },
-				)) as unknown as Liquidity
-
-				await scrollMessenger.setLiquidity(await newLiquidity.getAddress())
-
-				await expect(
-					scrollMessenger.processWithdrawals(0, [], 0, []),
-				).to.be.revertedWithCustomError(newLiquidity, 'WithdrawalAddressNotSet')
-			})
 			it('revert SenderIsNotScrollMessenger', async () => {
 				const { liquidity } = await loadFixture(setup)
 				const { user } = await getSigners()
@@ -1910,7 +1974,7 @@ describe('Liquidity', () => {
 			expect(await liquidity.getLastDepositId()).to.equal(5)
 		})
 	})
-	describe('isDepositOngoing', () => {
+	describe('isDepositValid', () => {
 		it('return true', async () => {
 			const { liquidity } = await loadFixture(setup)
 			const { user } = await getSigners()
@@ -1921,7 +1985,7 @@ describe('Liquidity', () => {
 			await liquidity
 				.connect(user)
 				.depositNativeToken(recipientSaltHash, { value: depositAmount })
-			const result = await liquidity.isDepositOngoing(
+			const result = await liquidity.isDepositValid(
 				currentDepositId + 1n,
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
@@ -1940,7 +2004,7 @@ describe('Liquidity', () => {
 			await liquidity
 				.connect(user)
 				.depositNativeToken(recipientSaltHash, { value: depositAmount })
-			const result = await liquidity.isDepositOngoing(
+			const result = await liquidity.isDepositValid(
 				currentDepositId + 1n,
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
@@ -1959,7 +2023,7 @@ describe('Liquidity', () => {
 			await liquidity
 				.connect(user)
 				.depositNativeToken(recipientSaltHash, { value: depositAmount })
-			const result = await liquidity.isDepositOngoing(
+			const result = await liquidity.isDepositValid(
 				currentDepositId + 1n,
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
@@ -1982,7 +2046,7 @@ describe('Liquidity', () => {
 				.analyzeAndRelayDeposits(1, [1], 1000000, {
 					value: ethers.parseEther('1'),
 				})
-			const result = await liquidity.isDepositOngoing(
+			const result = await liquidity.isDepositValid(
 				1,
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
@@ -2000,6 +2064,7 @@ describe('Liquidity', () => {
 			const next = await upgrades.upgradeProxy(
 				await liquidity.getAddress(),
 				liquidity2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const beforeRole = await liquidity.ANALYZER()
 
@@ -2017,7 +2082,9 @@ describe('Liquidity', () => {
 			)
 			const role = await liquidity.DEFAULT_ADMIN_ROLE()
 			await expect(
-				upgrades.upgradeProxy(await liquidity.getAddress(), liquidity2Factory),
+				upgrades.upgradeProxy(await liquidity.getAddress(), liquidity2Factory, {
+					unsafeAllow: ['constructor'],
+				}),
 			)
 				.to.be.revertedWithCustomError(
 					liquidity,

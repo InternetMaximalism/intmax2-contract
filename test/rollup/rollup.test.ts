@@ -47,7 +47,7 @@ describe('Rollup', () => {
 				liquidity,
 				await contribution.getAddress(),
 			],
-			{ kind: 'uups' },
+			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Rollup
 		return [rollup, blockBuilderRegistry, l2ScrollMessenger, contribution]
 	}
@@ -150,6 +150,42 @@ describe('Rollup', () => {
 						ethers.ZeroAddress,
 					),
 				).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
+			})
+			it('scrollMessenger is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[ethers.ZeroAddress, tmpAddress, tmpAddress],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
+			it('liquidity is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[tmpAddress, ethers.ZeroAddress, tmpAddress],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
+			})
+			it('contribution is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[tmpAddress, tmpAddress, ethers.ZeroAddress],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
 		})
 	})
@@ -704,6 +740,7 @@ describe('Rollup', () => {
 			const next = await upgrades.upgradeProxy(
 				await rollup.getAddress(),
 				rollup2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const hash = await rollup.blockHashes(0)
 			expect(hash).to.equal(FIRST_BLOCK_HASH)
@@ -718,7 +755,9 @@ describe('Rollup', () => {
 				signers.user1,
 			)
 			await expect(
-				upgrades.upgradeProxy(await rollup.getAddress(), rollupFactory),
+				upgrades.upgradeProxy(await rollup.getAddress(), rollupFactory, {
+					unsafeAllow: ['constructor'],
+				}),
 			)
 				.to.be.revertedWithCustomError(rollup, 'OwnableUnauthorizedAccount')
 				.withArgs(signers.user1.address)

@@ -28,10 +28,14 @@ contract BlockBuilderRegistry is
 	using Byte32Lib for bytes32;
 
 	modifier isStaking() {
-		if (blockBuilders[_msgSender()].isStaking() == false) {
+		if (!blockBuilders[_msgSender()].isStaking()) {
 			revert BlockBuilderNotFound();
 		}
 		_;
+	}
+
+	constructor() {
+		_disableInitializers();
 	}
 
 	/**
@@ -41,7 +45,13 @@ contract BlockBuilderRegistry is
 	function initialize(
 		address _rollup,
 		address _fraudVerifier
-	) public initializer {
+	) external initializer {
+		if (_rollup == address(0)) {
+			revert AddressZero();
+		}
+		if (_fraudVerifier == address(0)) {
+			revert AddressZero();
+		}
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
 		rollup = IRollup(_rollup);
@@ -83,7 +93,7 @@ contract BlockBuilderRegistry is
 	function unstake() external isStaking {
 		// Check if the last block submission is not within 24 hour.
 		BlockBuilderInfo memory info = blockBuilders[_msgSender()];
-		if (info.isChallengeDuration() == false) {
+		if (!info.hasChallengeDurationPassed()) {
 			revert CannotUnstakeWithinChallengeDuration();
 		}
 		string memory url = info.blockBuilderUrl;
@@ -130,26 +140,27 @@ contract BlockBuilderRegistry is
 		);
 	}
 
-	function _slashBlockBuilder(address blockBuilder, address owner) private {
+	function _slashBlockBuilder(address blockBuilder, address _owner) private {
 		BlockBuilderInfo memory info = blockBuilders[blockBuilder];
-		if (info.isStaking() == false) {
+		if (!info.isStaking()) {
 			revert BlockBuilderNotFound();
 		}
 		info.numSlashes += 1;
 		if (!info.isStakeAmountSufficient() && info.isValid) {
 			info.isValid = false;
 		}
-		emit BlockBuilderSlashed(blockBuilder, owner);
+		emit BlockBuilderSlashed(blockBuilder, _owner);
 		if (info.stakeAmount < MIN_STAKE_AMOUNT) {
-			// The Block Builder cannot post a block unless it has a minimum amount of stakes,
-			// so it does not normally enter into this process.
+			// A Block Builder may end up in this situation if, for example, they initially staked 0.15 ETH and posted two invalid blocks.
+			// After the first slashing, their stake would be reduced to 0.05 ETH. If they post another invalid block and are slashed again,
+			// this condition will be triggered, leaving their stake below the required minimum.
 			uint256 slashAmount = info.stakeAmount;
 			info.stakeAmount = 0;
 			blockBuilders[blockBuilder] = info;
 			if (slashAmount < MIN_STAKE_AMOUNT / 2) {
-				payable(owner).transfer(slashAmount);
+				payable(_owner).transfer(slashAmount);
 			} else {
-				payable(owner).transfer(MIN_STAKE_AMOUNT / 2);
+				payable(_owner).transfer(MIN_STAKE_AMOUNT / 2);
 				payable(burnAddress).transfer(
 					slashAmount - (MIN_STAKE_AMOUNT / 2)
 				);
@@ -165,7 +176,7 @@ contract BlockBuilderRegistry is
 		// submitting fraud proofs by oneself, which would place a burden on
 		// the generation of block validity proofs. An invalid block must prove
 		// in the block validity proof that it has been invalidated.
-		payable(owner).transfer(MIN_STAKE_AMOUNT / 2);
+		payable(_owner).transfer(MIN_STAKE_AMOUNT / 2);
 		payable(burnAddress).transfer(MIN_STAKE_AMOUNT / 2);
 	}
 

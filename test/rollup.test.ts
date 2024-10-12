@@ -13,6 +13,7 @@ describe('Rollup', function () {
 	let mockL2ScrollMessenger: MockL2ScrollMessenger
 	let registry: BlockBuilderRegistry
 	let rollup: Rollup
+	let liquidityAddress: string
 
 	this.beforeEach(async function () {
 		const mockL2ScrollMessengerFactory = await ethers.getContractFactory(
@@ -26,21 +27,25 @@ describe('Rollup', function () {
 		registry = (await upgrades.deployProxy(registryFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as BlockBuilderRegistry
 
 		const rollupFactory = await ethers.getContractFactory('Rollup')
 		rollup = (await upgrades.deployProxy(rollupFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
+		liquidityAddress = ethers.Wallet.createRandom().address
 		await rollup.initialize(
 			await mockL2ScrollMessenger.getAddress(),
-			ethers.ZeroAddress,
+			liquidityAddress,
 			await contribution.getAddress(),
 		)
 		await contribution.grantRole(
@@ -75,7 +80,7 @@ describe('Rollup', function () {
 			depositHashes,
 		])
 		const tx = await mockL2ScrollMessenger.relayMessage(
-			ethers.ZeroAddress,
+			liquidityAddress,
 			await rollup.getAddress(),
 			0,
 			0,

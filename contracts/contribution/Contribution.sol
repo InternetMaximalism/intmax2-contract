@@ -37,11 +37,45 @@ contract Contribution is
 	/// @dev period => array of tags
 	mapping(uint256 => bytes32[]) private allTags;
 
-	function initialize() public initializer {
+	constructor() {
+		_disableInitializers();
+	}
+
+	function initialize() external initializer {
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
 		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 		_grantRole(WEIGHT_REGISTRAR, _msgSender());
+	}
+
+	function incrementPeriod() external onlyRole(WEIGHT_REGISTRAR) {
+		currentPeriod++;
+		emit PeriodIncremented(currentPeriod);
+	}
+
+	function registerWeights(
+		uint256 periodNumber,
+		bytes32[] memory tags,
+		uint256[] memory weights
+	) external onlyRole(WEIGHT_REGISTRAR) {
+		if (tags.length != weights.length) {
+			revert InvalidInputLength();
+		}
+		for (uint256 i = 0; i < tags.length; i++) {
+			allWeights[periodNumber][tags[i]] = weights[i];
+		}
+		allTags[periodNumber] = tags;
+		emit WeightRegistered(periodNumber, tags, weights);
+	}
+
+	function recordContribution(
+		bytes32 tag,
+		address user,
+		uint256 amount
+	) external onlyRole(CONTRIBUTOR) {
+		totalContributionsInPeriod[currentPeriod][tag] += amount;
+		contributionsInPeriod[currentPeriod][tag][user] += amount;
+		emit ContributionRecorded(currentPeriod, tag, user, amount);
 	}
 
 	function getTags(
@@ -60,33 +94,6 @@ contract Contribution is
 		return weights;
 	}
 
-	function incrementPeriod() external onlyRole(WEIGHT_REGISTRAR) {
-		currentPeriod++;
-	}
-
-	function registerWeights(
-		uint256 periodNumber,
-		bytes32[] memory tags,
-		uint256[] memory weights
-	) external onlyRole(WEIGHT_REGISTRAR) {
-		if (tags.length != weights.length) {
-			revert InvalidInputLength();
-		}
-		for (uint256 i = 0; i < tags.length; i++) {
-			allWeights[periodNumber][tags[i]] = weights[i];
-		}
-		allTags[periodNumber] = tags;
-	}
-
-	function recordContribution(
-		bytes32 tag,
-		address user,
-		uint256 amount
-	) external onlyRole(CONTRIBUTOR) {
-		totalContributionsInPeriod[currentPeriod][tag] += amount;
-		contributionsInPeriod[currentPeriod][tag][user] += amount;
-	}
-
 	function getCurrentContribution(
 		bytes32 tag,
 		address user
@@ -101,7 +108,7 @@ contract Contribution is
 		UD60x18 totalContribution = ud(0);
 		UD60x18 userContribution = ud(0);
 		for (uint256 i = 0; i < allTags[periodNumber].length; i++) {
-			bytes32 tag = allTags[currentPeriod][i];
+			bytes32 tag = allTags[periodNumber][i];
 			UD60x18 weight = convert(allWeights[periodNumber][tag]);
 			totalContribution =
 				totalContribution +

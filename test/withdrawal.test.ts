@@ -17,21 +17,25 @@ describe('Withdrawal', function () {
 		registry = (await upgrades.deployProxy(registryFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as BlockBuilderRegistry
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 
+		const tmpAddress = ethers.Wallet.createRandom().address
 		const rollupFactory = await ethers.getContractFactory('Rollup')
 		rollup = (await upgrades.deployProxy(rollupFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 		await rollup.initialize(
-			ethers.ZeroAddress,
-			ethers.ZeroAddress,
+			tmpAddress,
+			tmpAddress,
 			await contribution.getAddress(),
 		)
 		const rollupAddress = await rollup.getAddress()
@@ -52,12 +56,13 @@ describe('Withdrawal', function () {
 		withdrawal = (await upgrades.deployProxy(withdrawalFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Withdrawal
 
 		await withdrawal.initialize(
 			mockL2ScrollMessengerAddress,
 			mockPlonkVerifierAddress,
-			ethers.ZeroAddress,
+			ethers.Wallet.createRandom().address,
 			rollupAddress,
 			await contribution.getAddress(),
 			[],

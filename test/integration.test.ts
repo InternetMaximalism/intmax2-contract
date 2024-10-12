@@ -47,10 +47,12 @@ describe('Integration', function () {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		l1Contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 
 		l2Contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 
 		// scroll messanger deployment
@@ -77,11 +79,13 @@ describe('Integration', function () {
 		rollup = (await upgrades.deployProxy(rollupFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 		const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
 		withdrawal = (await upgrades.deployProxy(withdrawalFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Withdrawal
 		const registryFactory = await ethers.getContractFactory(
 			'BlockBuilderRegistry',
@@ -89,6 +93,7 @@ describe('Integration', function () {
 		registry = (await upgrades.deployProxy(registryFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as BlockBuilderRegistry
 
 		// L1 deployment. Initialize later.
@@ -96,6 +101,7 @@ describe('Integration', function () {
 		liquidity = (await upgrades.deployProxy(liquidityFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Liquidity
 
 		// get address

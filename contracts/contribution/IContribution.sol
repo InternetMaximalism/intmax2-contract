@@ -4,6 +4,32 @@ pragma solidity 0.8.24;
 import {UD60x18} from "@prb/math/src/UD60x18.sol";
 
 interface IContribution {
+	/// @notice Emitted when the current period is incremented.
+	/// @param newPeriod The new period number.
+	event PeriodIncremented(uint256 indexed newPeriod);
+
+	/// @notice Emitted when weights are registered for a period.
+	/// @param periodNumber The number of the period.
+	/// @param tags An array of bytes32 representing the tags.
+	/// @param weights An array of uint256 representing the weights.
+	event WeightRegistered(
+		uint256 indexed periodNumber,
+		bytes32[] tags,
+		uint256[] weights
+	);
+
+	/// @notice Emitted when a contribution is recorded.
+	/// @param periodNumber The number of the period.
+	/// @param tag The tag associated with the contribution.
+	/// @param user The address of the user making the contribution.
+	/// @param amount The amount of the contribution.
+	event ContributionRecorded(
+		uint256 indexed periodNumber,
+		bytes32 indexed tag,
+		address indexed user,
+		uint256 amount
+	);
+
 	/// @notice Error thrown when the input lengths of tags and weights do not match in registerWeights function
 	/// @dev This error is raised to ensure data integrity when registering weights for tags
 	error InvalidInputLength();

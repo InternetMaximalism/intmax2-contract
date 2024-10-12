@@ -49,11 +49,24 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		_;
 	}
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize(
 		address _scrollMessenger,
 		address _liquidity,
 		address _contribution
-	) public initializer {
+	) external initializer {
+		if (_scrollMessenger == address(0)) {
+			revert AddressZero();
+		}
+		if (_liquidity == address(0)) {
+			revert AddressZero();
+		}
+		if (_contribution == address(0)) {
+			revert AddressZero();
+		}
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
 		depositTree.initialize();
