@@ -69,9 +69,10 @@ contract Contribution is
 		address user,
 		uint256 amount
 	) external onlyRole(CONTRIBUTOR) {
-		totalContributionsInPeriod[currentPeriod][tag] += amount;
-		contributionsInPeriod[currentPeriod][tag][user] += amount;
-		emit ContributionRecorded(currentPeriod, tag, user, amount);
+		uint256 currentPeriodCached = currentPeriod;
+		totalContributionsInPeriod[currentPeriodCached][tag] += amount;
+		contributionsInPeriod[currentPeriodCached][tag][user] += amount;
+		emit ContributionRecorded(currentPeriodCached, tag, user, amount);
 	}
 
 	function getTags(
@@ -83,8 +84,9 @@ contract Contribution is
 	function getWeights(
 		uint256 periodNumber
 	) external view returns (uint256[] memory) {
-		uint256[] memory weights = new uint256[](allTags[periodNumber].length);
-		for (uint256 i = 0; i < allTags[periodNumber].length; i++) {
+		uint256 tagLength = allTags[periodNumber].length;
+		uint256[] memory weights = new uint256[](tagLength);
+		for (uint256 i = 0; i < tagLength; i++) {
 			weights[i] = allWeights[periodNumber][allTags[periodNumber][i]];
 		}
 		return weights;
