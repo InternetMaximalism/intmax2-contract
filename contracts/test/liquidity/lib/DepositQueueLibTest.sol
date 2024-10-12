@@ -39,7 +39,7 @@ contract DepositQueueLibTest {
 	}
 
 	function getRear() external view returns (uint256) {
-		return depositQueue.rear;
+		return depositQueue.depositData.length;
 	}
 
 	function getDepositData(
