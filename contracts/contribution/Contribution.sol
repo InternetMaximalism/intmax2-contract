@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
-import {UD60x18, ud, convert} from "@prb/math/src/UD60x18.sol";
+import {UD60x18, convert} from "@prb/math/src/UD60x18.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {IContribution} from "./IContribution.sol";
