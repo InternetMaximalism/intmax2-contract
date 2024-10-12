@@ -49,8 +49,7 @@ library RateLimiterLib {
 			UD60x18 deviation = targetInterval - newEmaInterval;
 
 			// Calculate the penalty: P = k * D^2
-			uint256 penalty = (ud(K) * deviation * deviation).unwrap();
-			return uint256(penalty);
+			return (ud(K) * deviation * deviation).unwrap();
 		} else {
 			return 0; // No penalty if EMA is greater than or equal to target interval
 		}
