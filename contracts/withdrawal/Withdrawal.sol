@@ -118,7 +118,13 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		);
 
 		uint256 directWithdrawalIndex = 0;
+		// load lastDirectWithdrawalId to memory to avoid storage io
+		uint256 lastDirectWithdrawalIdMemory = lastDirectWithdrawalId;
+
 		uint256 claimableWithdrawalIndex = 0;
+		// load lastClaimableWithdrawalId to memory to avoid storage io
+		uint256 lastClaimableWithdrawalIdMemory = lastClaimableWithdrawalId;
+
 		for (uint256 i = 0; i < withdrawals.length; i++) {
 			if (isSkippedFlags[i]) {
 				continue; // skipped withdrawal
@@ -133,8 +139,8 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 					0 // set later
 				);
 			if (_isDirectWithdrawalToken(chainedWithdrawal.tokenIndex)) {
-				lastDirectWithdrawalId++;
-				withdrawal.id = lastDirectWithdrawalId;
+				lastDirectWithdrawalIdMemory++;
+				withdrawal.id = lastDirectWithdrawalIdMemory;
 				directWithdrawals[directWithdrawalIndex] = withdrawal;
 				emit DirectWithdrawalQueued(
 					withdrawal.id,
@@ -143,8 +149,8 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 				);
 				directWithdrawalIndex++;
 			} else {
-				lastClaimableWithdrawalId++;
-				withdrawal.id = lastClaimableWithdrawalId;
+				lastClaimableWithdrawalIdMemory++;
+				withdrawal.id = lastClaimableWithdrawalIdMemory;
 				claimableWithdrawals[claimableWithdrawalIndex] = withdrawal
 					.getHash();
 				emit ClaimableWithdrawalQueued(
@@ -155,16 +161,18 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 				claimableWithdrawalIndex++;
 			}
 		}
+		lastDirectWithdrawalId = lastDirectWithdrawalIdMemory;
+		lastClaimableWithdrawalId = lastClaimableWithdrawalIdMemory;
 		emit WithdrawalsQueued(
-			lastDirectWithdrawalId,
-			lastClaimableWithdrawalId
+			lastDirectWithdrawalIdMemory,
+			lastClaimableWithdrawalIdMemory
 		);
 
 		bytes memory message = abi.encodeWithSelector(
 			ILiquidity.processWithdrawals.selector,
-			lastDirectWithdrawalId,
+			lastDirectWithdrawalIdMemory,
 			directWithdrawals,
-			lastClaimableWithdrawalId,
+			lastClaimableWithdrawalIdMemory,
 			claimableWithdrawals
 		);
 		_relayMessage(message);
