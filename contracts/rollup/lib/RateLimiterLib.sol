@@ -19,7 +19,7 @@ library RateLimiterLib {
 
 	/// @notice Updates the rate limit state and calculates penalty
 	/// @param state The current state of the rate limiter
-	/// @return uint256 The calculated penalty
+	/// @return The calculated penalty
 	function update(RateLimitState storage state) internal returns (uint256) {
 		uint256 currentTime = block.timestamp;
 
