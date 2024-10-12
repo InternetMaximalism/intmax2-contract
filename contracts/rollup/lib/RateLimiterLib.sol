@@ -31,11 +31,11 @@ library RateLimiterLib {
 			return 0;
 		}
 
-		// Update the EMA of intervals
-		// Formula: emaInterval = alpha * interval + (1 - alpha) * emaInterval
 		UD60x18 alpha = ud(ALPHA);
 		UD60x18 interval = convert(currentTime - state.lastCallTime);
 
+		// Update the EMA of intervals
+		// Formula: emaInterval = alpha * interval + (1 - alpha) * emaInterval
 		UD60x18 newEmaInterval = alpha *
 			interval +
 			(convert(1) - alpha) *
