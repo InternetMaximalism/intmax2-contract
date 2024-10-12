@@ -211,7 +211,7 @@ interface ILiquidity {
 	/// @param amount The amount of tokens deposited
 	/// @param sender The address that made the deposit
 	/// @return if deposit is valid, return true
-	function isDepositOngoing(
+	function isDepositValid(
 		uint256 depositId,
 		bytes32 recipientSaltHash,
 		uint32 tokenIndex,
