@@ -19,7 +19,7 @@ library BlockBuilderInfoLib {
 	/**
 	 * @notice Check if the challenge duration has passed.
 	 */
-	function isChallengeDuration(
+	function hasChallengeDurationPassed(
 		IBlockBuilderRegistry.BlockBuilderInfo memory info
 	) internal view returns (bool) {
 		return block.timestamp - info.stopTime >= CHALLENGE_DURATION;

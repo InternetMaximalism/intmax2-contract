@@ -89,7 +89,7 @@ contract BlockBuilderRegistry is
 	function unstake() external isStaking {
 		// Check if the last block submission is not within 24 hour.
 		BlockBuilderInfo memory info = blockBuilders[_msgSender()];
-		if (!info.isChallengeDuration()) {
+		if (!info.hasChallengeDurationPassed()) {
 			revert CannotUnstakeWithinChallengeDuration();
 		}
 		string memory url = info.blockBuilderUrl;
