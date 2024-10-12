@@ -114,8 +114,8 @@ describe('DepositQueueLib', function () {
 			it('should revert when trying to analyze non-existent deposits', async function () {
 				const lib = await loadFixture(setup)
 				await expect(lib.analyze(1, []))
-					.to.be.revertedWithCustomError(lib, 'TriedAnalyzeNotExists')
-					.withArgs(1, 0)
+					.to.be.revertedWithCustomError(lib, 'TriedAnalyzeOutOfRange')
+					.withArgs(1, 1, 0)
 			})
 
 			it('should revert when trying to reject out of range deposits', async function () {
