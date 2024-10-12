@@ -324,7 +324,7 @@ contract Liquidity is
 		);
 	}
 
-	function isDepositOngoing(
+	function isDepositValid(
 		uint256 depositId,
 		bytes32 recipientSaltHash,
 		uint32 tokenIndex,
