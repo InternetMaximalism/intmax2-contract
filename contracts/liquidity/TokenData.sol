@@ -6,7 +6,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 abstract contract TokenData is Initializable, ITokenData {
 	address private constant NATIVE_CURRENCY_ADDRESS = address(0);
-	uint256 private nextTokenIndex;
 	TokenInfo[] private tokenInfoList;
 	mapping(address => uint32) private fungibleTokenIndexMap;
 	mapping(address => mapping(uint256 => uint32))
@@ -39,8 +38,9 @@ abstract contract TokenData is Initializable, ITokenData {
 		return _createTokenIndex(tokenType, tokenAddress, tokenId);
 	}
 
-	function getNativeTokenIndex() public view returns (uint32) {
-		return fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS];
+	function getNativeTokenIndex() public pure returns (uint32) {
+		// fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS] = 0
+		return 0;
 	}
 
 	function _createTokenIndex(
@@ -48,8 +48,7 @@ abstract contract TokenData is Initializable, ITokenData {
 		address tokenAddress,
 		uint256 tokenId
 	) private returns (uint32) {
-		uint32 tokenIndex = uint32(nextTokenIndex);
-		nextTokenIndex += 1;
+		uint32 tokenIndex = uint32(tokenInfoList.length);
 		tokenInfoList.push(TokenInfo(tokenType, tokenAddress, tokenId));
 		if (tokenType == TokenType.NATIVE) {
 			fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS] = tokenIndex;
@@ -73,7 +72,8 @@ abstract contract TokenData is Initializable, ITokenData {
 		uint256 tokenId
 	) public view returns (bool, uint32) {
 		if (tokenType == TokenType.NATIVE) {
-			return (true, fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS]);
+			// fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS] = 0
+			return (true, 0);
 		}
 		if (tokenAddress == address(0)) {
 			revert TokenAddressIsZero();
