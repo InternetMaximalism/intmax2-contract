@@ -103,21 +103,19 @@ contract Contribution is
 		uint256 periodNumber,
 		address user
 	) external view returns (UD60x18) {
-		UD60x18 totalContribution = ud(0);
-		UD60x18 userContribution = ud(0);
+		uint256 totalContribution = 0;
+		uint256 userContribution = 0;
 		for (uint256 i = 0; i < allTags[periodNumber].length; i++) {
 			bytes32 tag = allTags[periodNumber][i];
-			UD60x18 weight = convert(allWeights[periodNumber][tag]);
-			totalContribution =
-				totalContribution +
-				convert(totalContributionsInPeriod[periodNumber][tag]) *
+			uint256 weight = allWeights[periodNumber][tag];
+			totalContribution +=
+				totalContributionsInPeriod[periodNumber][tag] *
 				weight;
-			userContribution =
-				userContribution +
-				convert(contributionsInPeriod[periodNumber][tag][user]) *
+			userContribution +=
+				contributionsInPeriod[periodNumber][tag][user] *
 				weight;
 		}
-		return userContribution.div(totalContribution);
+		return convert(userContribution).div(convert(totalContribution));
 	}
 
 	function _authorizeUpgrade(
