@@ -75,6 +75,14 @@ interface ILiquidity {
 	/// @param withdrawalHash The hash of the claimable withdrawal
 	event WithdrawalClaimable(bytes32 indexed withdrawalHash);
 
+	/// @notice Event emitted when a direct withdrawal fails, and the funds become claimable
+	/// @param withdrawalHash The hash of the failed withdrawal
+	/// @param withdrawal The withdrawal data
+	event DirectWithdrawalFailed(
+		bytes32 indexed withdrawalHash,
+		WithdrawalLib.Withdrawal withdrawal
+	);
+
 	/// @notice Event emitted when direct withdrawals are processed
 	/// @param lastProcessedDirectWithdrawalId The ID of the last processed direct withdrawal
 	event DirectWithdrawalsProcessed(
