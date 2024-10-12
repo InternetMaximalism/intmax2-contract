@@ -9,6 +9,7 @@ describe('Contribution', function () {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 
 		// register the weight of the contribution
@@ -275,6 +276,7 @@ describe('Contribution', function () {
 			const next = await upgrades.upgradeProxy(
 				await contribution.getAddress(),
 				contribution2Factory,
+				{ unsafeAllow: ['constructor'] },
 			)
 			const currentPeriod = await next.currentPeriod()
 			expect(currentPeriod).to.equal(1)
@@ -293,6 +295,7 @@ describe('Contribution', function () {
 				upgrades.upgradeProxy(
 					await contribution.getAddress(),
 					contribution2Factory,
+					{ unsafeAllow: ['constructor'] },
 				),
 			)
 				.to.be.revertedWithCustomError(

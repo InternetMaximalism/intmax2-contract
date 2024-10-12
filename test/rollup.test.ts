@@ -27,17 +27,20 @@ describe('Rollup', function () {
 		registry = (await upgrades.deployProxy(registryFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as BlockBuilderRegistry
 
 		const rollupFactory = await ethers.getContractFactory('Rollup')
 		rollup = (await upgrades.deployProxy(rollupFactory, [], {
 			initializer: false,
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
 			kind: 'uups',
+			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 		liquidityAddress = ethers.Wallet.createRandom().address
 		await rollup.initialize(
