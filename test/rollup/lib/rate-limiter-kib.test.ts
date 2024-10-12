@@ -38,6 +38,6 @@ describe('RateLimiterLibTest', function () {
 		await lib.update()
 		await expect(lib.update())
 			.to.emit(lib, 'UpdateResult')
-			.withArgs(21_344_400_000_000_000n)
+			.withArgs(21777777777777774n) // about 0.22ETH
 	})
 })

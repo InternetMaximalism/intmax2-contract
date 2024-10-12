@@ -87,6 +87,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata messagePoint,
 		uint256[] calldata senderPublicKeys
 	) external payable {
+		collectPenaltyFee();
 		uint256 length = senderPublicKeys.length;
 		if (length > NUM_SENDERS_IN_BLOCK) {
 			revert TooManySenderPublicKeys();
@@ -124,6 +125,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32 publicKeysHash,
 		bytes calldata senderAccountIds
 	) external payable {
+		collectPenaltyFee();
 		uint256 length = senderAccountIds.length;
 		if (length > FULL_ACCOUNT_IDS_BYTES) {
 			revert TooManyAccountIds();
@@ -177,16 +179,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		uint256 penalty = rateLimitState.update();
-		if (penalty > msg.value) {
-			revert InsufficientPenaltyFee();
-		}
-		// refund the excess fee
-		uint256 excessFee = msg.value - penalty;
-		if (excessFee > 0) {
-			payable(_msgSender()).transfer(excessFee);
-		}
-
 		bool success = PairingLib.pairing(
 			aggregatedPublicKey,
 			aggregatedSignature,
@@ -226,6 +218,18 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			_msgSender(),
 			1
 		);
+	}
+
+	function collectPenaltyFee() internal {
+		uint256 penalty = rateLimitState.update();
+		if (penalty > msg.value) {
+			revert InsufficientPenaltyFee();
+		}
+		// refund the excess fee
+		uint256 excessFee = msg.value - penalty;
+		if (excessFee > 0) {
+			payable(_msgSender()).transfer(excessFee);
+		}
 	}
 
 	function withdrawPenaltyFee(address to) external onlyOwner {
