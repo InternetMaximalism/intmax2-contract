@@ -42,16 +42,16 @@ contract Liquidity is
 
 	modifier onlyWithdrawal() {
 		// Cache the values to avoid multiple storage reads
-		address withdrawalCashed = withdrawal;
-		IL1ScrollMessenger l1ScrollMessengerCashed = l1ScrollMessenger;
-		if (withdrawalCashed == address(0)) {
+		address withdrawalCached = withdrawal;
+		IL1ScrollMessenger l1ScrollMessengerCached = l1ScrollMessenger;
+		if (withdrawalCached == address(0)) {
 			revert WithdrawalAddressNotSet();
 		}
-		if (_msgSender() != address(l1ScrollMessengerCashed)) {
+		if (_msgSender() != address(l1ScrollMessengerCached)) {
 			revert SenderIsNotScrollMessenger();
 		}
 		if (
-			withdrawalCashed != l1ScrollMessengerCashed.xDomainMessageSender()
+			withdrawalCached != l1ScrollMessengerCached.xDomainMessageSender()
 		) {
 			revert InvalidWithdrawalAddress();
 		}
