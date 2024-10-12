@@ -13,10 +13,10 @@ contract BlockBuilderInfoLibTest {
 		return info.isStaking();
 	}
 
-	function isChallengeDuration(
+	function hasChallengeDurationPassed(
 		IBlockBuilderRegistry.BlockBuilderInfo memory info
 	) external view returns (bool) {
-		return info.isChallengeDuration();
+		return info.hasChallengeDurationPassed();
 	}
 
 	function isStakeAmountSufficient(

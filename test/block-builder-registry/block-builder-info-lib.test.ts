@@ -41,12 +41,12 @@ describe('BlockBuilderInfoLib', () => {
 			expect(value).to.false
 		})
 	})
-	describe('isChallengeDuration', () => {
+	describe('hasChallengeDurationPassed', () => {
 		it('challenge duration', async () => {
 			const lib = await loadFixture(setup)
 			const currentTimestamp = await time.latest()
 			const stopTime = currentTimestamp - ONE_DAY_SECONDS
-			const value = await lib.isChallengeDuration(
+			const value = await lib.hasChallengeDurationPassed(
 				getDefaultBlockBuilderInfo(0n, stopTime),
 			)
 			expect(value).to.true
@@ -55,7 +55,7 @@ describe('BlockBuilderInfoLib', () => {
 			const lib = await loadFixture(setup)
 			const currentTimestamp = await time.latest()
 			const stopTime = currentTimestamp - ONE_DAY_SECONDS + 1
-			const value = await lib.isChallengeDuration(
+			const value = await lib.hasChallengeDurationPassed(
 				getDefaultBlockBuilderInfo(0n, stopTime),
 			)
 			expect(value).to.false
