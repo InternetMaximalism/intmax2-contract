@@ -28,7 +28,6 @@ library DepositQueueLib {
 	struct DepositQueue {
 		DepositData[] depositData; /// Array of deposits that are pending
 		uint256 front; /// Index of the first element in the queue
-		uint256 rear; /// Index of the next position after the last element in the queue
 	}
 
 	/// @notice Represents data for a single deposit
@@ -45,7 +44,6 @@ library DepositQueueLib {
 	function initialize(DepositQueue storage depositQueue) internal {
 		depositQueue.depositData.push(DepositData(0, address(0), false));
 		depositQueue.front = 1;
-		depositQueue.rear = 1;
 	}
 
 	/// @notice Adds a new deposit to the queue
@@ -58,9 +56,8 @@ library DepositQueueLib {
 		bytes32 depositHash,
 		address sender
 	) internal returns (uint256 depositId) {
+		depositId = depositQueue.depositData.length;
 		depositQueue.depositData.push(DepositData(depositHash, sender, false));
-		depositId = depositQueue.rear;
-		depositQueue.rear++;
 	}
 
 	/// @notice Deletes a deposit from the queue
@@ -86,31 +83,30 @@ library DepositQueueLib {
 		uint256 upToDepositId,
 		uint256[] memory rejectIndices
 	) internal returns (bytes32[] memory) {
+		uint256 front = depositQueue.front;
 		if (
-			upToDepositId >= depositQueue.rear ||
-			upToDepositId < depositQueue.front
+			upToDepositId >= depositQueue.depositData.length ||
+			upToDepositId < front
 		) {
 			revert TriedAnalyzeOutOfRange(
 				upToDepositId,
-				depositQueue.front,
-				depositQueue.rear - 1
+				front,
+				depositQueue.depositData.length - 1
 			);
 		}
 		for (uint256 i = 0; i < rejectIndices.length; i++) {
 			uint256 rejectIndex = rejectIndices[i];
-			if (
-				rejectIndex > upToDepositId || rejectIndex < depositQueue.front
-			) {
+			if (rejectIndex > upToDepositId || rejectIndex < front) {
 				revert TriedToRejectOutOfRange(
 					rejectIndex,
-					depositQueue.front,
+					front,
 					upToDepositId
 				);
 			}
 			depositQueue.depositData[rejectIndex].isRejected = true;
 		}
 		uint256 counter = 0;
-		for (uint256 i = depositQueue.front; i <= upToDepositId; i++) {
+		for (uint256 i = front; i <= upToDepositId; i++) {
 			if (depositQueue.depositData[i].sender == address(0)) {
 				continue;
 			}
@@ -121,7 +117,7 @@ library DepositQueueLib {
 		}
 		bytes32[] memory depositHashes = new bytes32[](counter);
 		uint256 depositHashesIndex = 0;
-		for (uint256 i = depositQueue.front; i <= upToDepositId; i++) {
+		for (uint256 i = front; i <= upToDepositId; i++) {
 			if (depositQueue.depositData[i].sender == address(0)) {
 				continue;
 			}

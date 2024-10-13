@@ -5,16 +5,17 @@
 		"@openzeppelin/hardhat-upgrades": "^3.2.1",
 		"@prb/math": "4.0.3",
 		"@types/fs-extra": "11.0.4",
+		"axios": "1.7.7",
 		"dotenv": "16.4.5",
 		"envalid": "8.0.0",
 		"fs-extra": "11.2.0",
+		"hardhat": "2.22.10",
+		"hardhat-gas-reporter": "^2.2.1",
 		"prettier": "3.3.3",
+		"prettier-plugin-solidity": "1.4.1",
 		"solhint": "5.0.3",
 		"solidity-docgen": "0.6.0-beta.36",
-		"zod": "3.23.8",
-		"axios": "1.7.7",
-		"hardhat": "2.22.10",
-		"prettier-plugin-solidity": "1.4.1"
+		"zod": "3.23.8"
 	},
 	"scripts": {
 		"compile": "hardhat compile",

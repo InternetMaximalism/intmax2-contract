@@ -33,6 +33,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	bytes32 public depositTreeRoot;
 
 	modifier onlyLiquidityContract() {
+		IL2ScrollMessenger l2ScrollMessengerCached = l2ScrollMessenger;
 		// note
 		// The specification of ScrollMessenger may change in the future.
 		// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
@@ -40,10 +41,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		// The L2 scrollMessenger is now the sender,
 		// but the sendMessage executor of the L1 scrollMessenger will eventually
 		// be set as the sender, so the following source needs to be modified at that time
-		if (_msgSender() != address(l2ScrollMessenger)) {
+		if (_msgSender() != address(l2ScrollMessengerCached)) {
 			revert OnlyScrollMessenger();
 		}
-		if (liquidity != l2ScrollMessenger.xDomainMessageSender()) {
+		if (liquidity != l2ScrollMessengerCached.xDomainMessageSender()) {
 			revert OnlyLiquidity();
 		}
 		_;
@@ -165,8 +166,9 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			depositTree.deposit(depositHashes[i]);
 		}
 		lastProcessedDepositId = _lastProcessedDepositId;
-		depositTreeRoot = depositTree.getRoot();
-		emit DepositsProcessed(lastProcessedDepositId, depositTreeRoot);
+		bytes32 newDepositTreeRoot = depositTree.getRoot();
+		depositTreeRoot = newDepositTreeRoot;
+		emit DepositsProcessed(_lastProcessedDepositId, newDepositTreeRoot);
 	}
 
 	function _postBlock(
@@ -203,13 +205,14 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 		uint32 blockNumber = blockHashes.getBlockNumber();
 		bytes32 prevBlockHash = blockHashes.getPrevHash();
-		blockHashes.pushBlockHash(depositTreeRoot, signatureHash);
+		bytes32 depositTreeRootCached = depositTreeRoot;
+		blockHashes.pushBlockHash(depositTreeRootCached, signatureHash);
 		blockBuilders.push(_msgSender());
 		emit BlockPosted(
 			prevBlockHash,
 			_msgSender(),
 			blockNumber,
-			depositTreeRoot,
+			depositTreeRootCached,
 			signatureHash
 		);
 

@@ -27,13 +27,9 @@ library DepositTreeLib {
 	/// @notice Initializes the deposit tree
 	/// @param depositTree The storage reference to the DepositTree struct
 	function initialize(DepositTree storage depositTree) internal {
-		depositTree.depositCount = 0;
 		depositTree.defaultHash = DepositLib.getHash(
 			DepositLib.Deposit(0, 0, 0)
 		);
-		for (uint256 i = 0; i < _DEPOSIT_CONTRACT_TREE_DEPTH; i++) {
-			depositTree._branch[i] = 0;
-		}
 	}
 
 	/// @notice Computes and returns the Merkle root
@@ -73,13 +69,15 @@ library DepositTreeLib {
 		bytes32 leafHash
 	) internal {
 		bytes32 node = leafHash;
+		uint256 depositCount = depositTree.depositCount;
 
 		// Avoid overflowing the Merkle tree (and prevent edge case in computing `_branch`)
-		if (depositTree.depositCount >= _MAX_DEPOSIT_COUNT) {
+		if (depositCount >= _MAX_DEPOSIT_COUNT) {
 			revert MerkleTreeFull();
 		}
 
-		uint256 size = ++depositTree.depositCount;
+		uint256 size = depositCount + 1;
+		depositTree.depositCount = size;
 		for (
 			uint256 height = 0;
 			height < _DEPOSIT_CONTRACT_TREE_DEPTH;

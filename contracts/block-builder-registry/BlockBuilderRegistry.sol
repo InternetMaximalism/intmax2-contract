@@ -59,7 +59,7 @@ contract BlockBuilderRegistry is
 		burnAddress = 0x000000000000000000000000000000000000dEaD;
 	}
 
-	function updateBlockBuilder(string memory url) external payable {
+	function updateBlockBuilder(string calldata url) external payable {
 		if (bytes(url).length == 0) {
 			revert URLIsEmpty();
 		}
@@ -82,10 +82,9 @@ contract BlockBuilderRegistry is
 
 	function stopBlockBuilder() external isStaking {
 		// Remove the block builder information.
-		BlockBuilderInfo memory info = blockBuilders[_msgSender()];
+		BlockBuilderInfo storage info = blockBuilders[_msgSender()];
 		info.stopTime = block.timestamp;
 		info.isValid = false;
-		blockBuilders[_msgSender()] = info;
 
 		emit BlockBuilderStopped(_msgSender());
 	}
@@ -195,8 +194,9 @@ contract BlockBuilderRegistry is
 		view
 		returns (BlockBuilderInfoWithAddress[] memory)
 	{
+		uint256 blockBuilderLength = blockBuilderAddresses.length;
 		uint256 counter = 0;
-		for (uint256 i = 0; i < blockBuilderAddresses.length; i++) {
+		for (uint256 i = 0; i < blockBuilderLength; i++) {
 			if (blockBuilders[blockBuilderAddresses[i]].isValid) {
 				counter++;
 			}
@@ -206,13 +206,12 @@ contract BlockBuilderRegistry is
 				counter
 			);
 		uint256 index = 0;
-		for (uint256 i = 0; i < blockBuilderAddresses.length; i++) {
-			BlockBuilderInfo memory info = blockBuilders[
-				blockBuilderAddresses[i]
-			];
+		for (uint256 i = 0; i < blockBuilderLength; i++) {
+			address blockBuilderAddress = blockBuilderAddresses[i];
+			BlockBuilderInfo memory info = blockBuilders[blockBuilderAddress];
 			if (info.isValid) {
 				validBlockBuilders[index] = BlockBuilderInfoWithAddress({
-					blockBuilderAddress: blockBuilderAddresses[i],
+					blockBuilderAddress: blockBuilderAddress,
 					info: info
 				});
 				index++;
