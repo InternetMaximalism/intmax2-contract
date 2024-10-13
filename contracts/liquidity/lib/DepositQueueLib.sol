@@ -83,31 +83,30 @@ library DepositQueueLib {
 		uint256 upToDepositId,
 		uint256[] memory rejectIndices
 	) internal returns (bytes32[] memory) {
+		uint256 front = depositQueue.front;
 		if (
 			upToDepositId >= depositQueue.depositData.length ||
-			upToDepositId < depositQueue.front
+			upToDepositId < front
 		) {
 			revert TriedAnalyzeOutOfRange(
 				upToDepositId,
-				depositQueue.front,
+				front,
 				depositQueue.depositData.length - 1
 			);
 		}
 		for (uint256 i = 0; i < rejectIndices.length; i++) {
 			uint256 rejectIndex = rejectIndices[i];
-			if (
-				rejectIndex > upToDepositId || rejectIndex < depositQueue.front
-			) {
+			if (rejectIndex > upToDepositId || rejectIndex < front) {
 				revert TriedToRejectOutOfRange(
 					rejectIndex,
-					depositQueue.front,
+					front,
 					upToDepositId
 				);
 			}
 			depositQueue.depositData[rejectIndex].isRejected = true;
 		}
 		uint256 counter = 0;
-		for (uint256 i = depositQueue.front; i <= upToDepositId; i++) {
+		for (uint256 i = front; i <= upToDepositId; i++) {
 			if (depositQueue.depositData[i].sender == address(0)) {
 				continue;
 			}
@@ -118,7 +117,7 @@ library DepositQueueLib {
 		}
 		bytes32[] memory depositHashes = new bytes32[](counter);
 		uint256 depositHashesIndex = 0;
-		for (uint256 i = depositQueue.front; i <= upToDepositId; i++) {
+		for (uint256 i = front; i <= upToDepositId; i++) {
 			if (depositQueue.depositData[i].sender == address(0)) {
 				continue;
 			}
