@@ -37,7 +37,7 @@ contract Liquidity is
 	address private rollup;
 	address private withdrawal;
 	mapping(bytes32 => uint256) private claimableWithdrawals;
-	mapping(bytes32 => bool) private alreadyUseRecipientSaltHash;
+	mapping(bytes32 => bool) private doesDepositHashExist;
 	DepositQueueLib.DepositQueue private depositQueue;
 
 	modifier onlyWithdrawal() {
@@ -49,13 +49,6 @@ contract Liquidity is
 		}
 		if (withdrawal != l1ScrollMessenger.xDomainMessageSender()) {
 			revert InvalidWithdrawalAddress();
-		}
-		_;
-	}
-
-	modifier canDeposit(bytes32 recipientSaltHash) {
-		if (alreadyUseRecipientSaltHash[recipientSaltHash]) {
-			revert RecipientSaltHashAlreadyUsed();
 		}
 		_;
 	}
@@ -120,13 +113,10 @@ contract Liquidity is
 		withdrawal = _withdrawal;
 	}
 
-	function depositNativeToken(
-		bytes32 recipientSaltHash
-	) external payable canDeposit(recipientSaltHash) {
+	function depositNativeToken(bytes32 recipientSaltHash) external payable {
 		if (msg.value == 0) {
 			revert TriedToDepositZero();
 		}
-		alreadyUseRecipientSaltHash[recipientSaltHash] = true;
 		uint32 tokenIndex = getNativeTokenIndex();
 		_deposit(_msgSender(), recipientSaltHash, tokenIndex, msg.value);
 	}
@@ -135,11 +125,10 @@ contract Liquidity is
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 amount
-	) external canDeposit(recipientSaltHash) {
+	) external {
 		if (amount == 0) {
 			revert TriedToDepositZero();
 		}
-		alreadyUseRecipientSaltHash[recipientSaltHash] = true;
 		IERC20(tokenAddress).safeTransferFrom(
 			_msgSender(),
 			address(this),
@@ -157,8 +146,7 @@ contract Liquidity is
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 tokenId
-	) external canDeposit(recipientSaltHash) {
-		alreadyUseRecipientSaltHash[recipientSaltHash] = true;
+	) external {
 		IERC721(tokenAddress).transferFrom(
 			_msgSender(),
 			address(this),
@@ -177,11 +165,10 @@ contract Liquidity is
 		bytes32 recipientSaltHash,
 		uint256 tokenId,
 		uint256 amount
-	) external canDeposit(recipientSaltHash) {
+	) external {
 		if (amount == 0) {
 			revert TriedToDepositZero();
 		}
-		alreadyUseRecipientSaltHash[recipientSaltHash] = true;
 		IERC1155(tokenAddress).safeTransferFrom(
 			_msgSender(),
 			address(this),
@@ -277,6 +264,10 @@ contract Liquidity is
 		bytes32 depositHash = DepositLib
 			.Deposit(recipientSaltHash, tokenIndex, amount)
 			.getHash();
+		if (doesDepositHashExist[depositHash]) {
+			revert DepositHashAlreadyExists(depositHash);
+		}
+		doesDepositHashExist[depositHash] = true;
 		uint256 depositId = depositQueue.enqueue(depositHash, sender);
 		emit Deposited(
 			depositId,
@@ -340,6 +331,7 @@ contract Liquidity is
 		bytes32 depositHash = DepositLib
 			.Deposit(recipientSaltHash, tokenIndex, amount)
 			.getHash();
+
 		if (depositData.depositHash != depositHash) {
 			return false;
 		}

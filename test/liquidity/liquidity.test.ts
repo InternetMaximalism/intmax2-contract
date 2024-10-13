@@ -238,7 +238,7 @@ describe('Liquidity', () => {
 		})
 
 		describe('fail', () => {
-			it('revert RecipientSaltHashAlreadyUsed', async () => {
+			it('revert DepositHashAlreadyExists', async () => {
 				const { liquidity } = await loadFixture(setup)
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
@@ -251,10 +251,7 @@ describe('Liquidity', () => {
 					liquidity
 						.connect(user)
 						.depositNativeToken(recipientSaltHash, { value: depositAmount }),
-				).to.be.revertedWithCustomError(
-					liquidity,
-					'RecipientSaltHashAlreadyUsed',
-				)
+				).to.be.revertedWithCustomError(liquidity, 'DepositHashAlreadyExists')
 			})
 			it('revert TriedToDepositZero', async () => {
 				const { liquidity } = await loadFixture(setup)
@@ -343,7 +340,7 @@ describe('Liquidity', () => {
 		})
 
 		describe('fail', () => {
-			it('revert RecipientSaltHashAlreadyUsed', async () => {
+			it('revert DepositHashAlreadyExists', async () => {
 				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
@@ -351,7 +348,7 @@ describe('Liquidity', () => {
 
 				await testERC20
 					.connect(user)
-					.approve(await liquidity.getAddress(), depositAmount)
+					.approve(await liquidity.getAddress(), 2n * depositAmount)
 				await liquidity
 					.connect(user)
 					.depositERC20(
@@ -368,10 +365,7 @@ describe('Liquidity', () => {
 							recipientSaltHash,
 							depositAmount,
 						),
-				).to.be.revertedWithCustomError(
-					liquidity,
-					'RecipientSaltHashAlreadyUsed',
-				)
+				).to.be.revertedWithCustomError(liquidity, 'DepositHashAlreadyExists')
 			})
 			it('revert TriedToDepositZero', async () => {
 				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
@@ -453,34 +447,6 @@ describe('Liquidity', () => {
 
 				expect(await testNFT.ownerOf(tokenId)).to.equal(
 					await liquidity.getAddress(),
-				)
-			})
-		})
-		describe('fail', () => {
-			it('revert RecipientSaltHashAlreadyUsed', async () => {
-				const { liquidity, testNFT } = await loadFixture(setupForDepositERC721)
-				const { user } = await getSigners()
-				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-				const tokenId = 0
-
-				await testNFT
-					.connect(user)
-					.approve(await liquidity.getAddress(), tokenId)
-				await liquidity
-					.connect(user)
-					.depositERC721(await testNFT.getAddress(), recipientSaltHash, tokenId)
-
-				await expect(
-					liquidity
-						.connect(user)
-						.depositERC721(
-							await testNFT.getAddress(),
-							recipientSaltHash,
-							tokenId,
-						),
-				).to.be.revertedWithCustomError(
-					liquidity,
-					'RecipientSaltHashAlreadyUsed',
 				)
 			})
 		})
@@ -591,7 +557,7 @@ describe('Liquidity', () => {
 			})
 		})
 		describe('fail', () => {
-			it('revert RecipientSaltHashAlreadyUsed', async () => {
+			it('revert DepositHashAlreadyExists', async () => {
 				const { liquidity, testERC1155 } = await loadFixture(
 					setupForDepositERC1155,
 				)
@@ -622,10 +588,7 @@ describe('Liquidity', () => {
 							tokenId,
 							depositAmount,
 						),
-				).to.be.revertedWithCustomError(
-					liquidity,
-					'RecipientSaltHashAlreadyUsed',
-				)
+				).to.be.revertedWithCustomError(liquidity, 'DepositHashAlreadyExists')
 			})
 			it('revert TriedToDepositZero', async () => {
 				const { liquidity, testERC1155 } = await loadFixture(
