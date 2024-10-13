@@ -26,6 +26,7 @@ describe('Withdrawal', function () {
 			unsafeAllow: ['constructor'],
 		})) as unknown as Contribution
 
+		const tmpAddress = ethers.Wallet.createRandom().address
 		const rollupFactory = await ethers.getContractFactory('Rollup')
 		rollup = (await upgrades.deployProxy(rollupFactory, [], {
 			initializer: false,
@@ -33,9 +34,8 @@ describe('Withdrawal', function () {
 			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 		await rollup.initialize(
-			ethers.Wallet.createRandom().address,
-			ethers.Wallet.createRandom().address,
-			await registry.getAddress(),
+			tmpAddress,
+			tmpAddress,
 			await contribution.getAddress(),
 		)
 		const rollupAddress = await rollup.getAddress()

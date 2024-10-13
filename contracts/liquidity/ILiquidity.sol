@@ -36,8 +36,8 @@ interface ILiquidity {
 	/// @notice Error thrown when already analyzed deposits
 	error AlreadyAnalyzed();
 
-	/// @notice Error thrown when the recipientSaltHash is already used
-	error RecipientSaltHashAlreadyUsed();
+	/// @notice Error thrown when the deposit hash already exists
+	error DepositHashAlreadyExists(bytes32 depositHash);
 
 	/// @notice Event emitted when a deposit is made
 	/// @param depositId The unique identifier for the deposit

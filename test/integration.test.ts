@@ -135,7 +135,6 @@ describe('Integration', function () {
 		await rollup.initialize(
 			l2ScrollMessengerAddress,
 			liquidityAddress,
-			registryAddress,
 			await l2Contribution.getAddress(),
 		)
 		await withdrawal.initialize(

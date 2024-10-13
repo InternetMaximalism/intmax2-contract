@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import {IRollup} from "./IRollup.sol";
-import {IBlockBuilderRegistry} from "../block-builder-registry/IBlockBuilderRegistry.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 
@@ -12,15 +11,16 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {DepositTreeLib} from "./lib/DepositTreeLib.sol";
 import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
+import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
 
 contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
+	using RateLimiterLib for RateLimiterLib.RateLimitState;
 
 	uint256 private constant NUM_SENDERS_IN_BLOCK = 128;
 	uint256 private constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
 
-	IBlockBuilderRegistry private blockBuilderRegistry;
 	address private liquidity;
 	uint256 public lastProcessedDepositId;
 	bytes32[] public blockHashes;
@@ -29,6 +29,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	IL2ScrollMessenger private l2ScrollMessenger;
 	IContribution private contribution;
 	DepositTreeLib.DepositTree private depositTree;
+	RateLimiterLib.RateLimitState private rateLimitState;
 	bytes32 public depositTreeRoot;
 
 	modifier onlyLiquidityContract() {
@@ -56,16 +57,12 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	function initialize(
 		address _scrollMessenger,
 		address _liquidity,
-		address _blockBuilderRegistry,
 		address _contribution
 	) external initializer {
 		if (_scrollMessenger == address(0)) {
 			revert AddressZero();
 		}
 		if (_liquidity == address(0)) {
-			revert AddressZero();
-		}
-		if (_blockBuilderRegistry == address(0)) {
 			revert AddressZero();
 		}
 		if (_contribution == address(0)) {
@@ -76,7 +73,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		depositTree.initialize();
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		liquidity = _liquidity;
-		blockBuilderRegistry = IBlockBuilderRegistry(_blockBuilderRegistry);
 		contribution = IContribution(_contribution);
 
 		depositTreeRoot = depositTree.getRoot();
@@ -91,7 +87,8 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint,
 		uint256[] calldata senderPublicKeys
-	) external {
+	) external payable {
+		collectPenaltyFee();
 		uint256 length = senderPublicKeys.length;
 		if (length > NUM_SENDERS_IN_BLOCK) {
 			revert TooManySenderPublicKeys();
@@ -128,7 +125,8 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata messagePoint,
 		bytes32 publicKeysHash,
 		bytes calldata senderAccountIds
-	) external {
+	) external payable {
+		collectPenaltyFee();
 		uint256 length = senderAccountIds.length;
 		if (length > FULL_ACCOUNT_IDS_BYTES) {
 			revert TooManyAccountIds();
@@ -183,9 +181,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		if (!blockBuilderRegistry.isValidBlockBuilder(_msgSender())) {
-			revert InvalidBlockBuilder();
-		}
 		bool success = PairingLib.pairing(
 			aggregatedPublicKey,
 			aggregatedSignature,
@@ -226,6 +221,22 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			_msgSender(),
 			1
 		);
+	}
+
+	function collectPenaltyFee() internal {
+		uint256 penalty = rateLimitState.update();
+		if (penalty > msg.value) {
+			revert InsufficientPenaltyFee();
+		}
+		// refund the excess fee
+		uint256 excessFee = msg.value - penalty;
+		if (excessFee > 0) {
+			payable(_msgSender()).transfer(excessFee);
+		}
+	}
+
+	function withdrawPenaltyFee(address to) external onlyOwner {
+		payable(to).transfer(address(this).balance);
 	}
 
 	function getLatestBlockNumber() external view returns (uint32) {
