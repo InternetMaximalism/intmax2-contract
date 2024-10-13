@@ -28,8 +28,8 @@ interface IRollup {
 	/// @notice Error thrown when the specified block number is greater than the latest block number
 	error BlockNumberOutOfRange();
 
-	/// @notice Error thrown when the block poster is not a valid block builder
-	error InvalidBlockBuilder();
+	/// @notice Error thrown when the fee for the rate limiter is insufficient
+	error InsufficientPenaltyFee();
 
 	/// @notice Event emitted when deposits bridged from the liquidity contract are processed
 	/// @param lastProcessedDepositId The ID of the last processed deposit
@@ -67,7 +67,7 @@ interface IRollup {
 	event AccountIdsPosted(uint256 indexed blockNumber, bytes accountIds);
 
 	/// @notice Posts a registration block (for all senders' first transactions, specified by public keys)
-	/// @dev The function caller must have staked in the block builder registry beforehand
+	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param senderFlags Flags indicating whether senders' signatures are included in the aggregated signature
 	/// @param aggregatedPublicKey The aggregated public key
@@ -81,10 +81,10 @@ interface IRollup {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint,
 		uint256[] calldata senderPublicKeys
-	) external;
+	) external payable;
 
 	/// @notice Posts a non-registration block (for all senders' subsequent transactions, specified by account IDs)
-	/// @dev The function caller must have staked in the block builder registry beforehand
+	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param senderFlags Sender flags
 	/// @param aggregatedPublicKey The aggregated public key
@@ -100,7 +100,12 @@ interface IRollup {
 		bytes32[4] calldata messagePoint,
 		bytes32 publicKeysHash,
 		bytes calldata senderAccountIds
-	) external;
+	) external payable;
+
+	/// @notice Withdraws the penalty fee from the Rollup contract
+	/// @param to The address to which the penalty fee is transferred
+	/// @dev Only the owner can call this function
+	function withdrawPenaltyFee(address to) external;
 
 	/// @notice Update the deposit tree branch and root
 	/// @dev Only Liquidity contract can call this function via Scroll Messenger

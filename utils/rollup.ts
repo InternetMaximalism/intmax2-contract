@@ -1,6 +1,7 @@
 import { Rollup } from '../typechain-types'
 import * as fs from 'fs'
 import type { ContractTransactionResponse } from 'ethers'
+import { ethers } from 'hardhat'
 
 export function loadFullBlocks(): FullBlock[] {
 	let fullBlocks = []
@@ -33,6 +34,7 @@ export async function postBlock(
 			fullBlock.signature.aggSignature,
 			fullBlock.signature.messagePoint,
 			fullBlock.pubkeys,
+			{ value: ethers.parseEther('1') },
 		)
 		return tx
 	} else {
@@ -47,6 +49,7 @@ export async function postBlock(
 			fullBlock.signature.messagePoint,
 			fullBlock.signature.pubkeyHash,
 			fullBlock.accountIds,
+			{ value: ethers.parseEther('1') },
 		)
 		return tx
 	}
