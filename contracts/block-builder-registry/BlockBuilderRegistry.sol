@@ -81,7 +81,6 @@ contract BlockBuilderRegistry is
 		BlockBuilderInfo storage info = blockBuilders[_msgSender()];
 		info.stopTime = block.timestamp;
 		info.isValid = false;
-		blockBuilders[_msgSender()] = info;
 
 		emit BlockBuilderStopped(_msgSender());
 	}
