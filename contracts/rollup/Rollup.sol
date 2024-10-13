@@ -49,6 +49,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		_;
 	}
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize(
 		address _scrollMessenger,
 		address _liquidity,

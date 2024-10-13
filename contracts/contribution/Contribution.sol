@@ -37,6 +37,10 @@ contract Contribution is
 	/// @dev period => array of tags
 	mapping(uint256 => bytes32[]) private allTags;
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize() external initializer {
 		__UUPSUpgradeable_init();
 		__AccessControl_init();

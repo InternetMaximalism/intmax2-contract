@@ -86,6 +86,10 @@ contract Liquidity is
 		_;
 	}
 
+	constructor() {
+		_disableInitializers();
+	}
+
 	function initialize(
 		address _l1ScrollMessenger,
 		address _rollup,
@@ -329,7 +333,7 @@ contract Liquidity is
 		);
 	}
 
-	function isDepositOngoing(
+	function isDepositValid(
 		uint256 depositId,
 		bytes32 recipientSaltHash,
 		uint32 tokenIndex,
