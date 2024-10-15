@@ -71,6 +71,13 @@ describe('Contribution', function () {
 				await contribution.connect(deployer).incrementPeriod()
 				expect(await contribution.currentPeriod()).to.be.equal(period + 1n)
 			})
+			it('emit PeriodIncremented', async () => {
+				const [contribution] = await loadFixture(setup)
+				const { deployer } = await getSigners()
+				await expect(contribution.connect(deployer).incrementPeriod())
+					.to.emit(contribution, 'PeriodIncremented')
+					.withArgs(1)
+			})
 		})
 		describe('fail', () => {
 			it('only weight registrar', async () => {
@@ -101,6 +108,17 @@ describe('Contribution', function () {
 				const registeredWeights = await contribution.getWeights(1)
 				expect(registeredTags).to.deep.equal(tags)
 				expect(registeredWeights).to.deep.equal(weights)
+			})
+			it('emit WeightRegistered', async () => {
+				const [contribution] = await loadFixture(setup)
+				const { deployer } = await getSigners()
+				const tags = [ethers.randomBytes(32)]
+				const weights = [1]
+				await expect(
+					contribution.connect(deployer).registerWeights(1, tags, weights),
+				)
+					.to.emit(contribution, 'WeightRegistered')
+					.withArgs(1, tags, weights)
 			})
 		})
 		describe('fail', () => {
@@ -198,6 +216,20 @@ describe('Contribution', function () {
 				)
 				expect(totalContribution).to.equal(amount * 2n)
 				expect(userContribution).to.equal(amount * 2n)
+			})
+			it('emit ContributionRecorded', async () => {
+				const [contribution] = await loadFixture(setup)
+				const { contributor, user1 } = await getSigners()
+				const tag = ethers.solidityPackedKeccak256(['string'], ['tag1'])
+				const amount = 100n
+				const currentPeriod = await contribution.currentPeriod()
+				await expect(
+					contribution
+						.connect(contributor)
+						.recordContribution(tag, user1.address, amount),
+				)
+					.to.emit(contribution, 'ContributionRecorded')
+					.withArgs(currentPeriod, tag, user1.address, amount)
 			})
 		})
 		describe('fail', () => {

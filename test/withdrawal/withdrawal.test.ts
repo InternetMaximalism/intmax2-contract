@@ -764,6 +764,18 @@ describe('Withdrawal', () => {
 				const indices = await withdrawal.getDirectWithdrawalTokenIndices()
 				expect(indices).to.deep.equal([2])
 			})
+			it('emit DirectWithdrawalTokenIndicesAdded', async () => {
+				const [withdrawal] = await loadFixture(setup)
+				await expect(withdrawal.addDirectWithdrawalTokenIndices([4, 5]))
+					.to.emit(withdrawal, 'DirectWithdrawalTokenIndicesAdded')
+					.withArgs([4, 5])
+			})
+			it('emit DirectWithdrawalTokenIndicesRemoved', async () => {
+				const [withdrawal] = await loadFixture(setup)
+				await expect(withdrawal.removeDirectWithdrawalTokenIndices([1, 3]))
+					.to.emit(withdrawal, 'DirectWithdrawalTokenIndicesRemoved')
+					.withArgs([1, 3])
+			})
 		})
 		describe('fail', () => {
 			it('duplicate data.', async () => {
