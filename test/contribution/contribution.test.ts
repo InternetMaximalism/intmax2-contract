@@ -39,6 +39,18 @@ describe('Contribution', function () {
 			user2,
 		}
 	}
+	describe('constructor', () => {
+		it('should revert if not initialized through proxy', async () => {
+			const contributionFactory =
+				await ethers.getContractFactory('Contribution')
+			const contribution =
+				(await contributionFactory.deploy()) as unknown as Contribution
+			await expect(contribution.initialize()).to.be.revertedWithCustomError(
+				contribution,
+				'InvalidInitialization',
+			)
+		})
+	})
 	describe('initialize', () => {
 		it('deployer has admin role', async () => {
 			const [contribution] = await loadFixture(setup)

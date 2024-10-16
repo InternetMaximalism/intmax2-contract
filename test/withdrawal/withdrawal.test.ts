@@ -78,6 +78,23 @@ describe('Withdrawal', () => {
 			user,
 		}
 	}
+	describe('constructor', () => {
+		it('should revert if not initialized through proxy', async () => {
+			const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+			const withdrawal =
+				(await withdrawalFactory.deploy()) as unknown as Withdrawal
+			await expect(
+				withdrawal.initialize(
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					[0],
+				),
+			).to.be.revertedWithCustomError(withdrawal, 'InvalidInitialization')
+		})
+	})
 	describe('initialize', () => {
 		describe('success', () => {
 			it('should set deployer as the owner', async () => {
