@@ -116,6 +116,19 @@ describe('Rollup', () => {
 			{ value: ethers.parseEther('1') }, // pay enough penalty
 		)
 	}
+	describe('constructor', () => {
+		it('should revert if not initialized through proxy', async () => {
+			const rollupFactory = await ethers.getContractFactory('Rollup')
+			const rollup = (await rollupFactory.deploy()) as unknown as Rollup
+			await expect(
+				rollup.initialize(
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+				),
+			).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
+		})
+	})
 	describe('initialize', () => {
 		describe('success', () => {
 			it('should set deployer as the owner', async () => {

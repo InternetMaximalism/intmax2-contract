@@ -68,6 +68,23 @@ describe('Liquidity', () => {
 			user,
 		}
 	}
+	describe('constructor', () => {
+		it('should revert if not initialized through proxy', async () => {
+			const liquidityFactory = await ethers.getContractFactory('Liquidity')
+			const liquidity =
+				(await liquidityFactory.deploy()) as unknown as Liquidity
+			await expect(
+				liquidity.initialize(
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					ethers.ZeroAddress,
+					[ethers.ZeroAddress],
+				),
+			).to.be.revertedWithCustomError(liquidity, 'InvalidInitialization')
+		})
+	})
 	describe('initialize', () => {
 		describe('success', () => {
 			it('deployer has admin role', async () => {

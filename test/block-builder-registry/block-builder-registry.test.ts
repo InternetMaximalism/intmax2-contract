@@ -149,6 +149,21 @@ describe('BlockBuilderRegistry', () => {
 		)
 		return [blockBuilderRegistry, rollup, verifier, stakeAmount, fraudProof]
 	}
+	describe('constructor', () => {
+		it('should revert if not initialized through proxy', async () => {
+			const blockBuilderRegistryFactory = await ethers.getContractFactory(
+				'BlockBuilderRegistry',
+			)
+			const blockBuilderRegistry =
+				(await blockBuilderRegistryFactory.deploy()) as unknown as BlockBuilderRegistry
+			await expect(
+				blockBuilderRegistry.initialize(ethers.ZeroAddress, ethers.ZeroAddress),
+			).to.be.revertedWithCustomError(
+				blockBuilderRegistry,
+				'InvalidInitialization',
+			)
+		})
+	})
 	describe('initialize', () => {
 		describe('success', () => {
 			it('should revert when initializing for the second time', async () => {
