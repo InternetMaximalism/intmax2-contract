@@ -467,6 +467,47 @@ describe('Liquidity', () => {
 				)
 			})
 		})
+		describe('fail', () => {
+			it('revert DepositHashAlreadyExists', async () => {
+				const { liquidity, testNFT } = await loadFixture(setupForDepositERC721)
+				const { user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const tokenId = 0
+
+				await testNFT
+					.connect(user)
+					.approve(await liquidity.getAddress(), tokenId)
+
+				expect(await testNFT.ownerOf(tokenId)).to.equal(user.address)
+
+				await liquidity
+					.connect(user)
+					.depositERC721(await testNFT.getAddress(), recipientSaltHash, tokenId)
+				const filter = liquidity.filters.Deposited()
+				const events = await liquidity.queryFilter(filter)
+				const depositId = events[0].args.depositId
+				const tokenIndex = events[0].args.tokenIndex
+
+				await liquidity.connect(user).cancelDeposit(depositId, {
+					recipientSaltHash,
+					tokenIndex: tokenIndex,
+					amount: 1,
+				})
+				await testNFT
+					.connect(user)
+					.approve(await liquidity.getAddress(), tokenId)
+
+				await expect(
+					liquidity
+						.connect(user)
+						.depositERC721(
+							await testNFT.getAddress(),
+							recipientSaltHash,
+							tokenId,
+						),
+				).to.be.revertedWithCustomError(liquidity, 'DepositHashAlreadyExists')
+			})
+		})
 	})
 	describe('depositERC1155', () => {
 		type TestObjectsForDepositERC1155 = TestObjects & {
