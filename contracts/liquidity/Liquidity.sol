@@ -36,7 +36,7 @@ contract Liquidity is
 	IContribution private contribution;
 	address private rollup;
 	address private withdrawal;
-	mapping(bytes32 => uint256) private claimableWithdrawals;
+	mapping(bytes32 => uint256) public claimableWithdrawals;
 	mapping(bytes32 => bool) private doesDepositHashExist;
 	DepositQueueLib.DepositQueue private depositQueue;
 
