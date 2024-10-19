@@ -223,7 +223,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
-	function collectPenaltyFee() internal {
+	function collectPenaltyFee() private {
 		uint256 penalty = rateLimitState.update();
 		if (penalty > msg.value) {
 			revert InsufficientPenaltyFee();

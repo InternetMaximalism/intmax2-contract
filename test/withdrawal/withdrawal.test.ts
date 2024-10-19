@@ -212,7 +212,11 @@ describe('Withdrawal', () => {
 			it('token index is already exist', async () => {
 				const withdrawalFactory =
 					await ethers.getContractFactory('Withdrawal2Test')
-				const withdrawal = await withdrawalFactory.deploy()
+				const withdrawal = await upgrades.deployProxy(withdrawalFactory, {
+					kind: 'uups',
+					unsafeAllow: ['constructor'],
+					initializer: false,
+				})
 				const { deployer } = await getSigners()
 				const tmpAddress = ethers.Wallet.createRandom().address
 				await withdrawal.addOwner(deployer.address)
