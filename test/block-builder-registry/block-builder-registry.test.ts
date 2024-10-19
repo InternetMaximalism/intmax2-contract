@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { ethers, upgrades } from 'hardhat'
-import { ContractTransactionResponse } from 'ethers'
 import {
 	loadFixture,
 	time,
@@ -15,6 +14,7 @@ import {
 	RollupTestForBlockBuilderRegistry,
 	IBlockBuilderRegistry,
 } from '../../typechain-types'
+import { getGasCost } from '../common.test'
 
 describe('BlockBuilderRegistry', () => {
 	const DUMMY_URL = 'https://dummy.com'
@@ -48,12 +48,6 @@ describe('BlockBuilderRegistry', () => {
 		return [blockBuilderRegistry, rollup, verifier]
 	}
 
-	const getGasCost = async (
-		res: ContractTransactionResponse,
-	): Promise<bigint> => {
-		const transaction = await res.wait()
-		return ethers.toBigInt(transaction!.gasPrice * transaction!.gasUsed)
-	}
 	const getDefaultBlockBuilderInfo =
 		(): IBlockBuilderRegistry.BlockBuilderInfoStruct => {
 			return {

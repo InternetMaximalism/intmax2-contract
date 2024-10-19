@@ -1,15 +1,18 @@
 import { expect } from 'chai'
 import { ethers, upgrades } from 'hardhat'
-import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
+import {
+	loadFixture,
+	time,
+} from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
 import {
 	Rollup,
-	BlockBuilderRegistryTestForRollup,
 	L2ScrollMessengerTestForRollup,
 	ContributionTest,
 } from '../../typechain-types'
 import { loadPairingData } from '../../utils/rollup'
 import block1 from '../../test_data/block1.json'
+import { getGasCost } from '../common.test'
 
 describe('Rollup', () => {
 	const FIRST_BLOCK_HASH =
@@ -17,18 +20,8 @@ describe('Rollup', () => {
 	const FIRST_DEPOSIT_TREE_ROOT =
 		'0xb6155ab566bbd2e341525fd88c43b4d69572bf4afe7df45cd74d6901a172e41c'
 	const setup = async (): Promise<
-		[
-			Rollup,
-			BlockBuilderRegistryTestForRollup,
-			L2ScrollMessengerTestForRollup,
-			ContributionTest,
-		]
+		[Rollup, L2ScrollMessengerTestForRollup, ContributionTest]
 	> => {
-		const blockBuilderRegistryFactory = await ethers.getContractFactory(
-			'BlockBuilderRegistryTestForRollup',
-		)
-		const blockBuilderRegistry =
-			(await blockBuilderRegistryFactory.deploy()) as BlockBuilderRegistryTestForRollup
 		const L2ScrollMessengerTestForRollupFactory =
 			await ethers.getContractFactory('L2ScrollMessengerTestForRollup')
 		const l2ScrollMessenger =
@@ -49,7 +42,7 @@ describe('Rollup', () => {
 			],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Rollup
-		return [rollup, blockBuilderRegistry, l2ScrollMessenger, contribution]
+		return [rollup, l2ScrollMessenger, contribution]
 	}
 
 	type signers = {
@@ -101,10 +94,8 @@ describe('Rollup', () => {
 	}
 	const addBlock = async (
 		rollup: Rollup,
-		blockBuilderRegistry: BlockBuilderRegistryTestForRollup,
 		signer: HardhatEthersSigner,
 	): Promise<void> => {
-		await blockBuilderRegistry.setResult(true)
 		const inputs = generateValidInputs()
 		await rollup.connect(signer).postRegistrationBlock(
 			inputs.txTreeRoot,
@@ -204,10 +195,72 @@ describe('Rollup', () => {
 	})
 	describe('postRegistrationBlock', () => {
 		describe('success', () => {
-			it('generate PubKeysPosted event', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+			it('send penalty fee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { deployer } = await getSigners()
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+				const beforeRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(beforeRollupBalance).to.equal(0)
+				const beforeCallerBalance = await ethers.provider.getBalance(
+					deployer.address,
+				)
+				const tx = await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+					{ value: ethers.parseEther('1') },
+				)
+				const afterCallerBalance = await ethers.provider.getBalance(
+					deployer.address,
+				)
+				const gas = await getGasCost(tx)
+				const afterRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(afterRollupBalance).not.to.equal(0)
+				expect(afterRollupBalance < ethers.parseEther('1')).to.be.true
+				expect(afterCallerBalance).to.equal(
+					beforeCallerBalance - gas - afterRollupBalance,
+				)
+			})
+			it('not send penalty fee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
+
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+				await time.increase(15)
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+			})
+			it('generate PubKeysPosted event', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
 
 				await expect(
 					rollup.postRegistrationBlock(
@@ -223,9 +276,8 @@ describe('Rollup', () => {
 					.withArgs(1, inputs.senderPublicKeys)
 			})
 			it('should add blockhash to blockHashes', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
@@ -242,9 +294,8 @@ describe('Rollup', () => {
 				)
 			})
 			it('should add sender address to blockBuilders', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const signers = await getSigners()
 
 				await rollup
@@ -262,9 +313,8 @@ describe('Rollup', () => {
 				expect(blockBuilder).to.equal(signers.user1.address)
 			})
 			it('generate BlockPosted event', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const signers = await getSigners()
 
 				const depositTreeRoot = await rollup.depositTreeRoot()
@@ -290,11 +340,9 @@ describe('Rollup', () => {
 					)
 			})
 			it('call contribution', async () => {
-				const [rollup, blockBuilderRegistry, , contribution] =
-					await loadFixture(setup)
+				const [rollup, , contribution] = await loadFixture(setup)
 				const signers = await getSigners()
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
@@ -314,10 +362,9 @@ describe('Rollup', () => {
 		})
 		describe('fail', () => {
 			it('revert TooManySenderPublicKeys', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
 				inputs.senderPublicKeys = Array(129).fill(BigInt(1))
-				await blockBuilderRegistry.setResult(true)
 
 				await expect(
 					rollup.postRegistrationBlock(
@@ -331,9 +378,8 @@ describe('Rollup', () => {
 				).to.be.revertedWithCustomError(rollup, 'TooManySenderPublicKeys')
 			})
 			it('revert PairingCheckFailed', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const pairingData = loadPairingData()
 				inputs.aggregatedPublicKey[0] = pairingData.aggPubkey[0]
 				inputs.aggregatedPublicKey[1] = pairingData.aggPubkey[1]
@@ -356,6 +402,28 @@ describe('Rollup', () => {
 						inputs.senderPublicKeys,
 					),
 				).to.be.revertedWithCustomError(rollup, 'PairingCheckFailed')
+			})
+			it('revert InsufficientPenaltyFee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+				await expect(
+					rollup.postRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.senderPublicKeys,
+					),
+				).to.be.revertedWithCustomError(rollup, 'InsufficientPenaltyFee')
 			})
 		})
 	})
@@ -398,10 +466,77 @@ describe('Rollup', () => {
 			}
 		}
 		describe('success', () => {
-			it('generate AccountIdsPosted event', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+			it('send penalty fee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { deployer } = await getSigners()
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
+
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+				const beforeRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(beforeRollupBalance).to.equal(0)
+				const beforeCallerBalance = await ethers.provider.getBalance(
+					deployer.address,
+				)
+				const tx = await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+					{ value: ethers.parseEther('1') },
+				)
+				const afterCallerBalance = await ethers.provider.getBalance(
+					deployer.address,
+				)
+				const gas = await getGasCost(tx)
+				const afterRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(afterRollupBalance).not.to.equal(0)
+				expect(afterRollupBalance < ethers.parseEther('1')).to.be.true
+				expect(afterCallerBalance).to.equal(
+					beforeCallerBalance - gas - afterRollupBalance,
+				)
+			})
+			it('not send penalty fee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
+
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+				await time.increase(15)
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+			})
+			it('generate AccountIdsPosted event', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
 
 				await expect(
 					rollup.postNonRegistrationBlock(
@@ -418,9 +553,8 @@ describe('Rollup', () => {
 					.withArgs(1, inputs.senderAccountIds)
 			})
 			it('should add blockhash to blockHashes', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
@@ -438,9 +572,8 @@ describe('Rollup', () => {
 				)
 			})
 			it('should add sender address to blockBuilders', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const signers = await getSigners()
 
 				await rollup
@@ -459,9 +592,8 @@ describe('Rollup', () => {
 				expect(blockBuilder).to.equal(signers.user1.address)
 			})
 			it('generate BlockPosted event', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const signers = await getSigners()
 				const depositTreeRoot = await rollup.depositTreeRoot()
 
@@ -488,11 +620,9 @@ describe('Rollup', () => {
 					)
 			})
 			it('call contribution', async () => {
-				const [rollup, blockBuilderRegistry, , contribution] =
-					await loadFixture(setup)
+				const [rollup, , contribution] = await loadFixture(setup)
 				const signers = await getSigners()
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
@@ -513,10 +643,9 @@ describe('Rollup', () => {
 		})
 		describe('fail', () => {
 			it('revert TooManyAccountIds', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
 				inputs.senderAccountIds = ethers.hexlify(ethers.randomBytes(5 * 129))
-				await blockBuilderRegistry.setResult(true)
 
 				await expect(
 					rollup.postNonRegistrationBlock(
@@ -531,10 +660,9 @@ describe('Rollup', () => {
 				).to.be.revertedWithCustomError(rollup, 'TooManyAccountIds')
 			})
 			it('revert SenderAccountIdsInvalidLength', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
 				inputs.senderAccountIds = ethers.hexlify(ethers.randomBytes(7)) // 7バイト (5の倍数ではない)
-				await blockBuilderRegistry.setResult(true)
 
 				await expect(
 					rollup.postNonRegistrationBlock(
@@ -549,9 +677,8 @@ describe('Rollup', () => {
 				).to.be.revertedWithCustomError(rollup, 'SenderAccountIdsInvalidLength')
 			})
 			it('revert PairingCheckFailed', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
-				await blockBuilderRegistry.setResult(true)
 				const pairingData = loadPairingData()
 				inputs.aggregatedPublicKey[0] = pairingData.aggPubkey[0]
 				inputs.aggregatedPublicKey[1] = pairingData.aggPubkey[1]
@@ -576,12 +703,92 @@ describe('Rollup', () => {
 					),
 				).to.be.revertedWithCustomError(rollup, 'PairingCheckFailed')
 			})
+			it('revert InsufficientPenaltyFee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
+
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+				await expect(
+					rollup.postNonRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.publicKeysHash,
+						inputs.senderAccountIds,
+					),
+				).to.be.revertedWithCustomError(rollup, 'InsufficientPenaltyFee')
+			})
 		})
 	})
+
+	describe('withdrawPenaltyFee', () => {
+		describe('success', () => {
+			it('not send penalty fee', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = generateValidInputs()
+
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+					{ value: ethers.parseEther('1') },
+				)
+				const beforeRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(beforeRollupBalance).not.to.equal(0)
+				const toAddress = ethers.Wallet.createRandom().address
+				const beforeToAddressBalance =
+					await ethers.provider.getBalance(toAddress)
+				expect(beforeToAddressBalance).to.equal(0)
+
+				await rollup.withdrawPenaltyFee(toAddress)
+
+				const afterRollupBalance = await ethers.provider.getBalance(
+					rollup.getAddress(),
+				)
+				expect(afterRollupBalance).to.equal(0)
+				const afterToAddressBalance =
+					await ethers.provider.getBalance(toAddress)
+				expect(afterToAddressBalance).to.equal(beforeRollupBalance)
+			})
+		})
+		describe('fail', () => {
+			it('only owner', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { user1 } = await getSigners()
+				await expect(rollup.connect(user1).withdrawPenaltyFee(user1.address))
+					.to.be.revertedWithCustomError(rollup, 'OwnableUnauthorizedAccount')
+					.withArgs(user1.address)
+			})
+		})
+	})
+
 	describe('processDeposits', () => {
 		describe('success', () => {
 			it('should update lastProcessedDepositId', async () => {
-				const [rollup, , l2ScrollMessenger] = await loadFixture(setup)
+				const [rollup, l2ScrollMessenger] = await loadFixture(setup)
 				const lastProcessedDepositId = 10
 				const depositHashes = [ethers.randomBytes(32), ethers.randomBytes(32)]
 
@@ -597,7 +804,7 @@ describe('Rollup', () => {
 			})
 
 			it('should update depositTreeRoot', async () => {
-				const [rollup, , l2ScrollMessenger] = await loadFixture(setup)
+				const [rollup, l2ScrollMessenger] = await loadFixture(setup)
 				const lastProcessedDepositId = 10
 				const depositHashes = [ethers.randomBytes(32), ethers.randomBytes(32)]
 
@@ -613,7 +820,7 @@ describe('Rollup', () => {
 			})
 
 			it('should emit DepositsProcessed event', async () => {
-				const [rollup, , l2ScrollMessenger] = await loadFixture(setup)
+				const [rollup, l2ScrollMessenger] = await loadFixture(setup)
 				const lastProcessedDepositId = 10
 				const depositHashes = [ethers.randomBytes(32), ethers.randomBytes(32)]
 				await l2ScrollMessenger.processDeposits(
@@ -646,7 +853,7 @@ describe('Rollup', () => {
 			})
 
 			it('should revert if xDomainMessageSender is not liquidity contract', async () => {
-				const [rollup, , l2ScrollMessenger] = await loadFixture(setup)
+				const [rollup, l2ScrollMessenger] = await loadFixture(setup)
 				const signers = await getSigners()
 				const lastProcessedDepositId = 10
 				const depositHashes = [ethers.randomBytes(32)]
@@ -671,19 +878,19 @@ describe('Rollup', () => {
 			})
 
 			it('should return the correct block builder for a non-genesis block', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const signers = await getSigners()
-				await addBlock(rollup, blockBuilderRegistry, signers.user1)
+				await addBlock(rollup, signers.user1)
 				const blockBuilder = await rollup.getBlockBuilder(1)
 				expect(blockBuilder).to.equal(signers.user1.address)
 			})
 
 			it('should return the correct block builder after multiple blocks have been added', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const signers = await getSigners()
-				await addBlock(rollup, blockBuilderRegistry, signers.user1)
-				await addBlock(rollup, blockBuilderRegistry, signers.user2)
-				await addBlock(rollup, blockBuilderRegistry, signers.user3)
+				await addBlock(rollup, signers.user1)
+				await addBlock(rollup, signers.user2)
+				await addBlock(rollup, signers.user3)
 
 				expect(await rollup.getBlockBuilder(1)).to.equal(signers.user1.address)
 				expect(await rollup.getBlockBuilder(2)).to.equal(signers.user2.address)
@@ -710,9 +917,9 @@ describe('Rollup', () => {
 			})
 
 			it('should return the correct hash for a non-genesis block', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const signers = await getSigners()
-				await addBlock(rollup, blockBuilderRegistry, signers.user1)
+				await addBlock(rollup, signers.user1)
 
 				const blockHash = await rollup.getBlockHash(1)
 
@@ -720,11 +927,11 @@ describe('Rollup', () => {
 			})
 
 			it('should return the correct hashes after multiple blocks have been added', async () => {
-				const [rollup, blockBuilderRegistry] = await loadFixture(setup)
+				const [rollup] = await loadFixture(setup)
 				const signers = await getSigners()
 
-				await addBlock(rollup, blockBuilderRegistry, signers.user1)
-				await addBlock(rollup, blockBuilderRegistry, signers.user1)
+				await addBlock(rollup, signers.user1)
+				await addBlock(rollup, signers.user1)
 
 				const blockHash1 = await rollup.getBlockHash(1)
 				const blockHash2 = await rollup.getBlockHash(2)
