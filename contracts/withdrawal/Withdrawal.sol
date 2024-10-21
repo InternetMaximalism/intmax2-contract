@@ -69,14 +69,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		rollup = IRollup(_rollup);
 		contribution = IContribution(_contribution);
 		liquidity = _liquidity;
-		for (uint256 i = 0; i < _directWithdrawalTokenIndices.length; i++) {
-			bool result = directWithdrawalTokenIndices.add(
-				_directWithdrawalTokenIndices[i]
-			);
-			if (!result) {
-				revert TokenAlreadyExist(_directWithdrawalTokenIndices[i]);
-			}
-		}
+		innerAddDirectWithdrawalTokenIndices(_directWithdrawalTokenIndices);
 	}
 
 	// added onlyOwner for dummy zkp verification
@@ -241,6 +234,12 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	function addDirectWithdrawalTokenIndices(
 		uint256[] calldata tokenIndices
 	) external onlyOwner {
+		innerAddDirectWithdrawalTokenIndices(tokenIndices);
+	}
+
+	function innerAddDirectWithdrawalTokenIndices(
+		uint256[] memory tokenIndices
+	) private {
 		for (uint256 i = 0; i < tokenIndices.length; i++) {
 			bool result = directWithdrawalTokenIndices.add(tokenIndices[i]);
 			if (!result) {

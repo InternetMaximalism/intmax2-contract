@@ -102,6 +102,15 @@ describe('Withdrawal', () => {
 				const signers = await getSigners()
 				expect(await withdrawal.owner()).to.equal(signers.deployer.address)
 			})
+			it('generate DirectWithdrawalTokenIndicesAdded event', async () => {
+				const [withdrawal] = await loadFixture(setup)
+				const filter = withdrawal.filters.DirectWithdrawalTokenIndicesAdded()
+				const events = await withdrawal.queryFilter(filter)
+				expect(events.length).to.equal(1)
+				expect(events[0].args?.tokenIndices).to.deep.equal(
+					DIRECT_WITHDRAWAL_TOKEN_INDICES,
+				)
+			})
 		})
 		describe('fail', () => {
 			it('should revert when initializing twice', async () => {
