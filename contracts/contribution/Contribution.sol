@@ -49,8 +49,9 @@ contract Contribution is
 	}
 
 	function incrementPeriod() external onlyRole(WEIGHT_REGISTRAR) {
-		currentPeriod++;
-		emit PeriodIncremented(currentPeriod);
+		uint256 nextPeriod = currentPeriod + 1;
+		currentPeriod = nextPeriod;
+		emit PeriodIncremented(nextPeriod);
 	}
 
 	function registerWeights(
