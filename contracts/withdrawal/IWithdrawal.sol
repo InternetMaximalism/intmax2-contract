@@ -86,6 +86,8 @@ interface IWithdrawal {
 
 	/// @notice Add token indices to the list of direct withdrawal token indices
 	/// @param tokenIndices The token indices to add
+	/// @notice ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+	/// When transferred to the liquidity contract, they will be converted to claimable withdrawals.
 	function addDirectWithdrawalTokenIndices(
 		uint256[] calldata tokenIndices
 	) external;

@@ -384,38 +384,25 @@ contract Liquidity is
 			);
 			result = success;
 		} else if (tokenInfo.tokenType == TokenType.ERC20) {
-			try
-				IERC20(tokenInfo.tokenAddress).transfer(
-					withdrawal_.recipient,
-					withdrawal_.amount
-				)
-			returns (bool success) {
-				result = success;
-			} catch {
-				result = false;
-			}
-		} else if (tokenInfo.tokenType == TokenType.ERC721) {
-			try
-				IERC721(tokenInfo.tokenAddress).safeTransferFrom(
-					address(this),
-					withdrawal_.recipient,
-					tokenInfo.tokenId
-				)
-			{} catch {
-				result = false;
-			}
-		} else if (tokenInfo.tokenType == TokenType.ERC1155) {
-			try
-				IERC1155(tokenInfo.tokenAddress).safeTransferFrom(
-					address(this),
-					withdrawal_.recipient,
-					tokenInfo.tokenId,
-					withdrawal_.amount,
-					bytes("")
-				)
-			{} catch {
-				result = false;
-			}
+			bytes memory transferCall = abi.encodeWithSelector(
+				IERC20(tokenInfo.tokenAddress).transfer.selector,
+				withdrawal_.recipient,
+				withdrawal_.amount
+			);
+			// solhint-disable-next-line avoid-low-level-calls
+			(bool success, bytes memory returndata) = address(
+				tokenInfo.tokenAddress
+			).call(transferCall);
+			// If the token transfer call succeeded, and the token contract exists,
+			// and the return data is empty, or decoded as true then the call succeeded.
+			// Referring to _callOptionalReturnBool of SafeERC20.sol
+			result =
+				success &&
+				(returndata.length == 0 || abi.decode(returndata, (bool))) &&
+				address(tokenInfo.tokenAddress).code.length > 0;
+		} else {
+			// ERC721 and ERC1155 tokens are not supported for direct withdrawals
+			result = false;
 		}
 		if (!result) {
 			bytes32 withdrawalHash = withdrawal_.getHash();
