@@ -15,7 +15,7 @@ const env = cleanEnv(process.env, {
 const accounts = [env.DEPLOYER_PRIVATE_KEY, env.ANALYZER_PRIVATE_KEY]
 
 const config: HardhatUserConfig = {
-	solidity: '0.8.24',
+	solidity: '0.8.27',
 	gasReporter: {
 		enabled: true,
 		currency: 'USD',

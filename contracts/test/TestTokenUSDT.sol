@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable reason-string
 // solhint-disable gas-custom-errors
-
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 

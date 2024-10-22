@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 
 interface ITokenData {
 	/// @notice Error thrown when attempting to use a zero address for a token

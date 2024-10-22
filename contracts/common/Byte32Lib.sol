@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 
 library Byte32Lib {
 	/// @notice Splits a bytes32 into an array of uint256, each representing 4 bytes
