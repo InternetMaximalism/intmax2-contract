@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 
 import {IBlockBuilderRegistry} from "./IBlockBuilderRegistry.sol";
 import {IPlonkVerifier} from "../common/IPlonkVerifier.sol";
