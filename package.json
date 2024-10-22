@@ -2,15 +2,14 @@
 	"name": "hardhat-project",
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "5.0.0",
-		"@openzeppelin/hardhat-upgrades": "^3.2.1",
-		"@prb/math": "4.0.3",
+		"@openzeppelin/hardhat-upgrades": "3.2.1",
 		"@types/fs-extra": "11.0.4",
 		"axios": "1.7.7",
 		"dotenv": "16.4.5",
 		"envalid": "8.0.0",
 		"fs-extra": "11.2.0",
-		"hardhat": "2.22.10",
-		"hardhat-gas-reporter": "^2.2.1",
+		"hardhat": "2.22.13",
+		"hardhat-gas-reporter": "1.0.10",
 		"prettier": "3.3.3",
 		"prettier-plugin-solidity": "1.4.1",
 		"solhint": "5.0.3",
@@ -25,9 +24,10 @@
 		"format": "prettier --write '**/*.{sol,ts,json,md,yml}'"
 	},
 	"dependencies": {
-		"@openzeppelin/contracts": "5.0.2",
-		"@openzeppelin/contracts-upgradeable": "5.0.2",
-		"@scroll-tech/contracts": "0.1.0",
+		"@openzeppelin/contracts": "5.1.0",
+		"@openzeppelin/contracts-upgradeable": "5.1.0",
+		"@prb/math": "4.1.0",
+		"@scroll-tech/contracts": "0.1.1",
 		"poseidon-goldilocks": "0.2.3"
 	},
 	"engines": {
