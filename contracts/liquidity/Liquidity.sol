@@ -17,6 +17,7 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {DepositLib} from "../common/DepositLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
+import {ERC20CallOptionalLib} from "./lib/ERC20CallOptionalLib.sol";
 
 contract Liquidity is
 	TokenData,
@@ -25,6 +26,7 @@ contract Liquidity is
 	ILiquidity
 {
 	using SafeERC20 for IERC20;
+	using ERC20CallOptionalLib for IERC20;
 	using DepositLib for DepositLib.Deposit;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using DepositQueueLib for DepositQueueLib.DepositQueue;
@@ -389,17 +391,9 @@ contract Liquidity is
 				withdrawal_.recipient,
 				withdrawal_.amount
 			);
-			// solhint-disable-next-line avoid-low-level-calls
-			(bool success, bytes memory returndata) = address(
-				tokenInfo.tokenAddress
-			).call(transferCall);
-			// If the token transfer call succeeded, and the token contract exists,
-			// and the return data is empty, or decoded as true then the call succeeded.
-			// Referring to _callOptionalReturnBool of SafeERC20.sol
-			result =
-				success &&
-				(returndata.length == 0 || abi.decode(returndata, (bool))) &&
-				address(tokenInfo.tokenAddress).code.length > 0;
+			result = IERC20(tokenInfo.tokenAddress).callOptionalReturnBool(
+				transferCall
+			);
 		} else {
 			// ERC721 and ERC1155 tokens are not supported for direct withdrawals
 			result = false;
