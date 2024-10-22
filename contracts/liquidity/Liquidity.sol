@@ -17,6 +17,7 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {DepositLib} from "../common/DepositLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
+import {ERC20CallOptionalLib} from "./lib/ERC20CallOptionalLib.sol";
 
 contract Liquidity is
 	TokenData,
@@ -25,6 +26,7 @@ contract Liquidity is
 	ILiquidity
 {
 	using SafeERC20 for IERC20;
+	using ERC20CallOptionalLib for IERC20;
 	using DepositLib for DepositLib.Deposit;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using DepositQueueLib for DepositQueueLib.DepositQueue;
@@ -384,38 +386,17 @@ contract Liquidity is
 			);
 			result = success;
 		} else if (tokenInfo.tokenType == TokenType.ERC20) {
-			try
-				IERC20(tokenInfo.tokenAddress).transfer(
-					withdrawal_.recipient,
-					withdrawal_.amount
-				)
-			returns (bool success) {
-				result = success;
-			} catch {
-				result = false;
-			}
-		} else if (tokenInfo.tokenType == TokenType.ERC721) {
-			try
-				IERC721(tokenInfo.tokenAddress).safeTransferFrom(
-					address(this),
-					withdrawal_.recipient,
-					tokenInfo.tokenId
-				)
-			{} catch {
-				result = false;
-			}
-		} else if (tokenInfo.tokenType == TokenType.ERC1155) {
-			try
-				IERC1155(tokenInfo.tokenAddress).safeTransferFrom(
-					address(this),
-					withdrawal_.recipient,
-					tokenInfo.tokenId,
-					withdrawal_.amount,
-					bytes("")
-				)
-			{} catch {
-				result = false;
-			}
+			bytes memory transferCall = abi.encodeWithSelector(
+				IERC20(tokenInfo.tokenAddress).transfer.selector,
+				withdrawal_.recipient,
+				withdrawal_.amount
+			);
+			result = IERC20(tokenInfo.tokenAddress).callOptionalReturnBool(
+				transferCall
+			);
+		} else {
+			// ERC721 and ERC1155 tokens are not supported for direct withdrawals
+			result = false;
 		}
 		if (!result) {
 			bytes32 withdrawalHash = withdrawal_.getHash();

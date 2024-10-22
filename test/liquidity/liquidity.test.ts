@@ -1225,112 +1225,11 @@ describe('Liquidity', () => {
 						const afterBalance = await testERC20.balanceOf(recipient)
 						expect(afterBalance - beforeBalance).to.equal(depositAmount)
 					})
-					it('erc721', async () => {
-						const { liquidity, scrollMessenger } = await loadFixture(setup)
-						const { user } = await getSigners()
-						const testNFTFactory = await ethers.getContractFactory(
-							'TestNFT',
-							user,
-						)
-						const testNFT = await testNFTFactory.deploy()
-						const tokenId = 0
-						const recipientSaltHash = ethers.keccak256(
-							ethers.toUtf8Bytes('test'),
-						)
-
-						await testNFT
-							.connect(user)
-							.approve(await liquidity.getAddress(), tokenId)
-						await liquidity
-							.connect(user)
-							.depositERC721(testNFT.getAddress(), recipientSaltHash, tokenId)
-
-						const recipient = ethers.Wallet.createRandom().address
-						const [, tokenIndex] = await liquidity.getTokenIndex(
-							TokenType.ERC721,
-							testNFT.getAddress(),
-							tokenId,
-						)
-
-						const beforeOwner = await testNFT.ownerOf(tokenId)
-						await expect(
-							scrollMessenger.processWithdrawals(
-								2,
-								[{ recipient, tokenIndex, amount: 1, id: 0 }],
-								0,
-								[],
-							),
-						).not.to.emit(liquidity, 'WithdrawalClaimable')
-						const afterOwner = await testNFT.ownerOf(tokenId)
-
-						expect(beforeOwner).to.equal(await liquidity.getAddress())
-						expect(afterOwner).to.equal(recipient)
+					it.skip('erc721', async () => {
+						// not supported
 					})
-					it('erc1155', async () => {
-						const { liquidity, scrollMessenger } = await loadFixture(setup)
-						const { user } = await getSigners()
-						const testERC1155Factory = await ethers.getContractFactory(
-							'TestERC1155',
-							user,
-						)
-						const testERC1155 = await testERC1155Factory.deploy()
-						const tokenId = 1
-						const amount = 100
-						const recipientSaltHash = ethers.keccak256(
-							ethers.toUtf8Bytes('test'),
-						)
-
-						await testERC1155.mint(user.address, tokenId, amount, '0x')
-						await testERC1155
-							.connect(user)
-							.setApprovalForAll(await liquidity.getAddress(), true)
-						await liquidity
-							.connect(user)
-							.depositERC1155(
-								testERC1155.getAddress(),
-								recipientSaltHash,
-								tokenId,
-								amount,
-							)
-
-						const recipient = ethers.Wallet.createRandom().address
-						const [, tokenIndex] = await liquidity.getTokenIndex(
-							TokenType.ERC1155,
-							testERC1155.getAddress(),
-							tokenId,
-						)
-
-						const beforeBalanceLiquidity = await testERC1155.balanceOf(
-							await liquidity.getAddress(),
-							tokenId,
-						)
-						const beforeBalanceRecipient = await testERC1155.balanceOf(
-							recipient,
-							tokenId,
-						)
-
-						await expect(
-							scrollMessenger.processWithdrawals(
-								2,
-								[{ recipient, tokenIndex, amount, id: 0 }],
-								0,
-								[],
-							),
-						).not.to.emit(liquidity, 'WithdrawalClaimable')
-
-						const afterBalanceLiquidity = await testERC1155.balanceOf(
-							await liquidity.getAddress(),
-							tokenId,
-						)
-						const afterBalanceRecipient = await testERC1155.balanceOf(
-							recipient,
-							tokenId,
-						)
-
-						expect(beforeBalanceLiquidity).to.equal(amount)
-						expect(beforeBalanceRecipient).to.equal(0)
-						expect(afterBalanceLiquidity).to.equal(0)
-						expect(afterBalanceRecipient).to.equal(amount)
+					it.skip('erc1155', async () => {
+						// not supported
 					})
 				})
 				describe('not send token', () => {
