@@ -8,9 +8,6 @@ interface IBlockBuilderRegistry {
 	/// @notice Error thrown when trying to register a block builder with an empty URL
 	error URLIsEmpty();
 
-	/// @notice Error thrown when the staked amount is insufficient
-	error InsufficientStakeAmount();
-
 	/// @notice Error thrown when trying to slash a block builder that is not staking
 	error BlockBuilderNotFound();
 
@@ -44,12 +41,7 @@ interface IBlockBuilderRegistry {
 	/// @notice Event emitted when a block builder is updated
 	/// @param blockBuilder The address of the updated block builder
 	/// @param url The new URL of the block builder
-	/// @param stakeAmount The new stake amount of the block builder
-	event BlockBuilderUpdated(
-		address indexed blockBuilder,
-		string url,
-		uint256 stakeAmount
-	);
+	event BlockBuilderUpdated(address indexed blockBuilder, string url);
 
 	/// @notice Event emitted when a block builder stops operations
 	/// @param blockBuilder The address of the block builder that stopped
@@ -73,7 +65,6 @@ interface IBlockBuilderRegistry {
 	 */
 	struct BlockBuilderInfo {
 		string blockBuilderUrl;
-		uint256 stakeAmount;
 		uint256 stopTime;
 		uint256 numSlashes;
 		bool isValid;
@@ -95,7 +86,7 @@ interface IBlockBuilderRegistry {
 	 * @dev The block builder must send at least 0.1 ETH to this contract to register.
 	 * @param url The URL or IP address of Block builder.
 	 */
-	function updateBlockBuilder(string memory url) external payable;
+	function updateBlockBuilder(string memory url) external;
 
 	/**
 	 * @notice Declare that the block builder has stopped.
