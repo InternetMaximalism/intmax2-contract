@@ -34,8 +34,7 @@ contract BlockBuilderRegistry is
 			blockBuilderAddresses.push(_msgSender());
 		}
 		info.blockBuilderUrl = url;
-		info.stopTime = 0;
-		info.isValid = true;
+		info.isActive = true;
 		blockBuilders[_msgSender()] = info;
 
 		emit BlockBuilderUpdated(_msgSender(), url);
@@ -47,8 +46,7 @@ contract BlockBuilderRegistry is
 		if (bytes(info.blockBuilderUrl).length == 0) {
 			revert BlockBuilderNotFound();
 		}
-		info.stopTime = block.timestamp;
-		info.isValid = false;
+		info.isActive = false;
 
 		emit BlockBuilderStopped(_msgSender());
 	}
@@ -56,7 +54,7 @@ contract BlockBuilderRegistry is
 	function isValidBlockBuilder(
 		address blockBuilder
 	) external view returns (bool) {
-		return blockBuilders[blockBuilder].isValid;
+		return blockBuilders[blockBuilder].isActive;
 	}
 
 	function getValidBlockBuilders()
@@ -67,7 +65,7 @@ contract BlockBuilderRegistry is
 		uint256 blockBuilderLength = blockBuilderAddresses.length;
 		uint256 counter = 0;
 		for (uint256 i = 0; i < blockBuilderLength; i++) {
-			if (blockBuilders[blockBuilderAddresses[i]].isValid) {
+			if (blockBuilders[blockBuilderAddresses[i]].isActive) {
 				counter++;
 			}
 		}
@@ -79,7 +77,7 @@ contract BlockBuilderRegistry is
 		for (uint256 i = 0; i < blockBuilderLength; i++) {
 			address blockBuilderAddress = blockBuilderAddresses[i];
 			BlockBuilderInfo memory info = blockBuilders[blockBuilderAddress];
-			if (info.isValid) {
+			if (info.isActive) {
 				validBlockBuilders[index] = BlockBuilderInfoWithAddress({
 					blockBuilderAddress: blockBuilderAddress,
 					info: info

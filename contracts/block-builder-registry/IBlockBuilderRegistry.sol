@@ -20,16 +20,11 @@ interface IBlockBuilderRegistry {
 	/**
 	 * @notice Block builder information.
 	 * @param blockBuilderUrl The URL or IP address of Block builder.
-	 * @param stakeAmount The stake amount of Block Builder.
-	 * @param stopTime The time when the node declares that it has ceased operations.
-	 * @param numSlashes The number of times the node has been slashed so far.
-	 * @param isValid A flag whether the node is not malicious.
+	 * @param isActive active flag.
 	 */
 	struct BlockBuilderInfo {
 		string blockBuilderUrl;
-		uint256 stopTime;
-		uint256 numSlashes;
-		bool isValid;
+		bool isActive;
 	}
 
 	/**
