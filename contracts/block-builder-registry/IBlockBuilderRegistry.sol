@@ -2,41 +2,11 @@
 pragma solidity 0.8.27;
 
 interface IBlockBuilderRegistry {
-	/// @notice address is zero address
-	error AddressZero();
-
 	/// @notice Error thrown when trying to register a block builder with an empty URL
 	error URLIsEmpty();
 
 	/// @notice Error thrown when trying to slash a block builder that is not staking
 	error BlockBuilderNotFound();
-
-	/// @notice Error thrown when trying to unstake within the challenge duration
-	error CannotUnstakeWithinChallengeDuration();
-
-	/// @notice Error thrown when attempting to slash the same block number twice
-	error FraudProofAlreadySubmitted();
-
-	/// @notice Error thrown when fraud proof verification fails
-	error FraudProofVerificationFailed();
-
-	/// @notice Error thrown when the block hash in public input doesn't match the contract's record
-	/// @param given The block hash provided in the public input
-	/// @param expected The block hash expected by the contract
-	error FraudProofBlockHashMismatch(bytes32 given, bytes32 expected);
-
-	/// @notice Error thrown when the challenger in public input doesn't match msg.sender
-	error FraudProofChallengerMismatch();
-
-	/// @notice Event emitted when a fraud proof is submitted
-	/// @param blockNumber The number of the block being challenged
-	/// @param blockBuilder The address of the block builder being challenged
-	/// @param challenger The address of the challenger submitting the fraud proof
-	event BlockFraudProofSubmitted(
-		uint32 indexed blockNumber,
-		address indexed blockBuilder,
-		address indexed challenger
-	);
 
 	/// @notice Event emitted when a block builder is updated
 	/// @param blockBuilder The address of the updated block builder
@@ -46,14 +16,6 @@ interface IBlockBuilderRegistry {
 	/// @notice Event emitted when a block builder stops operations
 	/// @param blockBuilder The address of the block builder that stopped
 	event BlockBuilderStopped(address indexed blockBuilder);
-
-	/// @notice Event emitted when a block builder is slashed
-	/// @param blockBuilder The address of the slashed block builder
-	/// @param challenger The address of the challenger who submitted the fraud proof
-	event BlockBuilderSlashed(
-		address indexed blockBuilder,
-		address indexed challenger
-	);
 
 	/**
 	 * @notice Block builder information.
