@@ -444,6 +444,19 @@ contract Liquidity is
 		return depositQueue.depositData[depositId];
 	}
 
+	function getDepositDataBatch(
+		uint256[] memory depositIds
+	) external view returns (DepositQueueLib.DepositData[] memory) {
+		DepositQueueLib.DepositData[]
+			memory depositData = new DepositQueueLib.DepositData[](
+				depositIds.length
+			);
+		for (uint256 i = 0; i < depositIds.length; i++) {
+			depositData[i] = depositQueue.depositData[depositIds[i]];
+		}
+		return depositData;
+	}
+
 	function getDepositDataHash(
 		uint256 depositId
 	) external view returns (bytes32) {

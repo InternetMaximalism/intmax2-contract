@@ -191,6 +191,13 @@ interface ILiquidity {
 		uint256 depositId
 	) external view returns (DepositQueueLib.DepositData memory);
 
+	/// @notice Get deposit data list for a given deposit IDs
+	/// @param depositIds The IDs of the deposit
+	/// @return The deposit data list
+	function getDepositDataBatch(
+		uint256[] memory depositIds
+	) external view returns (DepositQueueLib.DepositData[] memory);
+
 	/// @notice Get deposit data hash for a given deposit ID
 	/// @param depositId The ID of the deposit
 	/// @return The deposit data hash

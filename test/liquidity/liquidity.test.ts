@@ -2108,7 +2108,45 @@ describe('Liquidity', () => {
 			expect(depositData2.isRejected).to.equal(false)
 		})
 	})
+	describe('getDepositDataBatch', () => {
+		it('get DepositData list', async () => {
+			const { liquidity } = await loadFixture(setup)
+			const { user } = await getSigners()
 
+			// Create some deposits using ETH
+			const depositAmount = ethers.parseEther('1')
+
+			for (let i = 0; i < 5; i++) {
+				const recipientSaltHash = ethers.keccak256(
+					ethers.toUtf8Bytes(`test${i}`),
+				)
+				await liquidity
+					.connect(user)
+					.depositNativeToken(recipientSaltHash, { value: depositAmount })
+			}
+
+			const depositDataList = await liquidity.getDepositDataBatch([1, 3])
+			const depositHash0 = getDepositHash(
+				ethers.keccak256(ethers.toUtf8Bytes('test0')),
+				0,
+				depositAmount,
+			)
+
+			const depositHash2 = getDepositHash(
+				ethers.keccak256(ethers.toUtf8Bytes('test2')),
+				0,
+				depositAmount,
+			)
+
+			expect(depositDataList[0].depositHash).to.equal(depositHash0)
+			expect(depositDataList[0].sender).to.equal(user.address)
+			expect(depositDataList[0].isRejected).to.equal(false)
+
+			expect(depositDataList[1].depositHash).to.equal(depositHash2)
+			expect(depositDataList[1].sender).to.equal(user.address)
+			expect(depositDataList[1].isRejected).to.equal(false)
+		})
+	})
 	describe('getDepositDataHash', () => {
 		it('get getDepositDataHash', async () => {
 			const { liquidity } = await loadFixture(setup)
