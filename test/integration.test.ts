@@ -145,7 +145,7 @@ describe('Integration', function () {
 			await l2Contribution.getAddress(),
 			[0, 1], // 0: eth, 1: testToken
 		)
-		await registry.initialize(rollupAddress, fraudVerifierAddress)
+		await registry.initialize()
 		await l2Contribution.grantRole(
 			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
 			rollupAddress,

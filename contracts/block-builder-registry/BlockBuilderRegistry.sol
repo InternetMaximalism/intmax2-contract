@@ -2,30 +2,20 @@
 pragma solidity 0.8.27;
 
 import {IBlockBuilderRegistry} from "./IBlockBuilderRegistry.sol";
-import {IPlonkVerifier} from "../common/IPlonkVerifier.sol";
-import {IRollup} from "../rollup/IRollup.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {MIN_STAKE_AMOUNT} from "./BlockBuilderRegistryConst.sol";
 import {BlockBuilderInfoLib} from "./BlockBuilderInfoLib.sol";
-import {FraudProofPublicInputsLib} from "./lib/FraudProofPublicInputsLib.sol";
-import {Byte32Lib} from "../common/Byte32Lib.sol";
 
 contract BlockBuilderRegistry is
 	OwnableUpgradeable,
 	UUPSUpgradeable,
 	IBlockBuilderRegistry
 {
-	IRollup private rollup;
-	IPlonkVerifier private fraudVerifier;
-	address private burnAddress;
 	mapping(address => BlockBuilderInfo) public blockBuilders;
 	address[] private blockBuilderAddresses;
-	mapping(uint32 => bool) private slashedBlockNumbers;
 
 	using BlockBuilderInfoLib for BlockBuilderInfo;
-	using FraudProofPublicInputsLib for FraudProofPublicInputsLib.FraudProofPublicInputs;
-	using Byte32Lib for bytes32;
 
 	modifier isStaking() {
 		if (!blockBuilders[_msgSender()].isStaking()) {
@@ -40,23 +30,10 @@ contract BlockBuilderRegistry is
 
 	/**
 	 * @notice Initialize the contract.
-	 * @param _rollup The address of the rollup contract.
 	 */
-	function initialize(
-		address _rollup,
-		address _fraudVerifier
-	) external initializer {
-		if (_rollup == address(0)) {
-			revert AddressZero();
-		}
-		if (_fraudVerifier == address(0)) {
-			revert AddressZero();
-		}
+	function initialize() external initializer {
 		__Ownable_init(_msgSender());
 		__UUPSUpgradeable_init();
-		rollup = IRollup(_rollup);
-		fraudVerifier = IPlonkVerifier(_fraudVerifier);
-		burnAddress = 0x000000000000000000000000000000000000dEaD;
 	}
 
 	function updateBlockBuilder(string calldata url) external payable {
@@ -93,10 +70,6 @@ contract BlockBuilderRegistry is
 		address blockBuilder
 	) external view returns (bool) {
 		return blockBuilders[blockBuilder].isValid;
-	}
-
-	function setBurnAddress(address _burnAddress) external onlyOwner {
-		burnAddress = _burnAddress;
 	}
 
 	function getValidBlockBuilders()

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {FraudProofPublicInputsLib} from "./lib/FraudProofPublicInputsLib.sol";
-
 interface IBlockBuilderRegistry {
 	/// @notice address is zero address
 	error AddressZero();
@@ -106,24 +104,6 @@ interface IBlockBuilderRegistry {
 	function stopBlockBuilder() external;
 
 	/**
-	 * @notice unstake after stoping block builder.
-	 * @dev You cannot unstake within one day of the Block Builder's last block submission.
-	 *  This is because a fraud proof may be submitted against the posted block, which could result
-	 *  in a reduction of the stake.
-	 */
-	function unstake() external;
-
-	/**
-	 * @notice Submits a fraud proof to demonstrate that a block submitted by a block builder is invalid.
-	 * @param publicInputs Public inputs of the fraud proof.
-	 * @param proof The fraud proof itself.
-	 */
-	function submitBlockFraudProof(
-		FraudProofPublicInputsLib.FraudProofPublicInputs calldata publicInputs,
-		bytes calldata proof
-	) external;
-
-	/**
 	 * @notice Check if the block builder is valid.
 	 * @param blockBuilder The address of the block builder.
 	 * @return True if the block builder is valid.
@@ -141,11 +121,4 @@ interface IBlockBuilderRegistry {
 		external
 		view
 		returns (BlockBuilderInfoWithAddress[] memory);
-
-	/**
-	 * @notice Set the burn address.
-	 * @param _burnAddress The burn address.
-	 * @dev The burn address is used to burn the stake amount when the block builder is slashed.
-	 */
-	function setBurnAddress(address _burnAddress) external;
 }
