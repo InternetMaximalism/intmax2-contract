@@ -5,7 +5,7 @@ interface IBlockBuilderRegistry {
 	/// @notice Error thrown when trying to register a block builder with an empty URL
 	error URLIsEmpty();
 
-	/// @notice Error thrown when trying to slash a block builder that is not staking
+	/// @notice Error thrown when trying to stop a block builder that is not adding
 	error BlockBuilderNotFound();
 
 	/// @notice Event emitted when a block builder is updated
@@ -40,14 +40,12 @@ interface IBlockBuilderRegistry {
 	/**
 	 * @notice Update block builder.
 	 * @dev This method is used to register or update the URL or IP address of the block builder.
-	 * @dev The block builder must send at least 0.1 ETH to this contract to register.
 	 * @param url The URL or IP address of Block builder.
 	 */
 	function updateBlockBuilder(string memory url) external;
 
 	/**
 	 * @notice Declare that the block builder has stopped.
-	 * @dev This method must be run before unstake.
 	 */
 	function stopBlockBuilder() external;
 
@@ -55,7 +53,6 @@ interface IBlockBuilderRegistry {
 	 * @notice Check if the block builder is valid.
 	 * @param blockBuilder The address of the block builder.
 	 * @return True if the block builder is valid.
-	 * @dev The block builder is valid if the stake amount is greater than or equal to 0.1 ETH.
 	 */
 	function isActiveBlockBuilder(
 		address blockBuilder
