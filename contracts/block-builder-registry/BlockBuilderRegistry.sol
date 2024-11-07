@@ -51,13 +51,13 @@ contract BlockBuilderRegistry is
 		emit BlockBuilderStopped(_msgSender());
 	}
 
-	function isValidBlockBuilder(
+	function isActiveBlockBuilder(
 		address blockBuilder
 	) external view returns (bool) {
 		return blockBuilders[blockBuilder].isActive;
 	}
 
-	function getValidBlockBuilders()
+	function getActiveBlockBuilders()
 		external
 		view
 		returns (BlockBuilderInfoWithAddress[] memory)
@@ -70,7 +70,7 @@ contract BlockBuilderRegistry is
 			}
 		}
 		BlockBuilderInfoWithAddress[]
-			memory validBlockBuilders = new BlockBuilderInfoWithAddress[](
+			memory activeBlockBuilders = new BlockBuilderInfoWithAddress[](
 				counter
 			);
 		uint256 index = 0;
@@ -78,14 +78,14 @@ contract BlockBuilderRegistry is
 			address blockBuilderAddress = blockBuilderAddresses[i];
 			BlockBuilderInfo memory info = blockBuilders[blockBuilderAddress];
 			if (info.isActive) {
-				validBlockBuilders[index] = BlockBuilderInfoWithAddress({
+				activeBlockBuilders[index] = BlockBuilderInfoWithAddress({
 					blockBuilderAddress: blockBuilderAddress,
 					info: info
 				});
 				index++;
 			}
 		}
-		return validBlockBuilders;
+		return activeBlockBuilders;
 	}
 
 	function _authorizeUpgrade(address) internal override onlyOwner {}

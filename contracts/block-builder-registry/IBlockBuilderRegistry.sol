@@ -57,7 +57,7 @@ interface IBlockBuilderRegistry {
 	 * @return True if the block builder is valid.
 	 * @dev The block builder is valid if the stake amount is greater than or equal to 0.1 ETH.
 	 */
-	function isValidBlockBuilder(
+	function isActiveBlockBuilder(
 		address blockBuilder
 	) external view returns (bool);
 
@@ -65,7 +65,7 @@ interface IBlockBuilderRegistry {
 	 * @notice Get the block builder information of valid block builders.
 	 * @return The block builder information.
 	 */
-	function getValidBlockBuilders()
+	function getActiveBlockBuilders()
 		external
 		view
 		returns (BlockBuilderInfoWithAddress[] memory);
