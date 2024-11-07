@@ -50,16 +50,16 @@ interface IBlockBuilderRegistry {
 	function stopBlockBuilder() external;
 
 	/**
-	 * @notice Check if the block builder is valid.
+	 * @notice Check if the block builder is active.
 	 * @param blockBuilder The address of the block builder.
-	 * @return True if the block builder is valid.
+	 * @return True if the block builder is active.
 	 */
 	function isActiveBlockBuilder(
 		address blockBuilder
 	) external view returns (bool);
 
 	/**
-	 * @notice Get the block builder information of valid block builders.
+	 * @notice Get the block builder information of active block builders.
 	 * @return The block builder information.
 	 */
 	function getActiveBlockBuilders()
