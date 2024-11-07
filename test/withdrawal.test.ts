@@ -80,9 +80,7 @@ describe('Withdrawal', function () {
 	it('should be able to submit withdraw', async function () {
 		// post blocks corresponding to the withdrawal
 		// notice this data has to be consistent with the withdrawal data
-		await registry.updateBlockBuilder('http://example.com', {
-			value: ethers.parseEther('0.1'),
-		})
+		await registry.updateBlockBuilder('http://example.com')
 		const fullBlocks = loadFullBlocks()
 		for (let i = 1; i < 3; i++) {
 			await postBlock(fullBlocks[i], rollup)
@@ -96,9 +94,7 @@ describe('Withdrawal', function () {
 	})
 
 	it('should make dummy withdrawal', async function () {
-		await registry.updateBlockBuilder('http://example.com', {
-			value: ethers.parseEther('0.1'),
-		})
+		await registry.updateBlockBuilder('http://example.com')
 		const fullBlocks = loadFullBlocks()
 		for (let i = 1; i < 3; i++) {
 			await postBlock(fullBlocks[i], rollup)

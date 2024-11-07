@@ -109,13 +109,10 @@ describe('Integration', function () {
 		const l1ScrollMessengerAddress = await l1ScrollMessenger.getAddress()
 		const l2ScrollMessengerAddress = await l2ScrollMessenger.getAddress()
 		const withdrawalVerifierAddress = await withdrawalVerifier.getAddress()
-		const fraudVerifierAddress = await fraudVerifier.getAddress()
 		const rollupAddress = await rollup.getAddress()
 		const withdrawalAddress = await withdrawal.getAddress()
 		const liquidityAddress = await liquidity.getAddress()
-		const registryAddress = await registry.getAddress()
 		const l1ContributionAddress = await l1Contribution.getAddress()
-		const l2ContributionAddress = await l2Contribution.getAddress()
 
 		// L1 initialize
 		await liquidity.initialize(
@@ -227,9 +224,7 @@ describe('Integration', function () {
 
 	it('withdrawal', async function () {
 		// setup: post blocks
-		await registry.updateBlockBuilder('http://example.com', {
-			value: ethers.parseEther('0.1'),
-		})
+		await registry.updateBlockBuilder('http://example.com')
 		const fullBlocks = loadFullBlocks()
 		for (let i = 1; i < 3; i++) {
 			await postBlock(fullBlocks[i], rollup)

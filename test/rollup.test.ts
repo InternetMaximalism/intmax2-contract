@@ -55,9 +55,7 @@ describe('Rollup', function () {
 	})
 
 	it('should match block hashes', async function () {
-		await registry.updateBlockBuilder('http://example.com', {
-			value: ethers.parseEther('0.1'),
-		})
+		await registry.updateBlockBuilder('http://example.com')
 		const fullBlocks = loadFullBlocks()
 		for (let i = 1; i < 3; i++) {
 			await postBlock(fullBlocks[i], rollup)
