@@ -1,1 +1,6 @@
-{}
+{
+    "mockL1ScrollMessenger": "0xE10D0de8E7F8bf83Af823AE7fF5905096c0808E8",
+    "l1Contribution": "0x7b41A2fB557af23B30B38B2A35585977e067e8a5",
+    "testErc20": "0xaa4d961560482d89D9b1d1d2623F0229b4cEa99A",
+    "liquidity": "0xF912E85dedE79211f866f77083Df2f5bb0d11c90"
+}
