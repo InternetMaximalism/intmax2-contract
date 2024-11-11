@@ -35,6 +35,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	uint256 public lastDirectWithdrawalId;
 	uint256 public lastClaimableWithdrawalId;
 
+	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
 	}

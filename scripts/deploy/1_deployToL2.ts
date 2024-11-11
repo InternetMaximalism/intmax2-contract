@@ -89,17 +89,6 @@ async function main() {
 		await sleep(30)
 	}
 
-	if (!deployedContracts.fraudPlonkVerifier) {
-		console.log('deploying fraudPlonkVerifier')
-		const fraudVerifier = await MockPlonkVerifier_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			fraudPlonkVerifier: await fraudVerifier.getAddress(),
-			...deployedContracts,
-		})
-		await sleep(30)
-	}
-
 	if (!deployedContracts.mockL2ScrollMessenger) {
 		console.log('deploying mockL2ScrollMessenger')
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(

@@ -11,7 +11,6 @@ async function main() {
 		!deployedL2Contracts.withdrawal ||
 		!deployedL2Contracts.blockBuilderRegistry ||
 		!deployedL2Contracts.withdrawalPlonkVerifier ||
-		!deployedL2Contracts.fraudPlonkVerifier ||
 		!deployedL2Contracts.l2Contribution
 	) {
 		throw new Error('all l2 contracts should be deployed')
@@ -52,7 +51,6 @@ async function main() {
 		const tx = await rollup.initialize(
 			await getL2MessengerAddress(),
 			deployedL1Contracts.liquidity,
-			deployedL2Contracts.blockBuilderRegistry,
 			deployedL2Contracts.l2Contribution,
 		)
 		await tx.wait()
@@ -81,10 +79,7 @@ async function main() {
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(10)
 		console.log('Initializing BlockBuilderRegistry')
-		const tx = await registry.initialize(
-			deployedL2Contracts.rollup,
-			deployedL2Contracts.fraudPlonkVerifier,
-		)
+		const tx = await registry.initialize()
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
 	}

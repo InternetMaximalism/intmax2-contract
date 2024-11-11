@@ -27,7 +27,7 @@ async function main() {
 	const pubkey = getRandomPubkey() // intmax address of user
 	const salt = getRandomSalt() // random salt
 	const pubkeySaltHash = getPubkeySaltHash(pubkey, salt)
-	tx = await liquidity.connect(user).depositETH(pubkeySaltHash, {
+	tx = await liquidity.connect(user).depositNativeToken(pubkeySaltHash, {
 		value: ethers.parseEther('0.0001'),
 	})
 	console.log('deposit tx hash:', tx.hash)
@@ -49,17 +49,10 @@ async function main() {
 
 	// analyze till depositId
 	const analyzer = (await ethers.getSigners())[1]
-	tx = await liquidity.connect(analyzer).analyzeDeposits(depositId, [])
-	console.log('analyze tx hash:', tx.hash)
-	await tx.wait()
-
-	await sleep(30)
-
-	// relay till depositId
-	tx = await liquidity.relayDeposits(depositId, 800_000, {
+	tx = await liquidity.connect(analyzer).analyzeAndRelayDeposits(depositId, [], 800_000,{
 		value: ethers.parseEther('0.1'), // will be refunded automatically
-	})
-	console.log('relay tx hash:', tx.hash)
+	} )
+	console.log('analyzeAndRelayDeposits tx hash:', tx.hash)
 	await tx.wait()
 }
 

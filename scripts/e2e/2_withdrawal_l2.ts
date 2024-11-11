@@ -19,7 +19,6 @@ async function main() {
 		!deployedContracts.withdrawal ||
 		!deployedContracts.blockBuilderRegistry ||
 		!deployedContracts.withdrawalPlonkVerifier ||
-		!deployedContracts.fraudPlonkVerifier ||
 		!deployedContracts.liquidity
 	) {
 		throw new Error('all contracts should be deployed')
@@ -37,23 +36,7 @@ async function main() {
 
 	let tx: ContractTransactionResponse
 
-	// post dummy block to use as withdrawal public input
-	// first register block builder to post block
 	const blockBuilder = (await ethers.getSigners())[0]
-	const isValidBlockBuilder = await registry.isValidBlockBuilder(
-		blockBuilder.address,
-	)
-	if (!isValidBlockBuilder) {
-		console.log('registering block builder...')
-		tx = await registry
-			.connect(blockBuilder)
-			.updateBlockBuilder('http://example.com', {
-				value: ethers.parseEther('0.1'),
-			})
-		console.log('updateBlockBuilder tx hash:', tx.hash)
-		await tx.wait()
-		await sleep(30)
-	}
 
 	// post block
 	const fullBlocks = loadFullBlocks()

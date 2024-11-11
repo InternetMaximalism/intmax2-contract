@@ -37,6 +37,7 @@ contract Contribution is
 	/// @dev period => array of tags
 	mapping(uint256 => bytes32[]) private allTags;
 
+	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
 	}

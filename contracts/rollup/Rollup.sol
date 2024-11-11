@@ -50,6 +50,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		_;
 	}
 
+	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
 	}

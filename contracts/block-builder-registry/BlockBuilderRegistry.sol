@@ -13,6 +13,7 @@ contract BlockBuilderRegistry is
 	mapping(address => BlockBuilderInfo) public blockBuilders;
 	address[] private blockBuilderAddresses;
 
+	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
 	}
