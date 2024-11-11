@@ -7,6 +7,11 @@ import {
 } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
+import { cleanEnv, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	ANALYZER_ADDRESS: str(),
+})
 
 async function main() {
 	let deployedContracts = await readDeployedContracts()
@@ -52,7 +57,6 @@ async function main() {
 			throw new Error('l1Contribution address is not set')
 		}
 
-		const analyzer = (await ethers.getSigners())[1]
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		const initialERC20Tokens = [getUSDCAddress(), getWBTCAddress()]
 		const liquidity = await upgrades.deployProxy(
@@ -61,7 +65,7 @@ async function main() {
 				await getL1MessengerAddress(),
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
-				analyzer.address,
+				env.ANALYZER_ADDRESS,
 				deployedContracts.l1Contribution,
 				initialERC20Tokens,
 			],
