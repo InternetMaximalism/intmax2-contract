@@ -19,7 +19,7 @@ async function main() {
 		!deployedL2Contracts.rollup ||
 		!deployedL2Contracts.withdrawal ||
 		!deployedL2Contracts.blockBuilderRegistry ||
-		!deployedL2Contracts.withdrawalPlonkVerifier 
+		!deployedL2Contracts.withdrawalPlonkVerifier
 	) {
 		throw new Error('all l2 contracts should be deployed')
 	}

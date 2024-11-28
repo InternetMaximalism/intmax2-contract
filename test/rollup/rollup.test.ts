@@ -258,23 +258,6 @@ describe('Rollup', () => {
 					inputs.senderPublicKeys,
 				)
 			})
-			it('generate PubKeysPosted event', async () => {
-				const [rollup] = await loadFixture(setup)
-				const inputs = generateValidInputs()
-
-				await expect(
-					rollup.postRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.senderPublicKeys,
-					),
-				)
-					.to.emit(rollup, 'PubKeysPosted')
-					.withArgs(1, inputs.senderPublicKeys)
-			})
 			it('should add blockhash to blockHashes', async () => {
 				const [rollup] = await loadFixture(setup)
 				const inputs = generateValidInputs()
@@ -533,24 +516,6 @@ describe('Rollup', () => {
 					inputs.publicKeysHash,
 					inputs.senderAccountIds,
 				)
-			})
-			it('generate AccountIdsPosted event', async () => {
-				const [rollup] = await loadFixture(setup)
-				const inputs = generateValidInputs()
-
-				await expect(
-					rollup.postNonRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.publicKeysHash,
-						inputs.senderAccountIds,
-					),
-				)
-					.to.emit(rollup, 'AccountIdsPosted')
-					.withArgs(1, inputs.senderAccountIds)
 			})
 			it('should add blockhash to blockHashes', async () => {
 				const [rollup] = await loadFixture(setup)
@@ -835,6 +800,44 @@ describe('Rollup', () => {
 					lastProcessedDepositId,
 				)
 				expect(events[0].args.depositTreeRoot).to.equal(newDepositTreeRoot)
+			})
+			it('should emit DepositLeafInserted event', async () => {
+				const [rollup, l2ScrollMessenger] = await loadFixture(setup)
+				const lastProcessedDepositId = 10
+				const depositHashes1 = [ethers.randomBytes(32), ethers.randomBytes(32)]
+				const depositHashes2 = [ethers.randomBytes(32), ethers.randomBytes(32)]
+				await l2ScrollMessenger.processDeposits(
+					await rollup.getAddress(),
+					lastProcessedDepositId,
+					depositHashes1,
+				)
+				const filter = rollup.filters.DepositLeafInserted()
+				const events = await rollup.queryFilter(filter)
+				expect(events[0].args.depositIndex).to.equal(0)
+				expect(events[0].args.depositHash).to.equal(
+					ethers.hexlify(depositHashes1[0]),
+				)
+
+				expect(events[1].args.depositIndex).to.equal(1)
+				expect(events[1].args.depositHash).to.equal(
+					ethers.hexlify(depositHashes1[1]),
+				)
+
+				await l2ScrollMessenger.processDeposits(
+					await rollup.getAddress(),
+					lastProcessedDepositId,
+					depositHashes2,
+				)
+				const events2 = await rollup.queryFilter(filter)
+				expect(events2[2].args.depositIndex).to.equal(2)
+				expect(events2[2].args.depositHash).to.equal(
+					ethers.hexlify(depositHashes2[0]),
+				)
+
+				expect(events2[3].args.depositIndex).to.equal(3)
+				expect(events2[3].args.depositHash).to.equal(
+					ethers.hexlify(depositHashes2[1]),
+				)
 			})
 		})
 

@@ -49,9 +49,11 @@ async function main() {
 
 	// analyze till depositId
 	const analyzer = (await ethers.getSigners())[1]
-	tx = await liquidity.connect(analyzer).analyzeAndRelayDeposits(depositId, [], 800_000,{
-		value: ethers.parseEther('0.1'), // will be refunded automatically
-	} )
+	tx = await liquidity
+		.connect(analyzer)
+		.analyzeAndRelayDeposits(depositId, [], 800_000, {
+			value: ethers.parseEther('0.1'), // will be refunded automatically
+		})
 	console.log('analyzeAndRelayDeposits tx hash:', tx.hash)
 	await tx.wait()
 }

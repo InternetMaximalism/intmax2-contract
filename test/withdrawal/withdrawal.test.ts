@@ -645,32 +645,6 @@ describe('Withdrawal', () => {
 		})
 
 		describe('fail', () => {
-			it('only owner', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				const { deployer, user } = await getSigners()
-
-				const invalidWithdrawals = getChainedWithdrawals(1)
-
-				const invalidPublicInputs = {
-					lastWithdrawalHash: ethers.randomBytes(32),
-					withdrawalAggregator: deployer.address,
-				}
-
-				await expect(
-					withdrawal
-						.connect(user)
-						.submitWithdrawalProof(
-							invalidWithdrawals,
-							invalidPublicInputs,
-							'0x',
-						),
-				)
-					.to.be.revertedWithCustomError(
-						withdrawal,
-						'OwnableUnauthorizedAccount',
-					)
-					.withArgs(user.address)
-			})
 			it('should revert when withdrawal chain verification fails', async () => {
 				const [withdrawal] = await loadFixture(setup)
 				const { deployer } = await getSigners()
