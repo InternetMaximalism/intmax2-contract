@@ -9,6 +9,7 @@ import 'hardhat-gas-reporter'
 const env = cleanEnv(process.env, {
 	DEPLOYER_PRIVATE_KEY: str(),
 	ALCHEMY_KEY: str(),
+	ETHERSCAN_API_KEY: str(),
 })
 
 const accounts = [env.DEPLOYER_PRIVATE_KEY]
@@ -36,6 +37,12 @@ const config: HardhatUserConfig = {
 	docgen: {
 		exclude: ['test'],
 	},
+	etherscan: {
+		apiKey: env.ETHERSCAN_API_KEY,
+	},
+	sourcify: {
+		enabled: false
+	}
 }
 
 export default config

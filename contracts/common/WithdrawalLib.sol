@@ -10,8 +10,9 @@ library WithdrawalLib {
 		uint32 tokenIndex;
 		/// @notice The amount of tokens being withdrawn
 		uint256 amount;
-		/// @notice A unique identifier to ensure uniqueness of the withdrawal hash
-		uint256 id;
+		/// @notice The nullifier of the withdrawal,
+		/// which is used to ensure the uniqueness of the withdrawal
+		bytes32 nullifier;
 	}
 
 	/// @notice Calculates the hash of a Withdrawal struct
@@ -26,7 +27,7 @@ library WithdrawalLib {
 					withdrawal.recipient,
 					withdrawal.tokenIndex,
 					withdrawal.amount,
-					withdrawal.id
+					withdrawal.nullifier
 				)
 			);
 	}

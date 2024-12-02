@@ -10,13 +10,13 @@ contract WithdrawalLibTest {
 		address recipient,
 		uint32 tokenIndex,
 		uint256 amount,
-		uint256 id
+		bytes32 nullifier
 	) external pure returns (bytes32) {
 		WithdrawalLib.Withdrawal memory withdrawal = WithdrawalLib.Withdrawal({
 			recipient: recipient,
 			tokenIndex: tokenIndex,
 			amount: amount,
-			id: id
+			nullifier: nullifier
 		});
 		return withdrawal.getHash();
 	}
@@ -25,14 +25,14 @@ contract WithdrawalLibTest {
 		address recipient,
 		uint32 tokenIndex,
 		uint256 amount,
-		uint256 id
+		bytes32 nullifier
 	) external pure returns (WithdrawalLib.Withdrawal memory) {
 		return
 			WithdrawalLib.Withdrawal({
 				recipient: recipient,
 				tokenIndex: tokenIndex,
 				amount: amount,
-				id: id
+				nullifier: nullifier
 			});
 	}
 }

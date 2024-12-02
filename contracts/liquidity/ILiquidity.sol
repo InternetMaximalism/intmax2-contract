@@ -83,18 +83,6 @@ interface ILiquidity {
 		WithdrawalLib.Withdrawal withdrawal
 	);
 
-	/// @notice Event emitted when direct withdrawals are processed
-	/// @param lastProcessedDirectWithdrawalId The ID of the last processed direct withdrawal
-	event DirectWithdrawalsProcessed(
-		uint256 indexed lastProcessedDirectWithdrawalId
-	);
-
-	/// @notice Event emitted when claimable withdrawals are processed
-	/// @param lastProcessedClaimableWithdrawalId The ID of the last processed claimable withdrawal
-	event ClaimableWithdrawalsProcessed(
-		uint256 indexed lastProcessedClaimableWithdrawalId
-	);
-
 	/// @notice Event emitted when a withdrawal is claimed
 	/// @param recipient The address that claimed the withdrawal
 	/// @param withdrawalHash The hash of the claimed withdrawal
@@ -165,14 +153,10 @@ interface ILiquidity {
 	) external;
 
 	/// @notice Process withdrawals, called by the scroll messenger
-	/// @param lastProcessedDirectWithdrawalId The ID of the last processed direct withdrawal
 	/// @param withdrawals Array of withdrawals to process
-	/// @param lastProcessedClaimableWithdrawalId The ID of the last processed claimable withdrawal
 	/// @param withdrawalHahes Array of withdrawal hashes
 	function processWithdrawals(
-		uint256 lastProcessedDirectWithdrawalId,
 		WithdrawalLib.Withdrawal[] calldata withdrawals,
-		uint256 lastProcessedClaimableWithdrawalId,
 		bytes32[] calldata withdrawalHahes
 	) external;
 

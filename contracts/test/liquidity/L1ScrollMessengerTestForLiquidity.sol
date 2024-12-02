@@ -3,6 +3,7 @@ pragma solidity 0.8.27;
 
 import {WithdrawalLib} from "../../common/WithdrawalLib.sol";
 import {ILiquidity} from "../../liquidity/ILiquidity.sol";
+
 contract L1ScrollMessengerTestForLiquidity {
 	address public to;
 	uint256 public value;
@@ -43,16 +44,9 @@ contract L1ScrollMessengerTestForLiquidity {
 	}
 
 	function processWithdrawals(
-		uint256 _lastProcessedDirectWithdrawalId,
 		WithdrawalLib.Withdrawal[] calldata withdrawals,
-		uint256 _lastProcessedClaimableWithdrawalId,
 		bytes32[] calldata withdrawalHashes
 	) external {
-		liquidity.processWithdrawals(
-			_lastProcessedDirectWithdrawalId,
-			withdrawals,
-			_lastProcessedClaimableWithdrawalId,
-			withdrawalHashes
-		);
+		liquidity.processWithdrawals(withdrawals, withdrawalHashes);
 	}
 }
