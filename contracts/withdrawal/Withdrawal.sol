@@ -134,16 +134,16 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 			if (_isDirectWithdrawalToken(chainedWithdrawal.tokenIndex)) {
 				directWithdrawals[directWithdrawalIndex] = withdrawal;
 				emit DirectWithdrawalQueued(
-					withdrawal.nullifier,
+					withdrawal.getHash(),
 					withdrawal.recipient,
 					withdrawal
 				);
 				directWithdrawalIndex++;
 			} else {
-				claimableWithdrawals[claimableWithdrawalIndex] = withdrawal
-					.getHash();
+				bytes32 withdrawalHash = withdrawal.getHash();
+				claimableWithdrawals[claimableWithdrawalIndex] = withdrawalHash;
 				emit ClaimableWithdrawalQueued(
-					withdrawal.nullifier,
+					withdrawalHash,
 					withdrawal.recipient,
 					withdrawal
 				);
