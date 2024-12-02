@@ -393,7 +393,12 @@ contract Liquidity is
 			// ERC721 and ERC1155 tokens are not supported for direct withdrawals
 			result = false;
 		}
-		if (!result) {
+		if (result) {
+			emit DirectWithdrawalSuccessed(
+				withdrawal_.getHash(),
+				withdrawal_.recipient
+			);
+		} else {
 			bytes32 withdrawalHash = withdrawal_.getHash();
 			// solhint-disable-next-line reentrancy
 			claimableWithdrawals[withdrawalHash] = block.timestamp;

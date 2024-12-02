@@ -77,7 +77,10 @@ interface ILiquidity {
 
 	/// @notice Event emitted when a direct withdrawal succeeds
 	/// @param withdrawalHash The hash of the successful withdrawal
-	event DirectWithdrawalSuccessed(bytes32 indexed withdrawalHash);
+	event DirectWithdrawalSuccessed(
+		bytes32 indexed withdrawalHash,
+		address indexed recipient
+	);
 
 	/// @notice Event emitted when a direct withdrawal fails, and the funds become claimable
 	/// @param withdrawalHash The hash of the failed withdrawal
