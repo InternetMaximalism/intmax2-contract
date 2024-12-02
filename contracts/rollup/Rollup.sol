@@ -57,10 +57,14 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	}
 
 	function initialize(
+		address _admin,
 		address _scrollMessenger,
 		address _liquidity,
 		address _contribution
 	) external initializer {
+		if (_admin == address(0)) {
+			revert AddressZero();
+		}
 		if (_scrollMessenger == address(0)) {
 			revert AddressZero();
 		}
@@ -70,7 +74,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		if (_contribution == address(0)) {
 			revert AddressZero();
 		}
-		__Ownable_init(_msgSender());
+		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
 		depositTree.initialize();
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);

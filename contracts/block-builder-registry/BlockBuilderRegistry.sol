@@ -18,11 +18,8 @@ contract BlockBuilderRegistry is
 		_disableInitializers();
 	}
 
-	/**
-	 * @notice Initialize the contract.
-	 */
-	function initialize() external initializer {
-		__Ownable_init(_msgSender());
+	function initialize(address admin) external initializer {
+		__Ownable_init(admin);
 		__UUPSUpgradeable_init();
 	}
 

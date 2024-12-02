@@ -42,11 +42,11 @@ contract Contribution is
 		_disableInitializers();
 	}
 
-	function initialize() external initializer {
+	function initialize(address admin) external initializer {
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
-		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
-		_grantRole(WEIGHT_REGISTRAR, _msgSender());
+		_grantRole(DEFAULT_ADMIN_ROLE, admin);
+		_grantRole(WEIGHT_REGISTRAR, admin);
 	}
 
 	function incrementPeriod() external onlyRole(WEIGHT_REGISTRAR) {

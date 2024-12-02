@@ -3,6 +3,12 @@ import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
+import { cleanEnv, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	ADMIN_ADDRESS: str(),
+
+})
 
 async function main() {
 	const deployedL2Contracts = await readDeployedContracts()
@@ -49,6 +55,7 @@ async function main() {
 		await sleep(10)
 		console.log('Initializing Rollup')
 		const tx = await rollup.initialize(
+			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.l2Contribution,
@@ -63,6 +70,7 @@ async function main() {
 		await sleep(10)
 		console.log('Initializing Withdrawal')
 		const tx = await withdrawal.initialize(
+			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
 			deployedL2Contracts.withdrawalPlonkVerifier,
 			deployedL1Contracts.liquidity,
@@ -79,7 +87,7 @@ async function main() {
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(10)
 		console.log('Initializing BlockBuilderRegistry')
-		const tx = await registry.initialize()
+		const tx = await registry.initialize(env.ADMIN_ADDRESS,)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
 	}

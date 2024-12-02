@@ -10,6 +10,7 @@ import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
+	ADMIN_ADDRESS: str(),
 	ANALYZER_ADDRESS: str(),
 })
 
@@ -62,6 +63,7 @@ async function main() {
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
 			[
+
 				await getL1MessengerAddress(),
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,

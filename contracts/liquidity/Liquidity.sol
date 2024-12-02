@@ -87,6 +87,7 @@ contract Liquidity is
 	}
 
 	function initialize(
+		address _admin,
 		address _l1ScrollMessenger,
 		address _rollup,
 		address _withdrawal,
@@ -94,6 +95,9 @@ contract Liquidity is
 		address _contribution,
 		address[] memory initialERC20Tokens
 	) external initializer {
+		if (_admin == address(0)) {
+			revert AddressZero();
+		}
 		if (_l1ScrollMessenger == address(0)) {
 			revert AddressZero();
 		}
@@ -109,7 +113,7 @@ contract Liquidity is
 		if (_contribution == address(0)) {
 			revert AddressZero();
 		}
-		_grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+		_grantRole(DEFAULT_ADMIN_ROLE, _admin);
 		_grantRole(ANALYZER, _analyzer);
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
