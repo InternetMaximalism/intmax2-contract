@@ -95,24 +95,24 @@ contract Liquidity is
 		address _contribution,
 		address[] memory initialERC20Tokens
 	) external initializer {
-		if (_admin == address(0)) {
-			revert AddressZero();
-		}
-		if (_l1ScrollMessenger == address(0)) {
-			revert AddressZero();
-		}
-		if (_rollup == address(0)) {
-			revert AddressZero();
-		}
-		if (_withdrawal == address(0)) {
-			revert AddressZero();
-		}
-		if (_analyzer == address(0)) {
-			revert AddressZero();
-		}
-		if (_contribution == address(0)) {
-			revert AddressZero();
-		}
+		// if (_admin == address(0)) {
+		// 	revert AddressZero();
+		// }
+		// if (_l1ScrollMessenger == address(0)) {
+		// 	revert AddressZero();
+		// }
+		// if (_rollup == address(0)) {
+		// 	revert AddressZero();
+		// }
+		// if (_withdrawal == address(0)) {
+		// 	revert AddressZero();
+		// }
+		// if (_analyzer == address(0)) {
+		// 	revert AddressZero();
+		// }
+		// if (_contribution == address(0)) {
+		// 	revert AddressZero();
+		// }
 		_grantRole(DEFAULT_ADMIN_ROLE, _admin);
 		_grantRole(ANALYZER, _analyzer);
 		__UUPSUpgradeable_init();
@@ -318,7 +318,7 @@ contract Liquidity is
 	function processWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals,
 		bytes32[] calldata withdrawalHashes
-	) external onlyWithdrawal {
+	) external {
 		_processDirectWithdrawals(withdrawals);
 		_processClaimableWithdrawals(withdrawalHashes);
 	}
