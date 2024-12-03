@@ -1,6 +1,11 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { sleep } from '../../utils/sleep'
+import { cleanEnv, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	ADMIN_ADDRESS: str(),
+})
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
@@ -62,7 +67,7 @@ async function main() {
 	if (!deployedContracts.l2Contribution) {
 		console.log('deploying l2Contribution')
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const l2Contribution = await upgrades.deployProxy(contributionFactory, [], {
+		const l2Contribution = await upgrades.deployProxy(contributionFactory, [env.ADMIN_ADDRESS], {
 			kind: 'uups',
 		})
 		const deployedContracts = await readDeployedContracts()

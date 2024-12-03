@@ -63,7 +63,7 @@ async function main() {
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
 			[
-
+				env.ADMIN_ADDRESS,
 				await getL1MessengerAddress(),
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
