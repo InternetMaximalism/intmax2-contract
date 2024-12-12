@@ -7,7 +7,6 @@ import { cleanEnv, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
-
 })
 
 async function main() {
@@ -87,7 +86,7 @@ async function main() {
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(10)
 		console.log('Initializing BlockBuilderRegistry')
-		const tx = await registry.initialize(env.ADMIN_ADDRESS,)
+		const tx = await registry.initialize(env.ADMIN_ADDRESS)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
 	}

@@ -67,9 +67,13 @@ async function main() {
 	if (!deployedContracts.l2Contribution) {
 		console.log('deploying l2Contribution')
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const l2Contribution = await upgrades.deployProxy(contributionFactory, [env.ADMIN_ADDRESS], {
-			kind: 'uups',
-		})
+		const l2Contribution = await upgrades.deployProxy(
+			contributionFactory,
+			[env.ADMIN_ADDRESS],
+			{
+				kind: 'uups',
+			},
+		)
 		const deployedContracts = await readDeployedContracts()
 		const newContractAddresses = {
 			l2Contribution: await l2Contribution.getAddress(),

@@ -16,6 +16,7 @@ describe('Rollup', function () {
 	let liquidityAddress: string
 
 	this.beforeEach(async function () {
+		const admin = (await ethers.getSigners())[1]
 		const mockL2ScrollMessengerFactory = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
 		)
@@ -38,20 +39,27 @@ describe('Rollup', function () {
 		})) as unknown as Rollup
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-			unsafeAllow: ['constructor'],
-		})) as unknown as Contribution
+		const contribution = (await upgrades.deployProxy(
+			contributionFactory,
+			[admin.address],
+			{
+				kind: 'uups',
+				unsafeAllow: ['constructor'],
+			},
+		)) as unknown as Contribution
 		liquidityAddress = ethers.Wallet.createRandom().address
 		await rollup.initialize(
+			admin.address,
 			await mockL2ScrollMessenger.getAddress(),
 			liquidityAddress,
 			await contribution.getAddress(),
 		)
-		await contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			rollup,
-		)
+		await contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				rollup,
+			)
 	})
 
 	it('should match block hashes', async function () {

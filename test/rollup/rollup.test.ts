@@ -33,9 +33,11 @@ describe('Rollup', () => {
 		const contribution =
 			(await contributionTestFactory.deploy()) as ContributionTest
 		await l2ScrollMessenger.setResult(liquidity)
+		const { admin } = await getSigners()
 		const rollup = (await upgrades.deployProxy(
 			rollupFactory,
 			[
+				admin.address,
 				await l2ScrollMessenger.getAddress(),
 				liquidity,
 				await contribution.getAddress(),
@@ -47,14 +49,16 @@ describe('Rollup', () => {
 
 	type signers = {
 		deployer: HardhatEthersSigner
+		admin: HardhatEthersSigner
 		user1: HardhatEthersSigner
 		user2: HardhatEthersSigner
 		user3: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<signers> => {
-		const [deployer, user1, user2, user3] = await ethers.getSigners()
+		const [deployer, admin, user1, user2, user3] = await ethers.getSigners()
 		return {
 			deployer,
+			admin,
 			user1,
 			user2,
 			user3,
@@ -116,6 +120,7 @@ describe('Rollup', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					ethers.ZeroAddress,
 				),
 			).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 		})
@@ -125,7 +130,7 @@ describe('Rollup', () => {
 			it('should set deployer as the owner', async () => {
 				const [rollup] = await loadFixture(setup)
 				const signers = await getSigners()
-				expect(await rollup.owner()).to.equal(signers.deployer.address)
+				expect(await rollup.owner()).to.equal(signers.admin.address)
 			})
 			it('should update depositTreeRoot', async () => {
 				const [rollup] = await loadFixture(setup)
@@ -152,8 +157,21 @@ describe('Rollup', () => {
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
+						ethers.ZeroAddress,
 					),
 				).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
+			})
+			it('admin is zero address', async () => {
+				const rollupFactory = await ethers.getContractFactory('Rollup')
+				const tmpAddress = ethers.Wallet.createRandom().address
+
+				await expect(
+					upgrades.deployProxy(
+						rollupFactory,
+						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
 			})
 			it('scrollMessenger is zero address', async () => {
 				const rollupFactory = await ethers.getContractFactory('Rollup')
@@ -162,7 +180,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[ethers.ZeroAddress, tmpAddress, tmpAddress],
+						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -174,7 +192,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, ethers.ZeroAddress, tmpAddress],
+						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -186,7 +204,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, tmpAddress, ethers.ZeroAddress],
+						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -727,8 +745,8 @@ describe('Rollup', () => {
 				const beforeToAddressBalance =
 					await ethers.provider.getBalance(toAddress)
 				expect(beforeToAddressBalance).to.equal(0)
-
-				await rollup.withdrawPenaltyFee(toAddress)
+				const { admin } = await getSigners()
+				await rollup.connect(admin).withdrawPenaltyFee(toAddress)
 
 				const afterRollupBalance = await ethers.provider.getBalance(
 					rollup.getAddress(),
@@ -958,8 +976,11 @@ describe('Rollup', () => {
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const [rollup] = await loadFixture(setup)
-
-			const rollup2Factory = await ethers.getContractFactory('Rollup2Test')
+			const { admin } = await getSigners()
+			const rollup2Factory = await ethers.getContractFactory(
+				'Rollup2Test',
+				admin,
+			)
 			const next = await upgrades.upgradeProxy(
 				await rollup.getAddress(),
 				rollup2Factory,

@@ -7,10 +7,15 @@ import { Contribution } from '../../typechain-types'
 describe('Contribution', function () {
 	const setup = async (): Promise<[Contribution]> => {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-			unsafeAllow: ['constructor'],
-		})) as unknown as Contribution
+		const signers = await getSigners()
+		const contribution = (await upgrades.deployProxy(
+			contributionFactory,
+			[signers.admin.address],
+			{
+				kind: 'uups',
+				unsafeAllow: ['constructor'],
+			},
+		)) as unknown as Contribution
 
 		// register the weight of the contribution
 		const tagsStr = ['tag1', 'tag2', 'tag3']
@@ -18,22 +23,27 @@ describe('Contribution', function () {
 			ethers.solidityPackedKeccak256(['string'], [tag]),
 		)
 		const weights = [1, 2, 3]
-		await contribution.registerWeights(0, tags, weights)
+		await contribution.connect(signers.admin).registerWeights(0, tags, weights)
 		const role = await contribution.CONTRIBUTOR()
 		const { contributor } = await getSigners()
-		await contribution.grantRole(role, contributor.address)
+		await contribution
+			.connect(signers.admin)
+			.grantRole(role, contributor.address)
 		return [contribution]
 	}
 	type signers = {
 		deployer: HardhatEthersSigner
+		admin: HardhatEthersSigner
 		contributor: HardhatEthersSigner
 		user1: HardhatEthersSigner
 		user2: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<signers> => {
-		const [deployer, contributor, user1, user2] = await ethers.getSigners()
+		const [deployer, admin, contributor, user1, user2] =
+			await ethers.getSigners()
 		return {
 			deployer,
+			admin,
 			contributor,
 			user1,
 			user2,
@@ -45,10 +55,9 @@ describe('Contribution', function () {
 				await ethers.getContractFactory('Contribution')
 			const contribution =
 				(await contributionFactory.deploy()) as unknown as Contribution
-			await expect(contribution.initialize()).to.be.revertedWithCustomError(
-				contribution,
-				'InvalidInitialization',
-			)
+			await expect(
+				contribution.initialize(ethers.ZeroAddress),
+			).to.be.revertedWithCustomError(contribution, 'InvalidInitialization')
 		})
 	})
 	describe('initialize', () => {
@@ -56,15 +65,14 @@ describe('Contribution', function () {
 			const [contribution] = await loadFixture(setup)
 			const signers = await getSigners()
 			const adminRole = await contribution.DEFAULT_ADMIN_ROLE()
-			expect(await contribution.hasRole(adminRole, signers.deployer.address)).to
-				.be.true
+			expect(await contribution.hasRole(adminRole, signers.admin.address)).to.be
+				.true
 		})
 		it('deployer has WEIGHT_REGISTRAR role', async () => {
 			const [contribution] = await loadFixture(setup)
 			const signers = await getSigners()
 			const role = await contribution.WEIGHT_REGISTRAR()
-			expect(await contribution.hasRole(role, signers.deployer.address)).to.be
-				.true
+			expect(await contribution.hasRole(role, signers.admin.address)).to.be.true
 		})
 		it('deployer has CONTRIBUTOR role', async () => {
 			const [contribution] = await loadFixture(setup)
@@ -78,15 +86,15 @@ describe('Contribution', function () {
 		describe('success', () => {
 			it('only weight registrar', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const period = await contribution.currentPeriod()
-				await contribution.connect(deployer).incrementPeriod()
+				await contribution.connect(admin).incrementPeriod()
 				expect(await contribution.currentPeriod()).to.be.equal(period + 1n)
 			})
 			it('emit PeriodIncremented', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer } = await getSigners()
-				await expect(contribution.connect(deployer).incrementPeriod())
+				const { admin } = await getSigners()
+				await expect(contribution.connect(admin).incrementPeriod())
 					.to.emit(contribution, 'PeriodIncremented')
 					.withArgs(1)
 			})
@@ -109,13 +117,13 @@ describe('Contribution', function () {
 		describe('success', () => {
 			it('set register weights', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const tagsStr = ['newTag1', 'newTag2']
 				const tags = tagsStr.map((tag) =>
 					ethers.solidityPackedKeccak256(['string'], [tag]),
 				)
 				const weights = [4, 5]
-				await contribution.connect(deployer).registerWeights(1, tags, weights)
+				await contribution.connect(admin).registerWeights(1, tags, weights)
 				const registeredTags = await contribution.getTags(1)
 				const registeredWeights = await contribution.getWeights(1)
 				expect(registeredTags).to.deep.equal(tags)
@@ -123,11 +131,11 @@ describe('Contribution', function () {
 			})
 			it('emit WeightRegistered', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const tags = [ethers.randomBytes(32)]
 				const weights = [1]
 				await expect(
-					contribution.connect(deployer).registerWeights(1, tags, weights),
+					contribution.connect(admin).registerWeights(1, tags, weights),
 				)
 					.to.emit(contribution, 'WeightRegistered')
 					.withArgs(1, tags, weights)
@@ -151,11 +159,11 @@ describe('Contribution', function () {
 			})
 			it('InvalidInputLength', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const tags = [ethers.randomBytes(32), ethers.randomBytes(32)]
 				const weights = [1]
 				await expect(
-					contribution.connect(deployer).registerWeights(1, tags, weights),
+					contribution.connect(admin).registerWeights(1, tags, weights),
 				).to.be.revertedWithCustomError(contribution, 'InvalidInputLength')
 			})
 		})
@@ -185,10 +193,10 @@ describe('Contribution', function () {
 			})
 			it('set record(increment currentPeriod)', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { deployer, contributor, user1 } = await getSigners()
+				const { admin, contributor, user1 } = await getSigners()
 				const tag = ethers.solidityPackedKeccak256(['string'], ['tag1'])
 				const amount = 100n
-				await contribution.connect(deployer).incrementPeriod()
+				await contribution.connect(admin).incrementPeriod()
 				const currentPeriod = await contribution.currentPeriod()
 				await contribution
 					.connect(contributor)
@@ -312,11 +320,14 @@ describe('Contribution', function () {
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const [contribution] = await loadFixture(setup)
+			const signers = await getSigners()
 
-			await contribution.incrementPeriod()
+			await contribution.connect(signers.admin).incrementPeriod()
 
-			const contribution2Factory =
-				await ethers.getContractFactory('Contribution2Test')
+			const contribution2Factory = await ethers.getContractFactory(
+				'Contribution2Test',
+				signers.admin,
+			)
 			const next = await upgrades.upgradeProxy(
 				await contribution.getAddress(),
 				contribution2Factory,

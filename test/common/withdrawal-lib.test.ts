@@ -18,15 +18,20 @@ describe('WithdrawalLib', function () {
 			const recipient = ethers.Wallet.createRandom().address
 			const tokenIndex = 123
 			const amount = ethers.parseEther('1.5')
-			const id = 1
+			const nullifier = ethers.encodeBytes32String('test')
 
-			const hash = await testLibrary.getHash(recipient, tokenIndex, amount, id)
+			const hash = await testLibrary.getHash(
+				recipient,
+				tokenIndex,
+				amount,
+				nullifier,
+			)
 
 			// Calculate expected hash
 			const expectedHash = ethers.keccak256(
 				ethers.solidityPacked(
-					['address', 'uint32', 'uint256', 'uint256'],
-					[recipient, tokenIndex, amount, id],
+					['address', 'uint32', 'uint256', 'bytes32'],
+					[recipient, tokenIndex, amount, nullifier],
 				),
 			)
 
@@ -39,24 +44,24 @@ describe('WithdrawalLib', function () {
 			const recipient1 = ethers.Wallet.createRandom().address
 			const tokenIndex1 = 123
 			const amount1 = ethers.parseEther('1.5')
-			const id1 = 1
+			const nullifier1 = ethers.encodeBytes32String('test1')
 
 			const recipient2 = ethers.Wallet.createRandom().address
 			const tokenIndex2 = 456
 			const amount2 = ethers.parseEther('2.5')
-			const id2 = 2
+			const nullifier2 = ethers.encodeBytes32String('test2')
 
 			const hash1 = await testLibrary.getHash(
 				recipient1,
 				tokenIndex1,
 				amount1,
-				id1,
+				nullifier1,
 			)
 			const hash2 = await testLibrary.getHash(
 				recipient2,
 				tokenIndex2,
 				amount2,
-				id2,
+				nullifier2,
 			)
 
 			expect(hash1).to.not.equal(hash2)
@@ -68,15 +73,20 @@ describe('WithdrawalLib', function () {
 			const recipient = ethers.ZeroAddress
 			const tokenIndex = 0
 			const amount = ethers.MaxUint256
-			const id = ethers.MaxUint256
+			const nullifier = ethers.encodeBytes32String('zzzzzzzzzzzzzzzzzzz')
 
-			const hash = await testLibrary.getHash(recipient, tokenIndex, amount, id)
+			const hash = await testLibrary.getHash(
+				recipient,
+				tokenIndex,
+				amount,
+				nullifier,
+			)
 
 			// Calculate expected hash
 			const expectedHash = ethers.keccak256(
 				ethers.solidityPacked(
-					['address', 'uint32', 'uint256', 'uint256'],
-					[recipient, tokenIndex, amount, id],
+					['address', 'uint32', 'uint256', 'bytes32'],
+					[recipient, tokenIndex, amount, nullifier],
 				),
 			)
 
@@ -91,19 +101,19 @@ describe('WithdrawalLib', function () {
 			const recipient = ethers.Wallet.createRandom().address
 			const tokenIndex = 123
 			const amount = ethers.parseEther('1.5')
-			const id = 1
+			const nullifier = ethers.encodeBytes32String('test1')
 
 			const withdrawal = await testLibrary.createWithdrawal(
 				recipient,
 				tokenIndex,
 				amount,
-				id,
+				nullifier,
 			)
 
 			expect(withdrawal.recipient).to.equal(recipient)
 			expect(withdrawal.tokenIndex).to.equal(tokenIndex)
 			expect(withdrawal.amount).to.equal(amount)
-			expect(withdrawal.id).to.equal(id)
+			expect(withdrawal.nullifier).to.equal(nullifier)
 		})
 	})
 })

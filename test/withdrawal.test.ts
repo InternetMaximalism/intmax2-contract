@@ -11,6 +11,7 @@ describe('Withdrawal', function () {
 	let withdrawal: Withdrawal
 
 	this.beforeEach(async function () {
+		const admin = (await ethers.getSigners())[1]
 		const registryFactory = await ethers.getContractFactory(
 			'BlockBuilderRegistry',
 		)
@@ -21,10 +22,14 @@ describe('Withdrawal', function () {
 		})) as unknown as BlockBuilderRegistry
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const contribution = (await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-			unsafeAllow: ['constructor'],
-		})) as unknown as Contribution
+		const contribution = (await upgrades.deployProxy(
+			contributionFactory,
+			[admin.address],
+			{
+				kind: 'uups',
+				unsafeAllow: ['constructor'],
+			},
+		)) as unknown as Contribution
 
 		const tmpAddress = ethers.Wallet.createRandom().address
 		const rollupFactory = await ethers.getContractFactory('Rollup')
@@ -34,6 +39,7 @@ describe('Withdrawal', function () {
 			unsafeAllow: ['constructor'],
 		})) as unknown as Rollup
 		await rollup.initialize(
+			admin.address,
 			tmpAddress,
 			tmpAddress,
 			await contribution.getAddress(),
@@ -60,6 +66,7 @@ describe('Withdrawal', function () {
 		})) as unknown as Withdrawal
 
 		await withdrawal.initialize(
+			admin.address,
 			mockL2ScrollMessengerAddress,
 			mockPlonkVerifierAddress,
 			ethers.Wallet.createRandom().address,
@@ -67,14 +74,18 @@ describe('Withdrawal', function () {
 			await contribution.getAddress(),
 			[],
 		)
-		await contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			withdrawal,
-		)
-		await contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			rollup,
-		)
+		await contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				withdrawal,
+			)
+		await contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				rollup,
+			)
 	})
 
 	it('should be able to submit withdraw', async function () {

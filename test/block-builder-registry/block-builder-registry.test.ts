@@ -14,9 +14,11 @@ describe('BlockBuilderRegistry', () => {
 		const blockBuilderRegistryFactory = await ethers.getContractFactory(
 			'BlockBuilderRegistry',
 		)
+		const signers = await getSigners()
+
 		const blockBuilderRegistry = (await upgrades.deployProxy(
 			blockBuilderRegistryFactory,
-			[],
+			[signers.admin.address],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as BlockBuilderRegistry
 		return blockBuilderRegistry
@@ -32,6 +34,7 @@ describe('BlockBuilderRegistry', () => {
 
 	type signers = {
 		deployer: HardhatEthersSigner
+		admin: HardhatEthersSigner
 		blockBuilder1: HardhatEthersSigner
 		blockBuilder2: HardhatEthersSigner
 		blockBuilder3: HardhatEthersSigner
@@ -42,6 +45,7 @@ describe('BlockBuilderRegistry', () => {
 	const getSigners = async (): Promise<signers> => {
 		const [
 			deployer,
+			admin,
 			blockBuilder1,
 			blockBuilder2,
 			blockBuilder3,
@@ -51,6 +55,7 @@ describe('BlockBuilderRegistry', () => {
 		] = await ethers.getSigners()
 		return {
 			deployer,
+			admin,
 			blockBuilder1,
 			blockBuilder2,
 			blockBuilder3,
@@ -79,7 +84,7 @@ describe('BlockBuilderRegistry', () => {
 			const blockBuilderRegistry =
 				(await blockBuilderRegistryFactory.deploy()) as unknown as BlockBuilderRegistry
 			await expect(
-				blockBuilderRegistry.initialize(),
+				blockBuilderRegistry.initialize(ethers.ZeroAddress),
 			).to.be.revertedWithCustomError(
 				blockBuilderRegistry,
 				'InvalidInitialization',
@@ -88,20 +93,11 @@ describe('BlockBuilderRegistry', () => {
 	})
 	describe('initialize', () => {
 		describe('success', () => {
-			it('should revert when initializing for the second time', async () => {
-				const blockBuilderRegistry = await loadFixture(setup)
-				await expect(
-					blockBuilderRegistry.initialize(),
-				).to.be.revertedWithCustomError(
-					blockBuilderRegistry,
-					'InvalidInitialization',
-				)
-			})
 			it('should set the deployer as the owner', async () => {
 				const blockBuilderRegistry = await loadFixture(setup)
 				const signers = await getSigners()
 				expect(await blockBuilderRegistry.owner()).to.equal(
-					signers.deployer.address,
+					signers.admin.address,
 				)
 			})
 		})
@@ -109,7 +105,7 @@ describe('BlockBuilderRegistry', () => {
 			it('should revert when initializing twice', async () => {
 				const blockBuilderRegistry = await loadFixture(setup)
 				await expect(
-					blockBuilderRegistry.initialize(),
+					blockBuilderRegistry.initialize(ethers.ZeroAddress),
 				).to.be.revertedWithCustomError(
 					blockBuilderRegistry,
 					'InvalidInitialization',
@@ -310,6 +306,7 @@ describe('BlockBuilderRegistry', () => {
 
 			const registry2Factory = await ethers.getContractFactory(
 				'BlockBuilderRegistry2Test',
+				signers.admin,
 			)
 			const next = await upgrades.upgradeProxy(
 				await blockBuilderRegistry.getAddress(),

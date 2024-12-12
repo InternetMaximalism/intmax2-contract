@@ -40,11 +40,12 @@ describe('Liquidity', () => {
 		const withdrawalLibTestFactory =
 			await ethers.getContractFactory('WithdrawalLibTest')
 		const withdrawalLibTest = await withdrawalLibTestFactory.deploy()
-		const { analyzer } = await getSigners()
+		const { admin, analyzer } = await getSigners()
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		const liquidity = (await upgrades.deployProxy(
 			liquidityFactory,
 			[
+				admin.address,
 				await l1ScrollMessenger.getAddress(),
 				rollup,
 				withdrawal,
@@ -66,13 +67,15 @@ describe('Liquidity', () => {
 	}
 	type Signers = {
 		deployer: HardhatEthersSigner
+		admin: HardhatEthersSigner
 		analyzer: HardhatEthersSigner
 		user: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<Signers> => {
-		const [deployer, analyzer, user] = await ethers.getSigners()
+		const [deployer, admin, analyzer, user] = await ethers.getSigners()
 		return {
 			deployer,
+			admin,
 			analyzer,
 			user,
 		}
@@ -89,6 +92,7 @@ describe('Liquidity', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					ethers.ZeroAddress,
 					[ethers.ZeroAddress],
 				),
 			).to.be.revertedWithCustomError(liquidity, 'InvalidInitialization')
@@ -98,9 +102,9 @@ describe('Liquidity', () => {
 		describe('success', () => {
 			it('deployer has admin role', async () => {
 				const { liquidity } = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const role = await liquidity.DEFAULT_ADMIN_ROLE()
-				expect(await liquidity.hasRole(role, deployer.address)).to.be.true
+				expect(await liquidity.hasRole(role, admin.address)).to.be.true
 			})
 			it('analyzer has analyzer role', async () => {
 				const { liquidity } = await loadFixture(setup)
@@ -120,9 +124,29 @@ describe('Liquidity', () => {
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
+						ethers.ZeroAddress,
 						[ethers.ZeroAddress, ethers.ZeroAddress],
 					),
 				).to.be.revertedWithCustomError(liquidity, 'InvalidInitialization')
+			})
+			it('admin is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
 			it('l1ScrollMessenger is zero address', async () => {
 				const liquidityFactory = await ethers.getContractFactory('Liquidity')
@@ -131,6 +155,7 @@ describe('Liquidity', () => {
 					upgrades.deployProxy(
 						liquidityFactory,
 						[
+							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
 							tmpAddress,
@@ -149,6 +174,7 @@ describe('Liquidity', () => {
 					upgrades.deployProxy(
 						liquidityFactory,
 						[
+							tmpAddress,
 							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
@@ -169,6 +195,7 @@ describe('Liquidity', () => {
 						[
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
 							tmpAddress,
@@ -185,6 +212,7 @@ describe('Liquidity', () => {
 					upgrades.deployProxy(
 						liquidityFactory,
 						[
+							tmpAddress,
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
@@ -207,12 +235,48 @@ describe('Liquidity', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							ethers.ZeroAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+		})
+	})
+	describe('pause', () => {
+		describe('success', () => {
+			it('change pause status', async () => {
+				const { liquidity } = await loadFixture(setup)
+				expect(await liquidity.paused()).to.be.false
+				const { admin } = await getSigners()
+				await liquidity.connect(admin).pauseDeposits()
+				expect(await liquidity.paused()).to.be.true
+				await liquidity.connect(admin).unpauseDeposits()
+				expect(await liquidity.paused()).to.be.false
+			})
+		})
+		describe('fail', () => {
+			it('only admin(pause)', async () => {
+				const { liquidity } = await loadFixture(setup)
+				const { user } = await getSigners()
+				await expect(
+					liquidity.connect(user).pauseDeposits(),
+				).to.be.revertedWithCustomError(
+					liquidity,
+					'AccessControlUnauthorizedAccount',
+				)
+			})
+			it('only admin(unpause)', async () => {
+				const { liquidity } = await loadFixture(setup)
+				const { user } = await getSigners()
+				await expect(
+					liquidity.connect(user).unpauseDeposits(),
+				).to.be.revertedWithCustomError(
+					liquidity,
+					'AccessControlUnauthorizedAccount',
+				)
 			})
 		})
 	})
@@ -289,6 +353,18 @@ describe('Liquidity', () => {
 						.connect(user)
 						.depositNativeToken(recipientSaltHash, { value: 0 }),
 				).to.be.revertedWithCustomError(liquidity, 'TriedToDepositZero')
+			})
+			it('pause', async () => {
+				const { liquidity } = await loadFixture(setup)
+				const { admin, user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const depositAmount = ethers.parseEther('1')
+				await liquidity.connect(admin).pauseDeposits()
+				await await expect(
+					liquidity
+						.connect(user)
+						.depositNativeToken(recipientSaltHash, { value: depositAmount }),
+				).to.be.revertedWithCustomError(liquidity, 'EnforcedPause')
 			})
 		})
 	})
@@ -404,6 +480,17 @@ describe('Liquidity', () => {
 						.depositERC20(await testERC20.getAddress(), recipientSaltHash, 0),
 				).to.be.revertedWithCustomError(liquidity, 'TriedToDepositZero')
 			})
+			it('pause', async () => {
+				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
+				const { admin, user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				await liquidity.connect(admin).pauseDeposits()
+				await expect(
+					liquidity
+						.connect(user)
+						.depositERC20(await testERC20.getAddress(), recipientSaltHash, 0),
+				).to.be.revertedWithCustomError(liquidity, 'EnforcedPause')
+			})
 		})
 	})
 	describe('depositERC721', () => {
@@ -515,6 +602,46 @@ describe('Liquidity', () => {
 							tokenId,
 						),
 				).to.be.revertedWithCustomError(liquidity, 'DepositHashAlreadyExists')
+			})
+			it('pause', async () => {
+				const { liquidity, testNFT } = await loadFixture(setupForDepositERC721)
+				const { admin, user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const tokenId = 0
+
+				await testNFT
+					.connect(user)
+					.approve(await liquidity.getAddress(), tokenId)
+
+				expect(await testNFT.ownerOf(tokenId)).to.equal(user.address)
+
+				await liquidity
+					.connect(user)
+					.depositERC721(await testNFT.getAddress(), recipientSaltHash, tokenId)
+				const filter = liquidity.filters.Deposited()
+				const events = await liquidity.queryFilter(filter)
+				const depositId = events[0].args.depositId
+				const tokenIndex = events[0].args.tokenIndex
+
+				await liquidity.connect(user).cancelDeposit(depositId, {
+					recipientSaltHash,
+					tokenIndex: tokenIndex,
+					amount: 1,
+				})
+				await testNFT
+					.connect(user)
+					.approve(await liquidity.getAddress(), tokenId)
+
+				await liquidity.connect(admin).pauseDeposits()
+				await expect(
+					liquidity
+						.connect(user)
+						.depositERC721(
+							await testNFT.getAddress(),
+							recipientSaltHash,
+							tokenId,
+						),
+				).to.be.revertedWithCustomError(liquidity, 'EnforcedPause')
 			})
 		})
 	})
@@ -680,6 +807,30 @@ describe('Liquidity', () => {
 							depositAmount,
 						),
 				).to.be.revertedWithCustomError(liquidity, 'TriedToDepositZero')
+			})
+			it('pause', async () => {
+				const { liquidity, testERC1155 } = await loadFixture(
+					setupForDepositERC1155,
+				)
+				const { admin, user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const tokenId = 1
+				const depositAmount = 0
+
+				await testERC1155
+					.connect(user)
+					.setApprovalForAll(await liquidity.getAddress(), true)
+				await liquidity.connect(admin).pauseDeposits()
+				await expect(
+					liquidity
+						.connect(user)
+						.depositERC1155(
+							await testERC1155.getAddress(),
+							recipientSaltHash,
+							tokenId,
+							depositAmount,
+						),
+				).to.be.revertedWithCustomError(liquidity, 'EnforcedPause')
 			})
 		})
 	})
@@ -1147,7 +1298,8 @@ describe('Liquidity', () => {
 			describe('DirectWithdrawals', () => {
 				describe('send token', () => {
 					it('native token', async () => {
-						const { liquidity, scrollMessenger } = await loadFixture(setup)
+						const { liquidity, scrollMessenger, withdrawalLibTest } =
+							await loadFixture(setup)
 						const recipientSaltHash = ethers.keccak256(
 							ethers.toUtf8Bytes('test'),
 						)
@@ -1158,28 +1310,41 @@ describe('Liquidity', () => {
 						const initialBalance = await ethers.provider.getBalance(
 							await liquidity.getAddress(),
 						)
+						const testWithdrawal = {
+							recipient: ethers.Wallet.createRandom().address,
+							tokenIndex: 0,
+							amount: depositAmount,
+							nullifier: ethers.encodeBytes32String('test'),
+						}
+						const withdrawalHash = await withdrawalLibTest.getHash(
+							testWithdrawal.recipient,
+							testWithdrawal.tokenIndex,
+							testWithdrawal.amount,
+							testWithdrawal.nullifier,
+						)
 						await expect(
 							scrollMessenger.processWithdrawals(
-								2,
 								[
 									{
-										recipient: ethers.Wallet.createRandom().address,
-										tokenIndex: 0,
-										amount: depositAmount,
-										id: 0,
+										recipient: testWithdrawal.recipient,
+										tokenIndex: testWithdrawal.tokenIndex,
+										amount: testWithdrawal.amount,
+										nullifier: testWithdrawal.nullifier,
 									},
 								],
-								0,
 								[],
 							),
-						).not.to.emit(liquidity, 'WithdrawalClaimable')
+						)
+							.to.emit(liquidity, 'DirectWithdrawalSuccessed')
+							.withArgs(withdrawalHash, testWithdrawal.recipient)
 						const finalBalance = await ethers.provider.getBalance(
 							await liquidity.getAddress(),
 						)
 						expect(initialBalance - finalBalance).to.equal(depositAmount)
 					})
 					it('erc20', async () => {
-						const { liquidity, scrollMessenger } = await loadFixture(setup)
+						const { liquidity, scrollMessenger, withdrawalLibTest } =
+							await loadFixture(setup)
 						const { user } = await getSigners()
 						const testERC20Factory =
 							await ethers.getContractFactory('TestERC20')
@@ -1206,22 +1371,34 @@ describe('Liquidity', () => {
 							testERC20.getAddress(),
 							0,
 						)
+						const testWithdrawal = {
+							recipient: recipient,
+							tokenIndex: tokenIndex,
+							amount: depositAmount,
+							nullifier: ethers.encodeBytes32String('test'),
+						}
 						const beforeBalance = await testERC20.balanceOf(recipient)
+						const withdrawalHash = await withdrawalLibTest.getHash(
+							testWithdrawal.recipient,
+							testWithdrawal.tokenIndex,
+							testWithdrawal.amount,
+							testWithdrawal.nullifier,
+						)
 						await expect(
 							scrollMessenger.processWithdrawals(
-								2,
 								[
 									{
-										recipient: recipient,
-										tokenIndex: tokenIndex,
-										amount: depositAmount,
-										id: 0,
+										recipient: testWithdrawal.recipient,
+										tokenIndex: testWithdrawal.tokenIndex,
+										amount: testWithdrawal.amount,
+										nullifier: testWithdrawal.nullifier,
 									},
 								],
-								0,
 								[],
 							),
-						).not.to.emit(liquidity, 'WithdrawalClaimable')
+						)
+							.to.emit(liquidity, 'DirectWithdrawalSuccessed')
+							.withArgs(withdrawalHash, testWithdrawal.recipient)
 						const afterBalance = await testERC20.balanceOf(recipient)
 						expect(afterBalance - beforeBalance).to.equal(depositAmount)
 					})
@@ -1246,13 +1423,13 @@ describe('Liquidity', () => {
 						const recipient = ethers.Wallet.createRandom().address
 						const tokenIndex = 0
 						const testDepositAmount = depositAmount + 1n
-						const testId = 0
+						const testNullifier = ethers.encodeBytes32String('test')
 
 						const withdrawalHash = await withdrawalLibTest.getHash(
 							recipient,
 							tokenIndex,
 							testDepositAmount,
-							testId,
+							testNullifier,
 						)
 
 						const beforeTimestamp =
@@ -1262,11 +1439,11 @@ describe('Liquidity', () => {
 							recipient,
 							tokenIndex,
 							amount: testDepositAmount,
-							id: testId,
+							nullifier: testNullifier,
 						}
 
 						await expect(
-							scrollMessenger.processWithdrawals(2, [testWithdrawal], 0, []),
+							scrollMessenger.processWithdrawals([testWithdrawal], []),
 						)
 							.to.emit(liquidity, 'WithdrawalClaimable')
 							.withArgs(withdrawalHash)
@@ -1275,7 +1452,7 @@ describe('Liquidity', () => {
 								testWithdrawal.recipient,
 								testWithdrawal.tokenIndex,
 								testWithdrawal.amount,
-								testWithdrawal.id,
+								testWithdrawal.nullifier,
 							])
 						const afterTimestamp =
 							await liquidity.claimableWithdrawals(withdrawalHash)
@@ -1311,24 +1488,24 @@ describe('Liquidity', () => {
 							0,
 						)
 						const testDepositAmount = depositAmount + 1n
-						const testId = 0
+						const testNullifier = ethers.encodeBytes32String('test')
 						const withdrawalHash = await withdrawalLibTest.getHash(
 							recipient,
 							tokenIndex,
 							testDepositAmount,
-							testId,
+							testNullifier,
 						)
 						const testWithdrawal = {
 							recipient,
 							tokenIndex,
 							amount: testDepositAmount,
-							id: testId,
+							nullifier: testNullifier,
 						}
 						const beforeTimestamp =
 							await liquidity.claimableWithdrawals(withdrawalHash)
 						expect(beforeTimestamp).to.equal(0)
 						await expect(
-							scrollMessenger.processWithdrawals(2, [testWithdrawal], 0, []),
+							scrollMessenger.processWithdrawals([testWithdrawal], []),
 						)
 							.to.emit(liquidity, 'WithdrawalClaimable')
 							.withArgs(withdrawalHash)
@@ -1337,7 +1514,7 @@ describe('Liquidity', () => {
 								testWithdrawal.recipient,
 								testWithdrawal.tokenIndex,
 								testWithdrawal.amount,
-								testWithdrawal.id,
+								testWithdrawal.nullifier,
 							])
 						const afterTimestamp =
 							await liquidity.claimableWithdrawals(withdrawalHash)
@@ -1370,13 +1547,13 @@ describe('Liquidity', () => {
 							testNFT.getAddress(),
 							tokenId,
 						)
-						const testId = 0
+						const testNullifier = ethers.encodeBytes32String('test')
 						const testAmount = 1
 						const withdrawalHash = await withdrawalLibTest.getHash(
 							recipient,
 							tokenIndex,
 							testAmount,
-							testId,
+							testNullifier,
 						)
 
 						const beforeTimestamp =
@@ -1385,9 +1562,14 @@ describe('Liquidity', () => {
 
 						await expect(
 							scrollMessenger.processWithdrawals(
-								2,
-								[{ recipient, tokenIndex, amount: testAmount, id: tokenId }],
-								0,
+								[
+									{
+										recipient,
+										tokenIndex,
+										amount: testAmount,
+										nullifier: testNullifier,
+									},
+								],
 								[],
 							),
 						)
@@ -1398,7 +1580,7 @@ describe('Liquidity', () => {
 								recipient,
 								tokenIndex,
 								testAmount,
-								testId,
+								testNullifier,
 							])
 						const afterTimestamp =
 							await liquidity.claimableWithdrawals(withdrawalHash)
@@ -1439,13 +1621,13 @@ describe('Liquidity', () => {
 							testERC1155.getAddress(),
 							tokenId,
 						)
-						const testId = 0
+						const testNullifier = ethers.encodeBytes32String('test')
 
 						const withdrawalHash = await withdrawalLibTest.getHash(
 							recipient,
 							tokenIndex,
 							testAmount,
-							testId,
+							testNullifier,
 						)
 
 						const beforeTimestamp =
@@ -1454,9 +1636,14 @@ describe('Liquidity', () => {
 
 						await expect(
 							scrollMessenger.processWithdrawals(
-								2,
-								[{ recipient, tokenIndex, amount: testAmount, id: testId }],
-								0,
+								[
+									{
+										recipient,
+										tokenIndex,
+										amount: testAmount,
+										nullifier: testNullifier,
+									},
+								],
 								[],
 							),
 						)
@@ -1467,37 +1654,12 @@ describe('Liquidity', () => {
 								recipient,
 								tokenIndex,
 								testAmount,
-								testId,
+								testNullifier,
 							])
 						const afterTimestamp =
 							await liquidity.claimableWithdrawals(withdrawalHash)
 						expect(afterTimestamp).to.equal(await time.latest())
 					})
-				})
-				it('emit DirectWithdrawalsProcessed event', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
-					const { user } = await getSigners()
-
-					// Setup a deposit to ensure there's something to withdraw
-					const depositAmount = ethers.parseEther('1')
-					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-					await liquidity
-						.connect(user)
-						.depositNativeToken(recipientSaltHash, { value: depositAmount })
-
-					const recipient = ethers.Wallet.createRandom().address
-					const lastProcessedDirectWithdrawalId = 5 // Assuming this is the current last processed ID
-
-					await expect(
-						scrollMessenger.processWithdrawals(
-							lastProcessedDirectWithdrawalId,
-							[{ recipient, tokenIndex: 0, amount: depositAmount, id: 0 }],
-							0,
-							[],
-						),
-					)
-						.to.emit(liquidity, 'DirectWithdrawalsProcessed')
-						.withArgs(lastProcessedDirectWithdrawalId)
 				})
 				it('call recordContribution', async () => {
 					const { liquidity, scrollMessenger, contribution } =
@@ -1512,12 +1674,15 @@ describe('Liquidity', () => {
 						.depositNativeToken(recipientSaltHash, { value: depositAmount })
 
 					const recipient = ethers.Wallet.createRandom().address
-					const lastProcessedDirectWithdrawalId = 5 // Assuming this is the current last processed ID
-
 					await scrollMessenger.processWithdrawals(
-						lastProcessedDirectWithdrawalId,
-						[{ recipient, tokenIndex: 0, amount: depositAmount, id: 0 }],
-						0,
+						[
+							{
+								recipient,
+								tokenIndex: 0,
+								amount: depositAmount,
+								nullifier: ethers.encodeBytes32String('test'),
+							},
+						],
 						[],
 					)
 
@@ -1528,28 +1693,6 @@ describe('Liquidity', () => {
 					expect(await contribution.latestUser()).to.equal(deployer.address)
 					expect(await contribution.latestAmount()).to.equal(1) // Assuming one withdrawal was processed
 				})
-				it('withdrawals is 0', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
-					const { user } = await getSigners()
-
-					// Setup a deposit to ensure there's something to withdraw
-					const depositAmount = ethers.parseEther('1')
-					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-					await liquidity
-						.connect(user)
-						.depositNativeToken(recipientSaltHash, { value: depositAmount })
-
-					const lastProcessedDirectWithdrawalId = 5 // Assuming this is the current last processed ID
-
-					await expect(
-						scrollMessenger.processWithdrawals(
-							lastProcessedDirectWithdrawalId,
-							[],
-							0,
-							[],
-						),
-					).not.to.emit(liquidity, 'DirectWithdrawalsProcessed')
-				})
 			})
 			describe('ClaimableWithdrawals', () => {
 				it('emit WithdrawalClaimable event', async () => {
@@ -1558,34 +1701,9 @@ describe('Liquidity', () => {
 						ethers.toUtf8Bytes('testWithdrawal'),
 					)
 
-					await expect(
-						scrollMessenger.processWithdrawals(
-							0,
-							[],
-							5, // lastProcessedClaimableWithdrawalId
-							[withdrawalHash],
-						),
-					)
+					await expect(scrollMessenger.processWithdrawals([], [withdrawalHash]))
 						.to.emit(liquidity, 'WithdrawalClaimable')
 						.withArgs(withdrawalHash)
-				})
-				it('emit ClaimableWithdrawalsProcessed event', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
-					const withdrawalHash = ethers.keccak256(
-						ethers.toUtf8Bytes('testWithdrawal'),
-					)
-					const lastProcessedClaimableWithdrawalId = 5
-
-					await expect(
-						scrollMessenger.processWithdrawals(
-							0,
-							[],
-							lastProcessedClaimableWithdrawalId,
-							[withdrawalHash],
-						),
-					)
-						.to.emit(liquidity, 'ClaimableWithdrawalsProcessed')
-						.withArgs(lastProcessedClaimableWithdrawalId)
 				})
 				it('call recordContribution', async () => {
 					const { scrollMessenger, contribution } = await loadFixture(setup)
@@ -1593,14 +1711,8 @@ describe('Liquidity', () => {
 					const withdrawalHash = ethers.keccak256(
 						ethers.toUtf8Bytes('testWithdrawal'),
 					)
-					const lastProcessedClaimableWithdrawalId = 5
 
-					await scrollMessenger.processWithdrawals(
-						0,
-						[],
-						lastProcessedClaimableWithdrawalId,
-						[withdrawalHash],
-					)
+					await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 					// Check if recordContribution was called with correct arguments
 					expect(await contribution.latestTag()).to.equal(
@@ -1619,7 +1731,7 @@ describe('Liquidity', () => {
 				const { user } = await getSigners()
 
 				await expect(
-					liquidity.connect(user).processWithdrawals(0, [], 0, []),
+					liquidity.connect(user).processWithdrawals([], []),
 				).to.be.revertedWithCustomError(liquidity, 'SenderIsNotScrollMessenger')
 			})
 			it('revert InvalidWithdrawalAddress', async () => {
@@ -1630,7 +1742,7 @@ describe('Liquidity', () => {
 				await scrollMessenger.setXDomainMessageSender(user.address)
 
 				await expect(
-					scrollMessenger.processWithdrawals(0, [], 0, []),
+					scrollMessenger.processWithdrawals([], []),
 				).to.be.revertedWithCustomError(liquidity, 'InvalidWithdrawalAddress')
 			})
 			it.skip('withdrawals length is 0', async () => {
@@ -1651,28 +1763,11 @@ describe('Liquidity', () => {
 		})
 	})
 	describe('claimWithdrawals', () => {
-		const getWithdrawalHash = (withdrawal: {
-			recipient: string
-			tokenIndex: number | bigint
-			amount: bigint
-			id: number
-		}): string => {
-			return ethers.keccak256(
-				ethers.solidityPacked(
-					['address', 'uint32', 'uint256', 'uint256'],
-					[
-						withdrawal.recipient,
-						withdrawal.tokenIndex,
-						withdrawal.amount,
-						withdrawal.id,
-					],
-				),
-			)
-		}
 		describe('success', () => {
 			describe('send token', () => {
 				it('native token', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
+					const { liquidity, scrollMessenger, withdrawalLibTest } =
+						await loadFixture(setup)
 					const { user } = await getSigners()
 
 					// Create a claimable withdrawal
@@ -1686,13 +1781,18 @@ describe('Liquidity', () => {
 						recipient: user.address,
 						tokenIndex: 0, // Assuming 0 is the index for native token
 						amount: withdrawalAmount,
-						id: 1,
+						nullifier: ethers.encodeBytes32String('test'),
 					}
 
-					const withdrawalHash = getWithdrawalHash(withdrawal)
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier,
+					)
 
 					// Process the withdrawal to make it claimable
-					await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
+					await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 					// Get initial balances
 					const initialUserBalance = await ethers.provider.getBalance(
@@ -1726,7 +1826,8 @@ describe('Liquidity', () => {
 					)
 				})
 				it('erc20', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
+					const { liquidity, scrollMessenger, withdrawalLibTest } =
+						await loadFixture(setup)
 					const { user } = await getSigners()
 
 					const testERC20Factory = await ethers.getContractFactory('TestERC20')
@@ -1757,11 +1858,16 @@ describe('Liquidity', () => {
 						recipient: user.address,
 						tokenIndex,
 						amount: withdrawalAmount,
-						id: 1,
+						nullifier: ethers.encodeBytes32String('test'),
 					}
 
-					const withdrawalHash = getWithdrawalHash(withdrawal)
-					await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier,
+					)
+					await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 					// Check balances before withdrawal
 					const initialUserBalance = await testERC20.balanceOf(user.address)
@@ -1787,7 +1893,8 @@ describe('Liquidity', () => {
 					)
 				})
 				it('erc721', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
+					const { liquidity, scrollMessenger, withdrawalLibTest } =
+						await loadFixture(setup)
 					const { deployer, user } = await getSigners()
 
 					const testNFTFactory = await ethers.getContractFactory('TestNFT')
@@ -1819,11 +1926,16 @@ describe('Liquidity', () => {
 						recipient: user.address,
 						tokenIndex,
 						amount: 1n,
-						id: 1,
+						nullifier: ethers.encodeBytes32String('test'),
 					}
 
-					const withdrawalHash = getWithdrawalHash(withdrawal)
-					await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier,
+					)
+					await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 					// Check ownership before withdrawal
 					expect(await testNFT.ownerOf(tokenId)).to.equal(
@@ -1837,7 +1949,8 @@ describe('Liquidity', () => {
 					expect(await testNFT.ownerOf(tokenId)).to.equal(user.address)
 				})
 				it('erc1155', async () => {
-					const { liquidity, scrollMessenger } = await loadFixture(setup)
+					const { liquidity, scrollMessenger, withdrawalLibTest } =
+						await loadFixture(setup)
 					const { user } = await getSigners()
 
 					const testERC1155Factory =
@@ -1872,11 +1985,16 @@ describe('Liquidity', () => {
 						recipient: user.address,
 						tokenIndex,
 						amount: BigInt(amount),
-						id: 1,
+						nullifier: ethers.encodeBytes32String('test'),
 					}
 
-					const withdrawalHash = getWithdrawalHash(withdrawal)
-					await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier,
+					)
+					await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 					// Check balances before withdrawal
 					const initialUserBalance = await testERC1155.balanceOf(
@@ -1909,7 +2027,8 @@ describe('Liquidity', () => {
 				})
 			})
 			it('emit ClaimedWithdrawal', async () => {
-				const { liquidity, scrollMessenger } = await loadFixture(setup)
+				const { liquidity, scrollMessenger, withdrawalLibTest } =
+					await loadFixture(setup)
 				const { user } = await getSigners()
 
 				// First, create a claimable withdrawal
@@ -1923,13 +2042,18 @@ describe('Liquidity', () => {
 					recipient: user.address,
 					tokenIndex: 0, // Assuming 0 is the index for native token
 					amount: withdrawalAmount,
-					id: 1,
+					nullifier: ethers.encodeBytes32String('test'),
 				}
 
-				const withdrawalHash = getWithdrawalHash(withdrawal)
+				const withdrawalHash = await withdrawalLibTest.getHash(
+					withdrawal.recipient,
+					withdrawal.tokenIndex,
+					withdrawal.amount,
+					withdrawal.nullifier,
+				)
 
 				// Process the withdrawal to make it claimable
-				await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
+				await scrollMessenger.processWithdrawals([], [withdrawalHash])
 
 				// Now claim the withdrawal
 				await expect(liquidity.connect(user).claimWithdrawals([withdrawal]))
@@ -1937,7 +2061,8 @@ describe('Liquidity', () => {
 					.withArgs(user.address, withdrawalHash)
 			})
 			it('emit ClaimedWithdrawal for multiple withdrawals', async () => {
-				const { liquidity, scrollMessenger } = await loadFixture(setup)
+				const { liquidity, scrollMessenger, withdrawalLibTest } =
+					await loadFixture(setup)
 				const { user } = await getSigners()
 
 				// Create two claimable withdrawals
@@ -1957,24 +2082,34 @@ describe('Liquidity', () => {
 					recipient: user.address,
 					tokenIndex: 0,
 					amount: withdrawalAmount1,
-					id: 1,
+					nullifier: ethers.encodeBytes32String('test1'),
 				}
 
 				const withdrawal2 = {
 					recipient: user.address,
 					tokenIndex: 0,
 					amount: withdrawalAmount2,
-					id: 2,
+					nullifier: ethers.encodeBytes32String('test2'),
 				}
 
-				const withdrawalHash1 = getWithdrawalHash(withdrawal1)
-				const withdrawalHash2 = getWithdrawalHash(withdrawal2)
+				const withdrawalHash1 = await withdrawalLibTest.getHash(
+					withdrawal1.recipient,
+					withdrawal1.tokenIndex,
+					withdrawal1.amount,
+					withdrawal1.nullifier,
+				)
+				const withdrawalHash2 = await withdrawalLibTest.getHash(
+					withdrawal2.recipient,
+					withdrawal2.tokenIndex,
+					withdrawal2.amount,
+					withdrawal2.nullifier,
+				)
 
 				// Process both withdrawals to make them claimable
-				await scrollMessenger.processWithdrawals(0, [], 0, [
-					withdrawalHash1,
-					withdrawalHash2,
-				])
+				await scrollMessenger.processWithdrawals(
+					[],
+					[withdrawalHash1, withdrawalHash2],
+				)
 
 				await liquidity
 					.connect(user)
@@ -1999,7 +2134,7 @@ describe('Liquidity', () => {
 		})
 		describe('fail', () => {
 			it('revert WithdrawalNotFound', async () => {
-				const { liquidity } = await loadFixture(setup)
+				const { liquidity, withdrawalLibTest } = await loadFixture(setup)
 				const { user } = await getSigners()
 
 				// Create a withdrawal object that hasn't been processed
@@ -2007,10 +2142,15 @@ describe('Liquidity', () => {
 					recipient: user.address,
 					tokenIndex: 0, // Assuming 0 is for native token
 					amount: ethers.parseEther('1'),
-					id: 9999, // Use a high number to ensure it doesn't exist
+					nullifier: ethers.encodeBytes32String('test999'), // Use a high number to ensure it doesn't exist
 				}
 
-				const withdrawalHash = getWithdrawalHash(nonExistentWithdrawal)
+				const withdrawalHash = withdrawalLibTest.getHash(
+					nonExistentWithdrawal.recipient,
+					nonExistentWithdrawal.tokenIndex,
+					nonExistentWithdrawal.amount,
+					nonExistentWithdrawal.nullifier,
+				)
 
 				// Attempt to claim the non-existent withdrawal
 				await expect(
@@ -2020,7 +2160,8 @@ describe('Liquidity', () => {
 					.withArgs(withdrawalHash)
 			})
 			it('rejects duplicate withdrawal claims', async () => {
-				const { liquidity, scrollMessenger } = await loadFixture(setup)
+				const { liquidity, scrollMessenger, withdrawalLibTest } =
+					await loadFixture(setup)
 				const { user } = await getSigners()
 
 				// Create a claimable withdrawal
@@ -2034,14 +2175,17 @@ describe('Liquidity', () => {
 					recipient: user.address,
 					tokenIndex: 0, // Assuming 0 is the index for native token
 					amount: withdrawalAmount,
-					id: 1,
+					nullifier: ethers.encodeBytes32String('test'),
 				}
 
-				const withdrawalHash = getWithdrawalHash(withdrawal)
-
+				const withdrawalHash = await withdrawalLibTest.getHash(
+					withdrawal.recipient,
+					withdrawal.tokenIndex,
+					withdrawal.amount,
+					withdrawal.nullifier,
+				)
 				// Process the withdrawal to make it claimable
-				await scrollMessenger.processWithdrawals(0, [], 0, [withdrawalHash])
-
+				await scrollMessenger.processWithdrawals([], [withdrawalHash])
 				// Claim the withdrawal
 				await liquidity.connect(user).claimWithdrawals([withdrawal])
 				await expect(liquidity.connect(user).claimWithdrawals([withdrawal]))
@@ -2298,8 +2442,11 @@ describe('Liquidity', () => {
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const { liquidity } = await loadFixture(setup)
-			const liquidity2Factory =
-				await ethers.getContractFactory('Liquidity2Test')
+			const { admin } = await getSigners()
+			const liquidity2Factory = await ethers.getContractFactory(
+				'Liquidity2Test',
+				admin,
+			)
 			const next = await upgrades.upgradeProxy(
 				await liquidity.getAddress(),
 				liquidity2Factory,

@@ -8,6 +8,7 @@ import {
 	MockPlonkVerifier,
 	RollupTestForWithdrawal,
 	ContributionTest,
+	WithdrawalLibTest,
 } from '../../typechain-types'
 import {
 	getPrevHashFromWithdrawals,
@@ -18,20 +19,20 @@ describe('Withdrawal', () => {
 	const DIRECT_WITHDRAWAL_TOKEN_INDICES = [1, 2, 3]
 	const UINT256_MAX =
 		'115792089237316195423570985008687907853269984665640564039457584007913129639935'
-	async function setup(): Promise<
-		[
-			Withdrawal,
-			L2ScrollMessengerTestForWithdrawal,
-			MockPlonkVerifier,
-			RollupTestForWithdrawal,
-			string,
-			ContributionTest,
-		]
-	> {
+	type TestObjects = {
+		withdrawal: Withdrawal
+		scrollMessenger: L2ScrollMessengerTestForWithdrawal
+		mockPlonkVerifier: MockPlonkVerifier
+		rollupTestForWithdrawal: RollupTestForWithdrawal
+		liquidityAddress: string
+		contributionTest: ContributionTest
+		withdrawalLibTest: WithdrawalLibTest
+	}
+	async function setup(): Promise<TestObjects> {
 		const l2ScrollMessengerFactory = await ethers.getContractFactory(
 			'L2ScrollMessengerTestForWithdrawal',
 		)
-		const l2ScrollMessenger = await l2ScrollMessengerFactory.deploy()
+		const scrollMessenger = await l2ScrollMessengerFactory.deploy()
 		const mockPlonkVerifierFactory =
 			await ethers.getContractFactory('MockPlonkVerifier')
 		const mockPlonkVerifier = await mockPlonkVerifierFactory.deploy()
@@ -40,41 +41,49 @@ describe('Withdrawal', () => {
 		)
 		const rollupTestForWithdrawal =
 			await rollupTestForWithdrawalFactory.deploy()
-		const liquidity = ethers.Wallet.createRandom().address
+		const liquidityAddress = ethers.Wallet.createRandom().address
 		const contributionTestFactory =
 			await ethers.getContractFactory('ContributionTest')
-		const contribution =
+		const contributionTest =
 			(await contributionTestFactory.deploy()) as ContributionTest
 		const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+		const { admin } = await getSigners()
+		const withdrawalLibTestFactory =
+			await ethers.getContractFactory('WithdrawalLibTest')
+		const withdrawalLibTest = await withdrawalLibTestFactory.deploy()
 		const withdrawal = (await upgrades.deployProxy(
 			withdrawalFactory,
 			[
-				await l2ScrollMessenger.getAddress(),
+				admin.address,
+				await scrollMessenger.getAddress(),
 				await mockPlonkVerifier.getAddress(),
-				liquidity,
+				liquidityAddress,
 				await rollupTestForWithdrawal.getAddress(),
-				await contribution.getAddress(),
+				await contributionTest.getAddress(),
 				DIRECT_WITHDRAWAL_TOKEN_INDICES,
 			],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Withdrawal
-		return [
+		return {
 			withdrawal,
-			l2ScrollMessenger,
+			scrollMessenger,
 			mockPlonkVerifier,
 			rollupTestForWithdrawal,
-			liquidity,
-			contribution,
-		]
+			liquidityAddress,
+			contributionTest,
+			withdrawalLibTest,
+		}
 	}
 	type signers = {
 		deployer: HardhatEthersSigner
+		admin: HardhatEthersSigner
 		user: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<signers> => {
-		const [deployer, user] = await ethers.getSigners()
+		const [deployer, admin, user] = await ethers.getSigners()
 		return {
 			deployer,
+			admin,
 			user,
 		}
 	}
@@ -90,6 +99,7 @@ describe('Withdrawal', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					ethers.ZeroAddress,
 					[0],
 				),
 			).to.be.revertedWithCustomError(withdrawal, 'InvalidInitialization')
@@ -98,12 +108,12 @@ describe('Withdrawal', () => {
 	describe('initialize', () => {
 		describe('success', () => {
 			it('should set deployer as the owner', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 				const signers = await getSigners()
-				expect(await withdrawal.owner()).to.equal(signers.deployer.address)
+				expect(await withdrawal.owner()).to.equal(signers.admin.address)
 			})
 			it('generate DirectWithdrawalTokenIndicesAdded event', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 				const filter = withdrawal.filters.DirectWithdrawalTokenIndicesAdded()
 				const events = await withdrawal.queryFilter(filter)
 				expect(events.length).to.equal(1)
@@ -114,10 +124,11 @@ describe('Withdrawal', () => {
 		})
 		describe('fail', () => {
 			it('should revert when initializing twice', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 				const tmpAddress = ethers.Wallet.createRandom().address
 				await expect(
 					withdrawal.initialize(
+						tmpAddress,
 						tmpAddress,
 						tmpAddress,
 						tmpAddress,
@@ -127,6 +138,25 @@ describe('Withdrawal', () => {
 					),
 				).to.be.revertedWithCustomError(withdrawal, 'InvalidInitialization')
 			})
+			it('admin is zero address', async () => {
+				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						withdrawalFactory,
+						[
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							DIRECT_WITHDRAWAL_TOKEN_INDICES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(withdrawalFactory, 'AddressZero')
+			})
 			it('scrollMessenger is zero address', async () => {
 				const withdrawalFactory = await ethers.getContractFactory('Withdrawal')
 				const tmpAddress = ethers.Wallet.createRandom().address
@@ -134,6 +164,7 @@ describe('Withdrawal', () => {
 					upgrades.deployProxy(
 						withdrawalFactory,
 						[
+							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
 							tmpAddress,
@@ -152,6 +183,7 @@ describe('Withdrawal', () => {
 					upgrades.deployProxy(
 						withdrawalFactory,
 						[
+							tmpAddress,
 							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
@@ -172,6 +204,7 @@ describe('Withdrawal', () => {
 						[
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
 							tmpAddress,
@@ -188,6 +221,7 @@ describe('Withdrawal', () => {
 					upgrades.deployProxy(
 						withdrawalFactory,
 						[
+							tmpAddress,
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
@@ -210,6 +244,7 @@ describe('Withdrawal', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							ethers.ZeroAddress,
 							DIRECT_WITHDRAWAL_TOKEN_INDICES,
 						],
@@ -226,12 +261,13 @@ describe('Withdrawal', () => {
 					unsafeAllow: ['constructor'],
 					initializer: false,
 				})
-				const { deployer } = await getSigners()
+				const { admin } = await getSigners()
 				const tmpAddress = ethers.Wallet.createRandom().address
-				await withdrawal.addOwner(deployer.address)
-				await withdrawal.addDirectWithdrawalTokenIndices([1])
+				await withdrawal.addOwner(admin.address)
+				await withdrawal.connect(admin).addDirectWithdrawalTokenIndices([1])
 				await expect(
 					withdrawal.initialize(
+						tmpAddress,
 						tmpAddress,
 						tmpAddress,
 						tmpAddress,
@@ -248,13 +284,14 @@ describe('Withdrawal', () => {
 	describe('submitWithdrawalProof', () => {
 		describe('success', () => {
 			it('should accept valid withdrawal proof and queue direct withdrawals', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					liquidity,
-				] = await loadFixture(setup)
+					liquidityAddress,
+					withdrawalLibTest,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				// Create withdrawals for direct withdrawal tokens
@@ -274,7 +311,18 @@ describe('Withdrawal', () => {
 				for (const w of directWithdrawals) {
 					await rollupTestForWithdrawal.setTestData(w.blockNumber, w.blockHash)
 				}
-
+				const withdrawHash0 = await withdrawalLibTest.getHash(
+					directWithdrawals[0].recipient,
+					directWithdrawals[0].tokenIndex,
+					directWithdrawals[0].amount,
+					directWithdrawals[0].nullifier,
+				)
+				const withdrawHash1 = await withdrawalLibTest.getHash(
+					directWithdrawals[1].recipient,
+					directWithdrawals[1].tokenIndex,
+					directWithdrawals[1].amount,
+					directWithdrawals[1].nullifier,
+				)
 				// Submit the withdrawal proof
 				await expect(
 					withdrawal.submitWithdrawalProof(
@@ -284,27 +332,21 @@ describe('Withdrawal', () => {
 					),
 				)
 					.to.emit(withdrawal, 'DirectWithdrawalQueued')
-					.withArgs(1, directWithdrawals[0].recipient, [
+					.withArgs(withdrawHash0, directWithdrawals[0].recipient, [
 						directWithdrawals[0].recipient,
 						directWithdrawals[0].tokenIndex,
 						directWithdrawals[0].amount,
-						1,
+						directWithdrawals[0].nullifier,
 					])
 					.and.to.emit(withdrawal, 'DirectWithdrawalQueued')
-					.withArgs(2, directWithdrawals[1].recipient, [
+					.withArgs(withdrawHash1, directWithdrawals[1].recipient, [
 						directWithdrawals[1].recipient,
 						directWithdrawals[1].tokenIndex,
 						directWithdrawals[1].amount,
-						2,
+						directWithdrawals[1].nullifier,
 					])
-					.and.to.emit(withdrawal, 'WithdrawalsQueued')
-					.withArgs(2, 0)
 
-				// Verify that the withdrawals were queued
-				expect(await withdrawal.lastDirectWithdrawalId()).to.equal(2)
-				expect(await withdrawal.lastClaimableWithdrawalId()).to.equal(0)
-
-				expect(await scrollMessenger.to()).to.equal(liquidity)
+				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.message()).to.not.equal('0x')
 				expect(await scrollMessenger.gasLimit()).to.equal(UINT256_MAX)
@@ -312,13 +354,14 @@ describe('Withdrawal', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('should accept valid withdrawal proof and queue claimable withdrawals', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					liquidity,
-				] = await loadFixture(setup)
+					liquidityAddress,
+					withdrawalLibTest,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				// Create withdrawals for non-direct withdrawal tokens
@@ -341,6 +384,18 @@ describe('Withdrawal', () => {
 				}
 
 				// Submit the withdrawal proof
+				const withdrawHash0 = await withdrawalLibTest.getHash(
+					claimableWithdrawals[0].recipient,
+					claimableWithdrawals[0].tokenIndex,
+					claimableWithdrawals[0].amount,
+					claimableWithdrawals[0].nullifier,
+				)
+				const withdrawHash1 = await withdrawalLibTest.getHash(
+					claimableWithdrawals[1].recipient,
+					claimableWithdrawals[1].tokenIndex,
+					claimableWithdrawals[1].amount,
+					claimableWithdrawals[1].nullifier,
+				)
 				await expect(
 					withdrawal.submitWithdrawalProof(
 						claimableWithdrawals,
@@ -349,27 +404,21 @@ describe('Withdrawal', () => {
 					),
 				)
 					.to.emit(withdrawal, 'ClaimableWithdrawalQueued')
-					.withArgs(1, claimableWithdrawals[0].recipient, [
+					.withArgs(withdrawHash0, claimableWithdrawals[0].recipient, [
 						claimableWithdrawals[0].recipient,
 						claimableWithdrawals[0].tokenIndex,
 						claimableWithdrawals[0].amount,
-						1,
+						claimableWithdrawals[0].nullifier,
 					])
 					.and.to.emit(withdrawal, 'ClaimableWithdrawalQueued')
-					.withArgs(2, claimableWithdrawals[1].recipient, [
+					.withArgs(withdrawHash1, claimableWithdrawals[1].recipient, [
 						claimableWithdrawals[1].recipient,
 						claimableWithdrawals[1].tokenIndex,
 						claimableWithdrawals[1].amount,
-						2,
+						claimableWithdrawals[1].nullifier,
 					])
-					.and.to.emit(withdrawal, 'WithdrawalsQueued')
-					.withArgs(0, 2)
 
-				// Verify that the withdrawals were queued
-				expect(await withdrawal.lastDirectWithdrawalId()).to.equal(0)
-				expect(await withdrawal.lastClaimableWithdrawalId()).to.equal(2)
-
-				expect(await scrollMessenger.to()).to.equal(liquidity)
+				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.message()).to.not.equal('0x')
 				expect(await scrollMessenger.gasLimit()).to.equal(UINT256_MAX)
@@ -377,13 +426,13 @@ describe('Withdrawal', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('should handle mixed direct and claimable withdrawals', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					liquidity,
-				] = await loadFixture(setup)
+					liquidityAddress,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				const mixedWithdrawals = [
@@ -420,12 +469,8 @@ describe('Withdrawal', () => {
 				)
 					.to.emit(withdrawal, 'DirectWithdrawalQueued')
 					.and.to.emit(withdrawal, 'ClaimableWithdrawalQueued')
-					.and.to.emit(withdrawal, 'WithdrawalsQueued')
-					.withArgs(1, 1)
-				expect(await withdrawal.lastDirectWithdrawalId()).to.equal(1)
-				expect(await withdrawal.lastClaimableWithdrawalId()).to.equal(1)
 
-				expect(await scrollMessenger.to()).to.equal(liquidity)
+				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.message()).to.not.equal('0x')
 				expect(await scrollMessenger.gasLimit()).to.equal(UINT256_MAX)
@@ -433,13 +478,14 @@ describe('Withdrawal', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('should emit DirectWithdrawalQueued event for direct withdrawals', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					liquidity,
-				] = await loadFixture(setup)
+					liquidityAddress,
+					withdrawalLibTest,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				const directWithdrawal = {
@@ -460,7 +506,12 @@ describe('Withdrawal', () => {
 					directWithdrawal.blockNumber,
 					directWithdrawal.blockHash,
 				)
-
+				const withdrawHash = await withdrawalLibTest.getHash(
+					directWithdrawal.recipient,
+					directWithdrawal.tokenIndex,
+					directWithdrawal.amount,
+					directWithdrawal.nullifier,
+				)
 				await expect(
 					withdrawal.submitWithdrawalProof(
 						[directWithdrawal],
@@ -469,15 +520,14 @@ describe('Withdrawal', () => {
 					),
 				)
 					.to.emit(withdrawal, 'DirectWithdrawalQueued')
-					.withArgs(1, directWithdrawal.recipient, [
+					.withArgs(withdrawHash, directWithdrawal.recipient, [
 						directWithdrawal.recipient,
 						directWithdrawal.tokenIndex,
 						directWithdrawal.amount,
-						1,
+						directWithdrawal.nullifier,
 					])
-					.and.to.emit(withdrawal, 'WithdrawalsQueued')
-					.withArgs(1, 0)
-				expect(await scrollMessenger.to()).to.equal(liquidity)
+
+				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.message()).to.not.equal('0x')
 				expect(await scrollMessenger.gasLimit()).to.equal(UINT256_MAX)
@@ -485,13 +535,14 @@ describe('Withdrawal', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('should emit ClaimableWithdrawalQueued event for claimable withdrawals', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					liquidity,
-				] = await loadFixture(setup)
+					liquidityAddress,
+					withdrawalLibTest,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				const claimableWithdrawal = {
@@ -512,7 +563,12 @@ describe('Withdrawal', () => {
 					claimableWithdrawal.blockNumber,
 					claimableWithdrawal.blockHash,
 				)
-
+				const withdrawHash = await withdrawalLibTest.getHash(
+					claimableWithdrawal.recipient,
+					claimableWithdrawal.tokenIndex,
+					claimableWithdrawal.amount,
+					claimableWithdrawal.nullifier,
+				)
 				await expect(
 					withdrawal.submitWithdrawalProof(
 						[claimableWithdrawal],
@@ -521,15 +577,14 @@ describe('Withdrawal', () => {
 					),
 				)
 					.to.emit(withdrawal, 'ClaimableWithdrawalQueued')
-					.withArgs(1, claimableWithdrawal.recipient, [
+					.withArgs(withdrawHash, claimableWithdrawal.recipient, [
 						claimableWithdrawal.recipient,
 						claimableWithdrawal.tokenIndex,
 						claimableWithdrawal.amount,
-						1,
+						claimableWithdrawal.nullifier,
 					])
-					.and.to.emit(withdrawal, 'WithdrawalsQueued')
-					.withArgs(0, 1)
-				expect(await scrollMessenger.to()).to.equal(liquidity)
+
+				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.message()).to.not.equal('0x')
 				expect(await scrollMessenger.gasLimit()).to.equal(UINT256_MAX)
@@ -537,12 +592,12 @@ describe('Withdrawal', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('should not requeue already processed withdrawals (nullifier check)', async () => {
-				const [
+				const {
 					withdrawal,
 					scrollMessenger,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-				] = await loadFixture(setup)
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				const singleWithdrawal = getChainedWithdrawals(1)[0]
@@ -578,21 +633,8 @@ describe('Withdrawal', () => {
 						'0x',
 					),
 				)
-					.to.not.emit(withdrawal, 'WithdrawalsQueued')
 					.to.not.emit(withdrawal, 'DirectWithdrawalQueued')
 					.and.to.not.emit(withdrawal, 'ClaimableWithdrawalQueued')
-
-				// Check that the withdrawal IDs haven't changed
-				expect(await withdrawal.lastDirectWithdrawalId()).to.equal(
-					singleWithdrawal.tokenIndex === DIRECT_WITHDRAWAL_TOKEN_INDICES[0]
-						? 1
-						: 0,
-				)
-				expect(await withdrawal.lastClaimableWithdrawalId()).to.equal(
-					singleWithdrawal.tokenIndex === DIRECT_WITHDRAWAL_TOKEN_INDICES[0]
-						? 0
-						: 1,
-				)
 
 				expect(await scrollMessenger.to()).to.equal(ethers.ZeroAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
@@ -603,14 +645,12 @@ describe('Withdrawal', () => {
 			})
 
 			it('call contribution', async () => {
-				const [
+				const {
 					withdrawal,
-					,
 					mockPlonkVerifier,
 					rollupTestForWithdrawal,
-					,
-					contribution,
-				] = await loadFixture(setup)
+					contributionTest,
+				} = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				// Create withdrawals for direct withdrawal tokens
@@ -638,15 +678,15 @@ describe('Withdrawal', () => {
 					'0x',
 				)
 				const tag = ethers.solidityPackedKeccak256(['string'], ['WITHDRAWAL'])
-				expect(await contribution.latestTag()).to.equal(tag)
-				expect(await contribution.latestUser()).to.equal(deployer.address)
-				expect(await contribution.latestAmount()).to.equal(2)
+				expect(await contributionTest.latestTag()).to.equal(tag)
+				expect(await contributionTest.latestUser()).to.equal(deployer.address)
+				expect(await contributionTest.latestAmount()).to.equal(2)
 			})
 		})
 
 		describe('fail', () => {
 			it('should revert when withdrawal chain verification fails', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				const invalidWithdrawals = getChainedWithdrawals(1)
@@ -669,7 +709,7 @@ describe('Withdrawal', () => {
 			})
 
 			it('should revert when withdrawal aggregator does not match msg.sender', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 
 				const validWithdrawals = getChainedWithdrawals(1)
 				const lastWithdrawalHash = getPrevHashFromWithdrawals(validWithdrawals)
@@ -691,8 +731,7 @@ describe('Withdrawal', () => {
 			})
 
 			it('should revert when withdrawal proof verification fails', async () => {
-				const [withdrawal, , mockPlonkVerifier, rollupTestForWithdrawal] =
-					await loadFixture(setup)
+				const { withdrawal, mockPlonkVerifier } = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				// Set MockPlonkVerifier to return false
@@ -719,8 +758,7 @@ describe('Withdrawal', () => {
 			})
 
 			it('should revert when block hash does not exist', async () => {
-				const [withdrawal, , , rollupTestForWithdrawal] =
-					await loadFixture(setup)
+				const { withdrawal, rollupTestForWithdrawal } = await loadFixture(setup)
 				const { deployer } = await getSigners()
 
 				//const invalidBlockHash = ethers.randomBytes(32)
@@ -750,70 +788,112 @@ describe('Withdrawal', () => {
 	describe('DirectWithdrawalTokenIndices', () => {
 		describe('success', () => {
 			it('get token indices', async () => {
-				const [withdrawal] = await loadFixture(setup)
+				const { withdrawal } = await loadFixture(setup)
 				const indices = await withdrawal.getDirectWithdrawalTokenIndices()
 				expect(indices).to.deep.equal(DIRECT_WITHDRAWAL_TOKEN_INDICES)
 			})
 			it('add token indices', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await withdrawal.addDirectWithdrawalTokenIndices([4, 5])
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await withdrawal.connect(admin).addDirectWithdrawalTokenIndices([4, 5])
 				const indices = await withdrawal.getDirectWithdrawalTokenIndices()
 				expect(indices).to.deep.equal(
 					DIRECT_WITHDRAWAL_TOKEN_INDICES.concat([4, 5]),
 				)
 			})
 			it('remove token indices', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await withdrawal.removeDirectWithdrawalTokenIndices([1, 3])
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await withdrawal
+					.connect(admin)
+					.removeDirectWithdrawalTokenIndices([1, 3])
 				const indices = await withdrawal.getDirectWithdrawalTokenIndices()
 				expect(indices).to.deep.equal([2])
 			})
 			it('emit DirectWithdrawalTokenIndicesAdded', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await expect(withdrawal.addDirectWithdrawalTokenIndices([4, 5]))
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await expect(
+					withdrawal.connect(admin).addDirectWithdrawalTokenIndices([4, 5]),
+				)
 					.to.emit(withdrawal, 'DirectWithdrawalTokenIndicesAdded')
 					.withArgs([4, 5])
 			})
 			it('emit DirectWithdrawalTokenIndicesRemoved', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await expect(withdrawal.removeDirectWithdrawalTokenIndices([1, 3]))
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await expect(
+					withdrawal.connect(admin).removeDirectWithdrawalTokenIndices([1, 3]),
+				)
 					.to.emit(withdrawal, 'DirectWithdrawalTokenIndicesRemoved')
 					.withArgs([1, 3])
 			})
 		})
 		describe('fail', () => {
 			it('duplicate data.', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await expect(withdrawal.addDirectWithdrawalTokenIndices([1]))
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await expect(
+					withdrawal.connect(admin).addDirectWithdrawalTokenIndices([1]),
+				)
 					.to.be.revertedWithCustomError(withdrawal, 'TokenAlreadyExist')
 					.withArgs(1)
 			})
 			it('remove token indices', async () => {
-				const [withdrawal] = await loadFixture(setup)
-				await expect(withdrawal.removeDirectWithdrawalTokenIndices([4]))
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await expect(
+					withdrawal.connect(admin).removeDirectWithdrawalTokenIndices([4]),
+				)
 					.to.be.revertedWithCustomError(withdrawal, 'TokenNotExist')
 					.withArgs(4)
+			})
+			it('only owner(addDirectWithdrawalTokenIndices)', async () => {
+				const { withdrawal } = await loadFixture(setup)
+				const { user } = await getSigners()
+				await expect(
+					withdrawal.connect(user).addDirectWithdrawalTokenIndices([4]),
+				)
+					.to.be.revertedWithCustomError(
+						withdrawal,
+						'OwnableUnauthorizedAccount',
+					)
+					.withArgs(user.address)
+			})
+			it('only owner(removeDirectWithdrawalTokenIndices)', async () => {
+				const { withdrawal } = await loadFixture(setup)
+				const { user } = await getSigners()
+				await expect(
+					withdrawal.connect(user).removeDirectWithdrawalTokenIndices([4]),
+				)
+					.to.be.revertedWithCustomError(
+						withdrawal,
+						'OwnableUnauthorizedAccount',
+					)
+					.withArgs(user.address)
 			})
 		})
 	})
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
-			const [withdrawal] = await loadFixture(setup)
-			const { deployer } = await getSigners()
-			const withdrawal2Factory =
-				await ethers.getContractFactory('Withdrawal2Test')
+			const { withdrawal } = await loadFixture(setup)
+			const { admin } = await getSigners()
+			const withdrawal2Factory = await ethers.getContractFactory(
+				'Withdrawal2Test',
+				admin,
+			)
 			const next = await upgrades.upgradeProxy(
 				await withdrawal.getAddress(),
 				withdrawal2Factory,
 				{ unsafeAllow: ['constructor'] },
 			)
 			const owner = await withdrawal.owner()
-			expect(owner).to.equal(deployer.address)
+			expect(owner).to.equal(admin.address)
 			const val = await next.getVal()
 			expect(val).to.equal(3)
 		})
 		it('Cannot upgrade except for a deployer.', async () => {
-			const [withdrawal] = await loadFixture(setup)
+			const { withdrawal } = await loadFixture(setup)
 			const signers = await getSigners()
 			const withdrawal2Factory = await ethers.getContractFactory(
 				'Withdrawal2Test',

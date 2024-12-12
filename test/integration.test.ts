@@ -19,7 +19,6 @@ import {
 	getLastDepositedEvent,
 	getLastDepositsAnalyzedAndRelayedEvent,
 	getLastSentEvent,
-	getWithdrawalsQueuedEvent,
 } from '../utils/events'
 
 describe('Integration', function () {
@@ -40,20 +39,29 @@ describe('Integration', function () {
 	this.beforeEach(async function () {
 		const deployer = (await ethers.getSigners())[0]
 		const analyzer = (await ethers.getSigners())[1]
+		const admin = (await ethers.getSigners())[2]
 		// test token
 		const TestERC20_ = await ethers.getContractFactory('TestERC20')
 		testToken = (await TestERC20_.deploy(deployer)) as TestERC20
 
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		l1Contribution = (await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-			unsafeAllow: ['constructor'],
-		})) as unknown as Contribution
+		l1Contribution = (await upgrades.deployProxy(
+			contributionFactory,
+			[admin.address],
+			{
+				kind: 'uups',
+				unsafeAllow: ['constructor'],
+			},
+		)) as unknown as Contribution
 
-		l2Contribution = (await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-			unsafeAllow: ['constructor'],
-		})) as unknown as Contribution
+		l2Contribution = (await upgrades.deployProxy(
+			contributionFactory,
+			[admin.address],
+			{
+				kind: 'uups',
+				unsafeAllow: ['constructor'],
+			},
+		)) as unknown as Contribution
 
 		// scroll messanger deployment
 		const MockL1ScrollMessenger_ = await ethers.getContractFactory(
@@ -116,6 +124,7 @@ describe('Integration', function () {
 
 		// L1 initialize
 		await liquidity.initialize(
+			admin.address,
 			l1ScrollMessengerAddress,
 			rollupAddress,
 			withdrawalAddress,
@@ -123,18 +132,22 @@ describe('Integration', function () {
 			l1ContributionAddress,
 			[testTokenAddress], // testToken
 		)
-		await l1Contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			liquidityAddress,
-		)
+		await l1Contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				liquidityAddress,
+			)
 
 		// L2 initialize
 		await rollup.initialize(
+			admin.address,
 			l2ScrollMessengerAddress,
 			liquidityAddress,
 			await l2Contribution.getAddress(),
 		)
 		await withdrawal.initialize(
+			admin.address,
 			l2ScrollMessenger,
 			withdrawalVerifierAddress,
 			liquidity,
@@ -142,15 +155,19 @@ describe('Integration', function () {
 			await l2Contribution.getAddress(),
 			[0, 1], // 0: eth, 1: testToken
 		)
-		await registry.initialize()
-		await l2Contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			rollupAddress,
-		)
-		await l2Contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			withdrawalAddress,
-		)
+		await registry.initialize(admin.address)
+		await l2Contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				rollupAddress,
+			)
+		await l2Contribution
+			.connect(admin)
+			.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				withdrawalAddress,
+			)
 	})
 
 	it('deposit', async function () {
@@ -242,11 +259,7 @@ describe('Integration', function () {
 			withdrawalInfo.withdrawalProofPublicInputs,
 			'0x',
 		)
-		const withdrawalsQueuedEvent = await getWithdrawalsQueuedEvent(
-			withdrawal,
-			0,
-		)
-		const { lastDirectWithdrawalId } = withdrawalsQueuedEvent.args
+
 		const sentEvent = await getLastSentEvent(
 			await l2ScrollMessenger.getAddress(),
 			await withdrawal.getAddress(),
@@ -261,21 +274,16 @@ describe('Integration', function () {
 			batchIndex: 0,
 			merkleProof: '0x',
 		}
-		await l1ScrollMessenger.relayMessageWithProof(
-			from,
-			to,
-			value,
-			messageNonce,
-			message,
-			proof,
-		)
-		// check event
-		const directProcessEvent = (
-			await liquidity.queryFilter(
-				liquidity.filters.DirectWithdrawalsProcessed(),
-			)
-		)[0]
-		const { lastProcessedDirectWithdrawalId } = directProcessEvent.args
-		expect(lastProcessedDirectWithdrawalId).to.be.eq(lastDirectWithdrawalId)
+
+		await expect(
+			l1ScrollMessenger.relayMessageWithProof(
+				from,
+				to,
+				value,
+				messageNonce,
+				message,
+				proof,
+			),
+		).to.emit(l1Contribution, 'ContributionRecorded')
 	})
 })
