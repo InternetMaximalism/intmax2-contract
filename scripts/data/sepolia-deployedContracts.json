@@ -1,6 +1,6 @@
 {
-    "mockL1ScrollMessenger": "0x8f0224464dB59365DdD64999CBDadbC1D8e4D271",
+    "mockL1ScrollMessenger": "0x8894d131207B9f976aF82Fb3D14F91A859Cb0197",
     "l1Contribution": "0xfdCbfb90a715D0E4cbfF18437Ad30cA96dcDd78B",
     "testErc20": "0x688241896374eBa3B52a0de621692d7Dc2Eb43Dc",
-    "liquidity": "0xdabB0Ba53714c0Ac6C674D1f7fC1E891d4D2c631"
+    "liquidity": "0x2e14c08Fcdfa0fcBf7557598cDe780D8C0F15dc0"
 }
