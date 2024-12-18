@@ -128,6 +128,26 @@ contract Liquidity is
 		withdrawal = _withdrawal;
 	}
 
+	function updateContractAddresses(
+		address _l1ScrollMessenger,
+		address _rollup,
+		address _withdrawal,
+		address _contribution
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		if (_l1ScrollMessenger != address(0)) {
+			l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
+		}
+		if (_rollup != address(0)) {
+			rollup = _rollup;
+		}
+		if (_withdrawal != address(0)) {
+			withdrawal = _withdrawal;
+		}
+		if (_contribution != address(0)) {
+			contribution = IContribution(_contribution);
+		}
+	}
+
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
 		_pause();
 	}
