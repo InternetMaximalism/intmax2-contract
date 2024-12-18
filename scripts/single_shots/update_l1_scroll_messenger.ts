@@ -10,13 +10,13 @@ async function main() {
     if (!deployedContracts.liquidity) {
         throw new Error('liquidity contract should be deployed')
     }
-    if (!deployedContracts.l1Contribution) {
-        throw new Error('l1Contribution contract should be deployed')
+    if (!deployedContracts.mockL1ScrollMessenger) {
+        throw new Error('mockL1ScrollMessenger contract should be deployed')
     }
 
     const liquidity = await ethers.getContractAt('Liquidity', deployedContracts.liquidity)
     const zeroAddress = ethers.ZeroAddress;
-    const tx = await liquidity.updateContractAddresses(deployedContracts.l1Contribution, zeroAddress, zeroAddress, zeroAddress)
+    const tx = await liquidity.updateContractAddresses(deployedContracts.mockL1ScrollMessenger, zeroAddress, zeroAddress, zeroAddress)
     console.log('Transaction hash:', tx.hash)
 }
 
