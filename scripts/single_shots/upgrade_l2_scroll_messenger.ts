@@ -27,3 +27,8 @@ async function main() {
     const tx2 = await withdrawal.updateContractAddresses(deployedContracts.mockL2ScrollMessenger, zero, zero, zero, zero)
     console.log('Withdrawal.updateContractAddresses tx hash:', tx2.hash)
 }
+
+main().catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+})
