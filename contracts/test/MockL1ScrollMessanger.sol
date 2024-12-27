@@ -80,7 +80,7 @@ contract MockL1ScrollMessenger is IL1ScrollMessenger, AccessControl {
 		bytes memory _message,
 		uint32 _newGasLimit,
 		address _refundAddress
-	) external payable {
+	) external payable onlyRole(RELAYER_ROLE) {
 		(_messageNonce);
 		(_from);
 		(_refundAddress);

@@ -86,6 +86,22 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		blockBuilders.push(address(0));
 	}
 
+	function updateContractAddresses(
+		address _scrollMessenger,
+		address _liquidity,
+		address _contribution
+	) external onlyOwner {
+		if (_scrollMessenger != address(0)) {
+			l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
+		}
+		if (_liquidity != address(0)) {
+			liquidity = _liquidity;
+		}
+		if (_contribution != address(0)) {
+			contribution = IContribution(_contribution);
+		}
+	}
+
 	function postRegistrationBlock(
 		bytes32 txTreeRoot,
 		bytes16 senderFlags,
