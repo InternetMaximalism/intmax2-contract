@@ -11,6 +11,7 @@ describe('Withdrawal', function () {
 	let withdrawal: Withdrawal
 
 	this.beforeEach(async function () {
+		const defaultSigner = (await ethers.getSigners())[0]
 		const admin = (await ethers.getSigners())[1]
 		const registryFactory = await ethers.getContractFactory(
 			'BlockBuilderRegistry',
@@ -54,7 +55,7 @@ describe('Withdrawal', function () {
 		const mockL2MessengerFactory = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
 		)
-		const mockL2ScrollMessenger = await mockL2MessengerFactory.deploy()
+		const mockL2ScrollMessenger = await mockL2MessengerFactory.deploy(admin.address, defaultSigner.address)
 		const mockL2ScrollMessengerAddress =
 			await mockL2ScrollMessenger.getAddress()
 

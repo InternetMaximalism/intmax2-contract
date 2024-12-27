@@ -2,12 +2,20 @@
 
 pragma solidity 0.8.27;
 import {IL1ScrollMessenger} from "@scroll-tech/contracts/L1/IL1ScrollMessenger.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract MockL1ScrollMessenger is IL1ScrollMessenger {
+contract MockL1ScrollMessenger is IL1ScrollMessenger, AccessControl {
 	address public xDomainMessageSender;
 	mapping(bytes32 => bool) private isL2MessageExecuted;
 	uint256 private nonce;
 	uint256 private constant FEE = 1;
+
+	bytes32 public constant RELAYER_ROLE = keccak256("RELAYER");
+
+	constructor(address admin, address relayer) {
+		_grantRole(DEFAULT_ADMIN_ROLE, admin);
+		_grantRole(RELAYER_ROLE, relayer);
+	}
 
 	function sendMessage(
 		address _to,
@@ -42,7 +50,7 @@ contract MockL1ScrollMessenger is IL1ScrollMessenger {
 		uint256 _nonce,
 		bytes memory _message,
 		L2MessageProof memory _proof
-	) external {
+	) external onlyRole(RELAYER_ROLE) {
 		(_proof);
 		bytes32 _xDomainCalldataHash = keccak256(
 			_encodeXDomainCalldata(_from, _to, _value, _nonce, _message)

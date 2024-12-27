@@ -20,6 +20,7 @@ import {
 	getLastDepositsAnalyzedAndRelayedEvent,
 	getLastSentEvent,
 } from '../utils/events'
+import { l1 } from '../typechain-types/@scroll-tech/contracts'
 
 describe('Integration', function () {
 	let l1ScrollMessenger: MockL1ScrollMessenger
@@ -68,12 +69,12 @@ describe('Integration', function () {
 			'MockL1ScrollMessenger',
 		)
 		l1ScrollMessenger =
-			(await MockL1ScrollMessenger_.deploy()) as MockL1ScrollMessenger
+			(await MockL1ScrollMessenger_.deploy(admin.address, deployer.address)) as MockL1ScrollMessenger
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
 		)
 		l2ScrollMessenger =
-			(await MockL2ScrollMessenger_.deploy()) as MockL2ScrollMessenger
+			(await MockL2ScrollMessenger_.deploy(admin.address, deployer.address)) as MockL2ScrollMessenger
 
 		// plonk verifier deployment
 		const MockPlonkVerifier_ =

@@ -16,11 +16,12 @@ describe('Rollup', function () {
 	let liquidityAddress: string
 
 	this.beforeEach(async function () {
+		const defaultSigner = (await ethers.getSigners())[0]
 		const admin = (await ethers.getSigners())[1]
 		const mockL2ScrollMessengerFactory = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
 		)
-		mockL2ScrollMessenger = await mockL2ScrollMessengerFactory.deploy()
+		mockL2ScrollMessenger = await mockL2ScrollMessengerFactory.deploy(admin.address, defaultSigner.address)
 
 		const registryFactory = await ethers.getContractFactory(
 			'BlockBuilderRegistry',

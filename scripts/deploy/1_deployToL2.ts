@@ -5,6 +5,7 @@ import { cleanEnv, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	RELAYER_ADDRESS: str(),
 })
 
 async function main() {
@@ -103,7 +104,7 @@ async function main() {
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
 		)
-		const l2ScrollMessenger = await MockL2ScrollMessenger_.deploy()
+		const l2ScrollMessenger = await MockL2ScrollMessenger_.deploy(env.ADMIN_ADDRESS, env.RELAYER_ADDRESS)
 		const deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
 			mockL2ScrollMessenger: await l2ScrollMessenger.getAddress(),
