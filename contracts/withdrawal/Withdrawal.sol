@@ -74,6 +74,30 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		innerAddDirectWithdrawalTokenIndices(_directWithdrawalTokenIndices);
 	}
 
+	function updateContractAddresses(
+		address _scrollMessenger,
+		address _withdrawalVerifier,
+		address _liquidity,
+		address _rollup,
+		address _contribution
+	) external onlyOwner {
+		if (_scrollMessenger != address(0)) {
+			l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
+		}
+		if (_withdrawalVerifier != address(0)) {
+			withdrawalVerifier = IPlonkVerifier(_withdrawalVerifier);
+		}
+		if (_liquidity != address(0)) {
+			liquidity = _liquidity;
+		}
+		if (_rollup != address(0)) {
+			rollup = IRollup(_rollup);
+		}
+		if (_contribution != address(0)) {
+			contribution = IContribution(_contribution);
+		}
+	}
+
 	function submitWithdrawalProof(
 		ChainedWithdrawalLib.ChainedWithdrawal[] calldata withdrawals,
 		WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs
