@@ -1,6 +1,9 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
+import {
+	loadFixture,
+	time,
+} from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { BlockHashLibTest } from '../../../typechain-types'
 
 describe('BlockHashLib', function () {
@@ -8,6 +11,21 @@ describe('BlockHashLib', function () {
 		const BlockHashLibTest = await ethers.getContractFactory('BlockHashLibTest')
 		const blockHashLibTest = await BlockHashLibTest.deploy()
 		return blockHashLibTest
+	}
+
+	const getBlockHash = (
+		prevHash: string,
+		depositTreeRoot: string | Uint8Array,
+		signatureHash: string | Uint8Array,
+		timestamp: number,
+		blockNumber: bigint,
+	): string => {
+		return ethers.keccak256(
+			ethers.solidityPacked(
+				['bytes32', 'bytes32', 'bytes32', 'uint64', 'uint32'],
+				[prevHash, depositTreeRoot, signatureHash, timestamp, blockNumber],
+			),
+		)
 	}
 
 	describe('Genesis block', function () {
@@ -21,18 +39,24 @@ describe('BlockHashLib', function () {
 			const signatureHash = ethers.randomBytes(32)
 
 			const prevHash = await blockHashLibTest.getPrevHash()
+			const timestamp = await time.latest()
 
-			await blockHashLibTest.pushBlockHash(depositTreeRoot, signatureHash)
+			await blockHashLibTest.pushBlockHash(
+				depositTreeRoot,
+				signatureHash,
+				timestamp,
+			)
 
 			const newBlockHash = await blockHashLibTest.latestBlockHash()
 
 			const updatedBlockNumber = await blockHashLibTest.getBlockNumber()
 
-			const expectedNewHash = ethers.keccak256(
-				ethers.solidityPacked(
-					['bytes32', 'bytes32', 'bytes32', 'uint32'],
-					[prevHash, depositTreeRoot, signatureHash, updatedBlockNumber - 1n],
-				),
+			const expectedNewHash = getBlockHash(
+				prevHash,
+				depositTreeRoot,
+				signatureHash,
+				timestamp,
+				updatedBlockNumber - 1n,
 			)
 
 			expect(newBlockHash).to.equal(
@@ -54,8 +78,13 @@ describe('BlockHashLib', function () {
 
 			const prevHash = await blockHashLibTest.getPrevHash()
 			const blockNumberBeforePush = await blockHashLibTest.getBlockNumber()
+			const timestamp = await time.latest()
 
-			await blockHashLibTest.pushBlockHash(depositTreeRoot, signatureHash)
+			await blockHashLibTest.pushBlockHash(
+				depositTreeRoot,
+				signatureHash,
+				timestamp,
+			)
 			const newBlockHash = await blockHashLibTest.latestBlockHash()
 
 			const latestBlockHash = await blockHashLibTest.latestBlockHash()
@@ -70,11 +99,12 @@ describe('BlockHashLib', function () {
 				'Block number should be incremented by 1',
 			)
 
-			const expectedNewHash = ethers.keccak256(
-				ethers.solidityPacked(
-					['bytes32', 'bytes32', 'bytes32', 'uint32'],
-					[prevHash, depositTreeRoot, signatureHash, blockNumberBeforePush],
-				),
+			const expectedNewHash = getBlockHash(
+				prevHash,
+				depositTreeRoot,
+				signatureHash,
+				timestamp,
+				blockNumberBeforePush,
 			)
 
 			expect(newBlockHash).to.equal(
