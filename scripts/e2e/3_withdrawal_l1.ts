@@ -16,7 +16,6 @@ async function main() {
 		!deployedContracts.withdrawal ||
 		!deployedContracts.blockBuilderRegistry ||
 		!deployedContracts.withdrawalPlonkVerifier ||
-		!deployedContracts.fraudPlonkVerifier ||
 		!deployedContracts.liquidity
 	) {
 		throw new Error('all contracts should be deployed')

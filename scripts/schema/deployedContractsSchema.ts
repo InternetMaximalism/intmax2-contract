@@ -26,11 +26,12 @@ export const DeployedContractsSchema = z
 		withdrawalPlonkVerifier: ethereumAddressSchema.describe(
 			'PLONK verifier for withdrawal contract address',
 		),
-		fraudPlonkVerifier: ethereumAddressSchema.describe(
-			'PLONK verifier for fraud proof contract address',
+		claimPlonkVerifier: ethereumAddressSchema.describe(
+			'PLONK verifier for claim contract address',
 		),
 		rollup: ethereumAddressSchema.describe('Rollup contract address'),
 		withdrawal: ethereumAddressSchema.describe('Withdrawal contract address'),
+		claim: ethereumAddressSchema.describe('Claim contract address'),
 		blockBuilderRegistry: ethereumAddressSchema.describe(
 			'Block builder registry contract address',
 		),

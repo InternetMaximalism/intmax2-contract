@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 import {IL1ScrollMessenger} from "@scroll-tech/contracts/L1/IL1ScrollMessenger.sol";
 
 contract MockL1ScrollMessenger is IL1ScrollMessenger {
 	address public xDomainMessageSender;
 	mapping(bytes32 => bool) private isL2MessageExecuted;
 	uint256 private nonce;
-	uint256 private constant FEE = 0.01 ether;
+	uint256 private constant FEE = 1;
 
 	function sendMessage(
 		address _to,
@@ -15,6 +15,10 @@ contract MockL1ScrollMessenger is IL1ScrollMessenger {
 		bytes memory _message,
 		uint256 _gasLimit
 	) external payable {
+		if (FEE + _value > msg.value) {
+			// solhint-disable-next-line gas-custom-errors
+			revert("insufficient msg.value");
+		}
 		_sendMessage(_to, _value, _message, _gasLimit, msg.sender);
 		payable(msg.sender).transfer(msg.value - FEE - _value);
 	}

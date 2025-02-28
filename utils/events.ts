@@ -5,25 +5,8 @@ import {
 	DepositedEvent,
 	DepositsAnalyzedAndRelayedEvent,
 } from '../typechain-types/contracts/liquidity/Liquidity'
-import type {
-	Withdrawal,
-	WithdrawalsQueuedEvent,
-} from '../typechain-types/contracts/withdrawal/Withdrawal'
-const scrollMessengerAbi = IScrollMessenger__factory.abi
 
-export async function getWithdrawalsQueuedEvent(
-	withdrawal: Withdrawal,
-	fromBlock: number,
-): Promise<WithdrawalsQueuedEvent.Log> {
-	const events = await withdrawal.queryFilter(
-		withdrawal.filters.WithdrawalsQueued(),
-		fromBlock,
-	)
-	const latestEvent = events[
-		events.length - 1
-	] as unknown as WithdrawalsQueuedEvent.Log
-	return latestEvent
-}
+const scrollMessengerAbi = IScrollMessenger__factory.abi
 
 export async function getLastDepositedEvent(
 	liquidity: Liquidity,

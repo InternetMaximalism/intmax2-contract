@@ -14,8 +14,9 @@ interface Block {
 }
 
 interface Signature {
-	isRegistorationBlock: boolean
+	isRegistrationBlock: boolean
 	txTreeRoot: string
+	expiry: string
 	senderFlag: string
 	pubkeyHash: string
 	accountIdHash: string

@@ -117,3 +117,9 @@ npx hardhat run scripts/e2e/3_withdrawal_l1.ts --network sepolia
 ```sh
 npm run lint
 ```
+
+### generate docs
+
+```sh
+npx hardhat docgen
+```

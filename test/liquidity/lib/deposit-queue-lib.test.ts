@@ -15,7 +15,6 @@ describe('DepositQueueLib', function () {
 			const lib = await loadFixture(setup)
 			expect(await lib.getFront()).to.equal(1)
 			expect(await lib.getRear()).to.equal(1)
-			expect(await lib.size()).to.equal(0)
 		})
 	})
 
@@ -26,11 +25,9 @@ describe('DepositQueueLib', function () {
 
 			await lib.enqueue(ethers.keccak256('0x01'), sender.address)
 			expect(await lib.latestDepositId()).to.equal(1)
-			expect(await lib.size()).to.equal(1)
 
 			await lib.enqueue(ethers.keccak256('0x02'), sender.address)
 			expect(await lib.latestDepositId()).to.equal(2)
-			expect(await lib.size()).to.equal(2)
 		})
 	})
 
@@ -117,8 +114,8 @@ describe('DepositQueueLib', function () {
 			it('should revert when trying to analyze non-existent deposits', async function () {
 				const lib = await loadFixture(setup)
 				await expect(lib.analyze(1, []))
-					.to.be.revertedWithCustomError(lib, 'TriedAnalyzeNotExists')
-					.withArgs(1, 1)
+					.to.be.revertedWithCustomError(lib, 'TriedAnalyzeOutOfRange')
+					.withArgs(1, 1, 0)
 			})
 
 			it('should revert when trying to reject out of range deposits', async function () {
@@ -130,24 +127,6 @@ describe('DepositQueueLib', function () {
 					.to.be.revertedWithCustomError(lib, 'TriedToRejectOutOfRange')
 					.withArgs(2, 1, 1)
 			})
-		})
-	})
-
-	describe('size', function () {
-		it('should return correct size', async function () {
-			const lib = await loadFixture(setup)
-			const [sender] = await ethers.getSigners()
-
-			expect(await lib.size()).to.equal(0)
-
-			await lib.enqueue(ethers.keccak256('0x01'), sender.address)
-			expect(await lib.size()).to.equal(1)
-
-			await lib.enqueue(ethers.keccak256('0x02'), sender.address)
-			expect(await lib.size()).to.equal(2)
-
-			await lib.analyze(2, [])
-			expect(await lib.size()).to.equal(0)
 		})
 	})
 })

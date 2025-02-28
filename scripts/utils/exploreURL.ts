@@ -4,11 +4,7 @@ import { readDeployedContracts } from './io'
 
 async function main() {
 	const deployedL1Contracts = await readDeployedContracts()
-	if (
-		!deployedL1Contracts.mockL1ScrollMessenger ||
-		!deployedL1Contracts.testErc20 ||
-		!deployedL1Contracts.liquidity
-	) {
+	if (!deployedL1Contracts.testErc20 || !deployedL1Contracts.liquidity) {
 		throw new Error('all l1 contracts should be deployed')
 	}
 
@@ -18,16 +14,17 @@ async function main() {
 	if (
 		!deployedL2Contracts.rollup ||
 		!deployedL2Contracts.withdrawal ||
+		!deployedL2Contracts.claim ||
 		!deployedL2Contracts.blockBuilderRegistry ||
 		!deployedL2Contracts.withdrawalPlonkVerifier ||
-		!deployedL2Contracts.fraudPlonkVerifier
+		!deployedL2Contracts.claimPlonkVerifier
 	) {
 		throw new Error('all l2 contracts should be deployed')
 	}
 
 	console.log('----------L1 contracts----------')
 
-	const l1Contracts = ['mockL1ScrollMessenger', 'testErc20', 'liquidity']
+	const l1Contracts = ['testErc20', 'liquidity']
 
 	// l1 contracts
 	for (const contract of l1Contracts) {
@@ -42,12 +39,12 @@ async function main() {
 	console.log('\n----------L2 contracts----------')
 
 	const l2Contracts = [
-		'mockL2ScrollMessenger',
 		'rollup',
 		'withdrawal',
+		'claim',
 		'blockBuilderRegistry',
 		'withdrawalPlonkVerifier',
-		'fraudPlonkVerifier',
+		'claimPlonkVerifier',
 	]
 
 	// l2 contracts

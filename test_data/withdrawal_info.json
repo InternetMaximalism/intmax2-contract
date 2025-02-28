@@ -1,33 +1,33 @@
 {
 	"withdrawals": [
 		{
-			"recipient": "0xd192ea9711b8823adb1dfde39e3f6128b36998ad",
-			"tokenIndex": 1,
-			"amount": "2884746896",
-			"nullifier": "0xc9055662532fc768aa77ac12dd58898e159ba8dbd0efd947157eb310f46bbc6e",
-			"blockHash": "0x2aa9da4a6e76bcfb217ffe0533ed48c0f75beea04e2792d883bc5e000319a536",
-			"blockNumber": 2
-		},
-		{
-			"recipient": "0x84ca4d1adc6b7cd6c0c08aa8410142c3de2674d5",
+			"recipient": "0xbfd4a4ae87b83854f80c4de3d9987f7eff0ea77d",
 			"tokenIndex": 0,
-			"amount": "376259972",
-			"nullifier": "0x3c59c49b59e3238ae5db98b82ff64e1be299eb1085bec5189f85f25dfa077d26",
-			"blockHash": "0x2aa9da4a6e76bcfb217ffe0533ed48c0f75beea04e2792d883bc5e000319a536",
-			"blockNumber": 2
+			"amount": "198490043",
+			"nullifier": "0x1ce4b87bfd960655f6ff78ef34bb13f00ca57b626e3bd6a26cfacf84a6e1329a",
+			"blockHash": "0x1cd25e9470cb54589ce3db710ff794c1b8051995a6abf1c874ad8547c1a72ba8",
+			"blockNumber": 3
 		},
 		{
-			"recipient": "0x69194a024389963b6742ac36400a21107bb0adce",
+			"recipient": "0x75e88c6330f0a328ec9c7a3cfed54eba3a1f55f0",
 			"tokenIndex": 1,
-			"amount": "417321597",
-			"nullifier": "0xac0c94499fa708d2cab2a0b3b250cb874ae55c63cd8257a1a26c9c2bea01252b",
-			"blockHash": "0x2aa9da4a6e76bcfb217ffe0533ed48c0f75beea04e2792d883bc5e000319a536",
-			"blockNumber": 2
+			"amount": "2945936106",
+			"nullifier": "0x27c7951fb892a064d5e34c7976ef4fb1345f0997135f3ef380cd14a8e15e4e8d",
+			"blockHash": "0x1cd25e9470cb54589ce3db710ff794c1b8051995a6abf1c874ad8547c1a72ba8",
+			"blockNumber": 3
+		},
+		{
+			"recipient": "0xa3438bd0bf5704d87a95e009582b922fe04696e7",
+			"tokenIndex": 1,
+			"amount": "271577128",
+			"nullifier": "0xecdca315fca4dc38295b537337800b8b6fdc7e07fa202be24c0bcc72eadd98ee",
+			"blockHash": "0x1cd25e9470cb54589ce3db710ff794c1b8051995a6abf1c874ad8547c1a72ba8",
+			"blockNumber": 3
 		}
 	],
 	"withdrawalProofPublicInputs": {
-		"lastWithdrawalHash": "0x187a2401b34516409328606a054b0ba00cc3673e633d69e62c8de8f7b3894ef8",
+		"lastWithdrawalHash": "0xcafb3b5612ff4446325cb93249aff56d6f6c52aa13334e6ea07f972ad9090e51",
 		"withdrawalAggregator": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 	},
-	"pisHash": "0x85a23d3df2e0b18169a2f95725c802f34b5eac584346ecdd6ef0029ca46d39f4"
+	"pisHash": "0x523869a5112c98ca1626354d3534737eefe9afccf0c9ad4df3bbec39a269adb2"
 }

@@ -1,13 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.27;
 
 library PairingLib {
+	/// @notice Error thrown when the pairing operation fails
 	error PairingOpCodeFailed();
 
+	/// @dev X-coordinate of the negated generator point G1
 	uint256 internal constant NEG_G1_X = 1;
+	/// @dev Y-coordinate of the negated generator point G1
 	uint256 internal constant NEG_G1_Y =
 		21888242871839275222246405745257275088696311157297823662689037894645226208581;
 
+	/// @notice Performs an elliptic curve pairing operation
+	/// @param aggregatedPublicKey The aggregated public key (2 32-byte elements)
+	/// @param aggregatedSignature The aggregated signature (4 32-byte elements)
+	/// @param messagePoint The message point (4 32-byte elements)
+	/// @return bool True if the pairing is valid, false otherwise
 	function pairing(
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,

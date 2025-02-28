@@ -13,6 +13,11 @@ export async function readDeployedContracts(
 ): Promise<DeployedContracts> {
 	const path = deployedContractPath.replace('{networkName}', networkName)
 	try {
+		const exists = await fs.pathExists(path)
+		if (!exists) {
+			await fs.writeJson(path, {}, { spaces: 2 })
+			return {}
+		}
 		const data = await fs.readJson(path)
 		return DeployedContractsSchema.parse(data)
 	} catch (error) {

@@ -2,25 +2,12 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { DepositTreeLibTest } from '../../../typechain-types'
+import { getDepositHash } from '../../common.test'
 
 describe('DepositTreeLibTest', function () {
 	const setup = async (): Promise<DepositTreeLibTest> => {
 		const factory = await ethers.getContractFactory('DepositTreeLibTest')
 		return await factory.deploy()
-	}
-
-	// Helper function to mimic DepositLib.getHash
-	function getDepositHash(
-		recipientSaltHash: string,
-		tokenIndex: number,
-		amount: bigint,
-	): string {
-		const packed = ethers.solidityPacked(
-			['bytes32', 'uint32', 'uint256'],
-			[recipientSaltHash, tokenIndex, amount],
-		)
-		const hash = ethers.keccak256(packed)
-		return hash
 	}
 
 	it('should initialize with correct values', async function () {

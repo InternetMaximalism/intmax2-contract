@@ -29,12 +29,12 @@ async function main() {
 	const pubkey = getRandomPubkey() // intmax address of user
 	const salt = getRandomSalt() // random salt
 	const recipientSaltHash = getPubkeySaltHash(pubkey, salt)
-	const amount = '1000000'
+	const amount = '1234'
 
 	// approve
 	tx = await testErc20
 		.connect(user)
-		.approve(await liquidity.getAddress(), '1000000')
+		.approve(await liquidity.getAddress(), amount)
 	console.log('approve tx hash:', tx.hash)
 	await tx.wait()
 
@@ -65,12 +65,12 @@ async function main() {
 		amount,
 	}
 
-	// cancel the deposit
-	tx = await liquidity.connect(user).cancelDeposit(depositId, deposit)
-	console.log('cancel tx hash:', tx.hash)
-	await tx.wait()
+	// // cancel the deposit
+	// tx = await liquidity.connect(user).cancelDeposit(depositId, deposit)
+	// console.log('cancel tx hash:', tx.hash)
+	// await tx.wait()
 
-	console.log('after balance', await testErc20.balanceOf(user.address))
+	// console.log('after balance', await testErc20.balanceOf(user.address))
 }
 
 main().catch((error) => {

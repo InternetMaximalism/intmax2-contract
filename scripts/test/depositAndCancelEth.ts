@@ -18,18 +18,22 @@ async function main() {
 	let tx: ContractTransactionResponse
 
 	const user = (await ethers.getSigners())[0]
+	const balance = await ethers.provider.getBalance(user.address)
+	console.log('balance:', balance.toString())
 	const pubkey = getRandomPubkey() // intmax address of user
 	const salt = getRandomSalt() // random salt
 	const recipientSaltHash = getPubkeySaltHash(pubkey, salt)
 	const deposit = {
 		recipientSaltHash,
 		tokenIndex: 0,
-		amount: ethers.parseEther('0.001'),
+		amount: ethers.parseEther('0.000001'),
 	}
 
-	tx = await liquidity.connect(user).depositETH(deposit.recipientSaltHash, {
-		value: deposit.amount,
-	})
+	tx = await liquidity
+		.connect(user)
+		.depositNativeToken(deposit.recipientSaltHash, {
+			value: deposit.amount,
+		})
 	console.log('deposit tx hash:', tx.hash)
 	const res = await tx.wait()
 	if (!res?.blockNumber) {

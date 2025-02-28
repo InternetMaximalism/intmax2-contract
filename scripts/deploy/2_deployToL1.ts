@@ -1,14 +1,24 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
-import {
-	getL1MessengerAddress,
-	getUSDCAddress,
-	getWBTCAddress,
-} from '../utils/addressBook'
+import { getL1MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
+import { cleanEnv, num, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	ADMIN_ADDRESS: str(),
+	ANALYZER_ADDRESS: str(),
+	SLEEP_TIME: num({
+		default: 30,
+	}),
+})
 
 async function main() {
+	let admin = env.ADMIN_ADDRESS
+	if (network.name === 'localhost') {
+		admin = (await ethers.getSigners())[0].address
+	}
+
 	let deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.mockL1ScrollMessenger) {
 		console.log('deploying mockL1ScrollMessenger')
@@ -21,15 +31,31 @@ async function main() {
 			mockL1ScrollMessenger: await l1ScrollMessenger.getAddress(),
 			...deployedContracts,
 		})
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
+	}
+
+	if (!deployedContracts.testErc20) {
+		console.log('deploying testErc20')
+		const TestERC20 = await ethers.getContractFactory('TestERC20')
+		const owner = (await ethers.getSigners())[0]
+		const testErc20 = await TestERC20.deploy(owner.address)
+		const deployedContracts = await readDeployedContracts()
+		await writeDeployedContracts({
+			testErc20: await testErc20.getAddress(),
+			...deployedContracts,
+		})
 	}
 
 	if (!deployedContracts.l1Contribution) {
 		console.log('deploying l1Contribution')
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const l1Contribution = await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-		})
+		const l1Contribution = await upgrades.deployProxy(
+			contributionFactory,
+			[admin],
+			{
+				kind: 'uups',
+			},
+		)
 		const deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
 			l1Contribution: await l1Contribution.getAddress(),
@@ -48,20 +74,32 @@ async function main() {
 		if (!deployedL2Contracts.withdrawal) {
 			throw new Error('withdrawal address is not set')
 		}
+		if (!deployedL2Contracts.claim) {
+			throw new Error('claim address is not set')
+		}
 		if (!deployedContracts.l1Contribution) {
 			throw new Error('l1Contribution address is not set')
 		}
+		if (!deployedContracts.testErc20) {
+			throw new Error('testErc20 address is not set')
+		}
 
-		const analyzer = (await ethers.getSigners())[1]
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
-		const initialERC20Tokens = [getUSDCAddress(), getWBTCAddress()]
+		// todo fix
+		const initialERC20Tokens = [
+			deployedContracts.testErc20,
+			'0x779877A7B0D9E8603169DdbD7836e478b4624789',
+			'0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+		]
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
 			[
+				admin,
 				await getL1MessengerAddress(),
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
-				analyzer.address,
+				deployedL2Contracts.claim,
+				env.ANALYZER_ADDRESS,
 				deployedContracts.l1Contribution,
 				initialERC20Tokens,
 			],
@@ -87,18 +125,6 @@ async function main() {
 		deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
 			liquidity: await liquidity.getAddress(),
-			...deployedContracts,
-		})
-	}
-
-	if (!deployedContracts.testErc20) {
-		console.log('deploying testErc20')
-		const TestERC20 = await ethers.getContractFactory('TestERC20')
-		const owner = (await ethers.getSigners())[0]
-		const testErc20 = await TestERC20.deploy(owner.address)
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			testErc20: await testErc20.getAddress(),
 			...deployedContracts,
 		})
 	}

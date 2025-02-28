@@ -1,8 +1,21 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { sleep } from '../../utils/sleep'
+import { cleanEnv, num, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	ADMIN_ADDRESS: str(),
+	SLEEP_TIME: num({
+		default: 30,
+	}),
+})
 
 async function main() {
+	let admin = env.ADMIN_ADDRESS
+	if (network.name === 'localhost') {
+		admin = (await ethers.getSigners())[0].address
+	}
+
 	const deployedContracts = await readDeployedContracts()
 
 	if (!deployedContracts.rollup) {
@@ -18,7 +31,7 @@ async function main() {
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.blockBuilderRegistry) {
@@ -40,7 +53,7 @@ async function main() {
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.withdrawal) {
@@ -56,48 +69,79 @@ async function main() {
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
+	}
+
+	if (!deployedContracts.claim) {
+		console.log('deploying claim')
+		const claimFactory = await ethers.getContractFactory('Claim')
+		const claim = await upgrades.deployProxy(claimFactory, [], {
+			initializer: false,
+			kind: 'uups',
+		})
+		const deployedContracts = await readDeployedContracts()
+		const newContractAddresses = {
+			claim: await claim.getAddress(),
+			...deployedContracts,
+		}
+		await writeDeployedContracts(newContractAddresses)
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.l2Contribution) {
 		console.log('deploying l2Contribution')
 		const contributionFactory = await ethers.getContractFactory('Contribution')
-		const l2Contribution = await upgrades.deployProxy(contributionFactory, [], {
-			kind: 'uups',
-		})
+		const l2Contribution = await upgrades.deployProxy(
+			contributionFactory,
+			[admin],
+			{
+				kind: 'uups',
+			},
+		)
 		const deployedContracts = await readDeployedContracts()
 		const newContractAddresses = {
 			l2Contribution: await l2Contribution.getAddress(),
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
 	}
 
-	const MockPlonkVerifier_ =
-		await ethers.getContractFactory('MockPlonkVerifier')
+	let WithdrawalPlonkVerifier_
+	let ClaimPlonkVerifier_
+	if (network.name === 'localhost') {
+		WithdrawalPlonkVerifier_ =
+			await ethers.getContractFactory('MockPlonkVerifier')
+		ClaimPlonkVerifier_ = await ethers.getContractFactory('MockPlonkVerifier')
+	} else {
+		WithdrawalPlonkVerifier_ = await ethers.getContractFactory(
+			'WithdrawalPlonkVerifier',
+		)
+		ClaimPlonkVerifier_ = await ethers.getContractFactory('ClaimPlonkVerifier')
+	}
 
 	if (!deployedContracts.withdrawalPlonkVerifier) {
 		console.log('deploying withdrawalPlonkVerifier')
-		const withdrawalVerifier = await MockPlonkVerifier_.deploy()
+		const withdrawalVerifier = await WithdrawalPlonkVerifier_.deploy()
 		const deployedContracts = await readDeployedContracts()
 		const newContractAddresses = {
 			withdrawalPlonkVerifier: await withdrawalVerifier.getAddress(),
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)
-		await sleep(30)
+		await sleep(env.SLEEP_TIME)
 	}
 
-	if (!deployedContracts.fraudPlonkVerifier) {
-		console.log('deploying fraudPlonkVerifier')
-		const fraudVerifier = await MockPlonkVerifier_.deploy()
+	if (!deployedContracts.claimPlonkVerifier) {
+		console.log('deploying claimPlonkVerifier')
+		const claimVerifier = await ClaimPlonkVerifier_.deploy()
 		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			fraudPlonkVerifier: await fraudVerifier.getAddress(),
+		const newContractAddresses = {
+			claimPlonkVerifier: await claimVerifier.getAddress(),
 			...deployedContracts,
-		})
-		await sleep(30)
+		}
+		await writeDeployedContracts(newContractAddresses)
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.mockL2ScrollMessenger) {

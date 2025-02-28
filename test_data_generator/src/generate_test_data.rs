@@ -7,15 +7,24 @@ use std::{
 use ark_bn254::{G1Affine, G2Affine};
 use ark_std::UniformRand as _;
 use intmax2_zkp::{
-    circuits::withdrawal::withdrawal_wrapper_circuit::WithdrawalProofPublicInputs,
+    circuits::{
+        test_utils::witness_generator::{construct_validity_and_tx_witness, MockTxRequest},
+        validity::validity_pis::ValidityPublicInputs,
+        withdrawal::withdrawal_wrapper_circuit::WithdrawalProofPublicInputs,
+    },
     common::{
-        signature::flatten::{FlatG1, FlatG2},
-        transfer::Transfer,
+        signature::{
+            flatten::{FlatG1, FlatG2},
+            key_set::KeySet,
+        },
+        trees::{
+            account_tree::AccountTree, block_hash_tree::BlockHashTree, deposit_tree::DepositTree,
+        },
+        tx::Tx,
         withdrawal::Withdrawal,
-        witness::block_witness::FullBlock,
+        witness::{block_witness::BlockWitness, full_block::FullBlock},
     },
     ethereum_types::{address::Address, bytes32::Bytes32, u32limb_trait::U32LimbTrait},
-    mock::{block_builder::MockBlockBuilder, wallet::MockWallet},
 };
 use rand::{rngs::StdRng, Rng as _, SeedableRng};
 use serde::{Deserialize, Serialize};
@@ -25,27 +34,60 @@ use serde::{Deserialize, Serialize};
 fn generate_test_data() {
     // init rng with seed
     let mut rng = StdRng::seed_from_u64(0);
-    let mut block_builder = MockBlockBuilder::new();
-    let mut wallet = MockWallet::new_rand(&mut rng);
 
-    // post register block
-    let transfer0 = Transfer::rand(&mut rng);
-    wallet.send_tx_and_update(&mut rng, &mut block_builder, &[transfer0]);
-    // post account id block
-    let transfer1 = Transfer::rand(&mut rng);
-    wallet.send_tx_and_update(&mut rng, &mut block_builder, &[transfer1]);
+    let mut account_tree = AccountTree::initialize();
+    let mut block_tree = BlockHashTree::initialize();
+    let deposit_tree = DepositTree::initialize();
 
-    let mut full_blocks = vec![];
-    for i in 0..3 {
-        let full_block = block_builder
-            .aux_info
-            .get(&i)
-            .unwrap()
-            .validity_witness
-            .block_witness
-            .to_full_block();
-        full_blocks.push(full_block);
-    }
+    let tx_request = MockTxRequest {
+        tx: Tx::rand(&mut rng),
+        sender_key: KeySet::rand(&mut rng),
+        will_return_sig: true,
+    };
+
+    let mut validity_pis = ValidityPublicInputs::genesis();
+
+    // post registration
+    let (validity_witness1, _) = construct_validity_and_tx_witness(
+        validity_pis.clone(),
+        &mut account_tree,
+        &mut block_tree,
+        &deposit_tree,
+        true,
+        &[tx_request.clone()],
+    )
+    .unwrap();
+
+    validity_pis = validity_witness1.to_validity_pis().unwrap();
+
+    // post non-registration
+    let (validity_witness2, _) = construct_validity_and_tx_witness(
+        validity_pis.clone(),
+        &mut account_tree,
+        &mut block_tree,
+        &deposit_tree,
+        false,
+        &[tx_request.clone()],
+    )
+    .unwrap();
+
+    validity_pis = validity_witness2.to_validity_pis().unwrap();
+
+    // post non-registration
+    let (validity_witness3, _) = construct_validity_and_tx_witness(
+        validity_pis.clone(),
+        &mut account_tree,
+        &mut block_tree,
+        &deposit_tree,
+        false,
+        &[],
+    )
+    .unwrap();
+
+    let full_blocks = vec![validity_witness1, validity_witness2, validity_witness3]
+        .into_iter()
+        .map(|w| block_witness_to_full_block(&w.block_witness))
+        .collect::<Vec<_>>();
     save_full_blocks("test_data", &full_blocks).unwrap();
 
     let withdrawal_block = full_blocks.last().unwrap();
@@ -70,12 +112,36 @@ fn generate_test_data() {
         last_withdrawal_hash: withdrawal_hash,
         withdrawal_aggregator,
     };
-    let withdrawal_info = WithdralwalInfo {
+    let withdrawal_info = WithdrawalInfo {
         withdrawals,
         withdrawal_proof_public_inputs: pis.clone(),
         pis_hash: pis.hash(),
     };
     save_withdrawal_info("../test_data", &withdrawal_info).unwrap();
+}
+
+fn block_witness_to_full_block(block_witness: &BlockWitness) -> FullBlock {
+    let is_registration_block = block_witness.signature.is_registration_block;
+    let block = block_witness.block.clone();
+    let signature = block_witness.signature.clone();
+    let pubkeys = block_witness.pubkeys.clone();
+    let account_ids = block_witness.account_id_packed;
+    let trimmed_pubkeys = pubkeys
+        .into_iter()
+        .filter(|pubkey| !pubkey.is_dummy_pubkey())
+        .collect::<Vec<_>>();
+    let trimmed_account_ids = account_ids.map(|ids| ids.to_trimmed_bytes());
+    let full_block = FullBlock {
+        block: block.clone(),
+        signature,
+        pubkeys: if is_registration_block {
+            Some(trimmed_pubkeys)
+        } else {
+            None
+        },
+        account_ids: trimmed_account_ids,
+    };
+    full_block
 }
 
 #[test]
@@ -110,7 +176,7 @@ fn save_full_blocks<P: AsRef<Path>>(dir_path: P, full_blocks: &[FullBlock]) -> a
 
 fn save_withdrawal_info<P: AsRef<Path>>(
     dir_path: P,
-    withdrawal_info: &WithdralwalInfo,
+    withdrawal_info: &WithdrawalInfo,
 ) -> anyhow::Result<()> {
     if !Path::new(dir_path.as_ref()).exists() {
         fs::create_dir(dir_path.as_ref())?;
@@ -138,7 +204,7 @@ fn save_pairing_test_data<P: AsRef<Path>>(
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct WithdralwalInfo {
+struct WithdrawalInfo {
     withdrawals: Vec<Withdrawal>,
     withdrawal_proof_public_inputs: WithdrawalProofPublicInputs,
     pis_hash: Bytes32,

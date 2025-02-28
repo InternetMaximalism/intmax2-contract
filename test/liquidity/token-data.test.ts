@@ -106,7 +106,7 @@ describe('TokenData', () => {
 				})
 			})
 			describe('fail', () => {
-				it('should revert with InvalidTokenAddress if tokenAddress is 0', async () => {
+				it('should revert with TokenAddressIsZero if tokenAddress is 0', async () => {
 					const tokenData = await loadFixture(setup)
 					await expect(
 						tokenData.getOrCreateTokenIndex(
@@ -114,7 +114,7 @@ describe('TokenData', () => {
 							ethers.ZeroAddress,
 							0,
 						),
-					).to.be.revertedWithCustomError(tokenData, 'InvalidTokenAddress')
+					).to.be.revertedWithCustomError(tokenData, 'TokenAddressIsZero')
 				})
 			})
 		})
@@ -194,11 +194,11 @@ describe('TokenData', () => {
 			})
 		})
 		describe('fail', () => {
-			it('should revert with InvalidTokenAddress when specifying 0 address', async () => {
+			it('should revert with TokenAddressIsZero when specifying 0 address', async () => {
 				const tokenData = await loadFixture(setup)
 				await expect(
 					tokenData.getTokenIndex(TokenType.ERC20, ethers.ZeroAddress, 0),
-				).to.be.revertedWithCustomError(tokenData, 'InvalidTokenAddress')
+				).to.be.revertedWithCustomError(tokenData, 'TokenAddressIsZero')
 			})
 		})
 	})
