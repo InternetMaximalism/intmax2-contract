@@ -2,13 +2,16 @@ import { ethers } from 'hardhat'
 import { ContractTransactionResponse } from 'ethers'
 
 export const getDepositHash = (
+	depositor: string,
 	recipientSaltHash: string | Uint8Array,
-	tokenIndex: number,
 	amount: bigint,
+	tokenIndex: number,
+	isEligible: boolean,
 ): string => {
+	const tmp = isEligible ? 1 : 0
 	const packed = ethers.solidityPacked(
-		['bytes32', 'uint32', 'uint256'],
-		[recipientSaltHash, tokenIndex, amount],
+		['address', 'bytes32', 'uint256', 'uint32', 'uint32'],
+		[depositor, recipientSaltHash, amount, tokenIndex, tmp],
 	)
 	const hash = ethers.keccak256(packed)
 	return hash
