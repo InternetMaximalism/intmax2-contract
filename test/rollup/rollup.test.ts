@@ -1200,6 +1200,15 @@ describe('Rollup', () => {
 			})
 		})
 	})
+
+	describe('getPenalty', () => {
+		it('get penalty', async () => {
+			const [rollup] = await loadFixture(setup)
+			const penalty = await rollup.getPenalty()
+			expect(penalty).to.equal(0)
+		})
+	})
+
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const [rollup] = await loadFixture(setup)
