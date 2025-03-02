@@ -99,8 +99,6 @@ contract Liquidity is
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
-		// Set deployment time to the next day
-		deploymentTime = (block.timestamp / 1 days + 1) * 1 days;
 	}
 
 	function initialize(
@@ -141,10 +139,13 @@ contract Liquidity is
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
 		__TokenData_init(initialERC20Tokens);
+		__Pausable_init();
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
 		rollup = _rollup;
+		// Set deployment time to the next day
+		deploymentTime = (block.timestamp / 1 days + 1) * 1 days;
 	}
 
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -307,7 +308,7 @@ contract Liquidity is
 	) private {
 		uint256 depositLimit = DepositLimit.getDepositLimit(
 			tokenIndex,
-			block.timestamp
+			deploymentTime
 		);
 		if (amount > depositLimit) {
 			revert DepositAmountExceedsLimit(amount, depositLimit);
