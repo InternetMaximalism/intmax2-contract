@@ -18,7 +18,13 @@ describe('DepositTreeLibTest', function () {
 
 		// Calculate default hash with all zero values
 		const zeroBytes32 = ethers.zeroPadValue('0x', 32)
-		const calculatedDefaultHash = getDepositHash(zeroBytes32, 0, 0n)
+		const calculatedDefaultHash = getDepositHash(
+			ethers.ZeroAddress,
+			zeroBytes32,
+			0n,
+			0,
+			false,
+		)
 
 		expect(count).to.equal(0)
 		expect(defaultHash).to.equal(calculatedDefaultHash, 'Default hash mismatch')
@@ -36,14 +42,18 @@ describe('DepositTreeLibTest', function () {
 		)
 
 		const deposit1 = getDepositHash(
+			ethers.Wallet.createRandom().address,
 			recipientSaltHash1,
+			1n,
 			1,
-			ethers.parseEther('1'),
+			true,
 		)
 		const deposit2 = getDepositHash(
+			ethers.Wallet.createRandom().address,
 			recipientSaltHash2,
+			2n,
 			2,
-			ethers.parseEther('2'),
+			true,
 		)
 
 		await lib.deposit(deposit1)
@@ -67,7 +77,13 @@ describe('DepositTreeLibTest', function () {
 
 		const tokenIndex = 1
 		const amount = ethers.parseEther('1')
-		const deposit1 = getDepositHash(recipientSaltHash, tokenIndex, amount)
+		const deposit1 = getDepositHash(
+			ethers.Wallet.createRandom().address,
+			recipientSaltHash,
+			amount,
+			tokenIndex,
+			true,
+		)
 
 		await lib.deposit(deposit1)
 
@@ -109,7 +125,13 @@ describe('DepositTreeLibTest', function () {
 			const recipientSaltHash = ethers.keccak256(
 				ethers.concat([baseRecipientSaltHash, ethers.toBeHex(i, 32)]),
 			)
-			const deposit = getDepositHash(recipientSaltHash, tokenIndex, amount)
+			const deposit = getDepositHash(
+				ethers.Wallet.createRandom().address,
+				recipientSaltHash,
+				amount,
+				tokenIndex,
+				true,
+			)
 
 			await lib.deposit(deposit)
 		}
@@ -121,9 +143,11 @@ describe('DepositTreeLibTest', function () {
 			ethers.toUtf8Bytes('finalRecipient'),
 		)
 		const finalDeposit = getDepositHash(
+			ethers.Wallet.createRandom().address,
 			finalRecipientSaltHash,
-			tokenIndex,
 			amount,
+			tokenIndex,
+			true,
 		)
 
 		await expect(lib.deposit(finalDeposit)).to.not.be.reverted
@@ -136,7 +160,7 @@ describe('DepositTreeLibTest', function () {
 		)
 	})
 
-	// // This test is skipped by default as it would take an extremely long time to run.
+	// This test is skipped by default as it would take an extremely long time to run.
 	it.skip('should theoretically revert with MerkleTreeFull when tree is completely full', async function () {
 		const lib = await loadFixture(setup)
 		const TREE_DEPTH = 32
@@ -156,9 +180,11 @@ describe('DepositTreeLibTest', function () {
 				ethers.concat([baseRecipientSaltHash, ethers.toBeHex(i, 32)]),
 			)
 			const deposit = getDepositHash(
+				ethers.Wallet.createRandom().address,
 				recipientSaltHash,
-				Number(tokenIndex),
 				amount,
+				Number(tokenIndex),
+				true,
 			)
 			await lib.deposit(deposit)
 		}
@@ -175,9 +201,11 @@ describe('DepositTreeLibTest', function () {
 			ethers.toUtf8Bytes('extraRecipient'),
 		)
 		const extraDeposit = getDepositHash(
+			ethers.Wallet.createRandom().address,
 			extraRecipientSaltHash,
-			Number(tokenIndex),
 			amount,
+			Number(tokenIndex),
+			true,
 		)
 
 		await expect(lib.deposit(extraDeposit)).to.be.revertedWithCustomError(
