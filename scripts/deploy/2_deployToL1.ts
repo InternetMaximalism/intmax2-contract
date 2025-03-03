@@ -1,12 +1,9 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import {
-	getL1MessengerAddress,
 	getUSDCAddress,
 	getWBTCAddress,
 } from '../utils/addressBook'
-import { sleep } from '../../utils/sleep'
-import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
@@ -36,9 +33,7 @@ async function main() {
 
 	if (!deployedContracts.liquidity) {
 		console.log('deploying liquidity')
-		const deployedL2Contracts = await readDeployedContracts(
-			getCounterPartNetwork(),
-		)
+		const deployedL2Contracts = await readDeployedContracts()
 		if (!deployedL2Contracts.rollup) {
 			throw new Error('rollup address is not set')
 		}

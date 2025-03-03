@@ -2,7 +2,6 @@ import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
-import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
@@ -21,9 +20,7 @@ async function main() {
 		throw new Error('all l2 contracts should be deployed')
 	}
 
-	const deployedL1Contracts = await readDeployedContracts(
-		getCounterPartNetwork(),
-	)
+	const deployedL1Contracts = await readDeployedContracts()
 	if (!deployedL1Contracts.liquidity) {
 		throw new Error('liquidity should be deployed')
 	}
