@@ -26,7 +26,7 @@ library RateLimiterLib {
 	function _computeNewState(
 		RateLimitState storage state,
 		uint256 currentTime
-	) internal view returns (UD60x18 newEmaInterval, uint256 penalty) {
+	) private view returns (UD60x18 newEmaInterval, uint256 penalty) {
 		UD60x18 targetInterval = ud(TARGET_INTERVAL);
 
 		// If this is the first call, we would initialize emaInterval to targetInterval.

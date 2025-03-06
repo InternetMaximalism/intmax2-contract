@@ -13,4 +13,8 @@ contract RateLimiterLibTest {
 	function update() external {
 		emit UpdateResult(state.update());
 	}
+
+	function getPenalty() external view returns (uint256) {
+		return state.getPenalty();
+	}
 }
