@@ -23,6 +23,7 @@ describe('Liquidity', () => {
 		scrollMessenger: L1ScrollMessengerTestForLiquidity
 		rollup: string
 		withdrawal: string
+		claim: string
 		contribution: ContributionTest
 		withdrawalLibTest: WithdrawalLibTest
 	}
@@ -33,6 +34,7 @@ describe('Liquidity', () => {
 		const l1ScrollMessenger = await l1ScrollMessengerFactory.deploy()
 		const rollup = ethers.Wallet.createRandom().address
 		const withdrawal = ethers.Wallet.createRandom().address
+		const claim = ethers.Wallet.createRandom().address
 		await l1ScrollMessenger.setXDomainMessageSender(withdrawal)
 		const contributionFactory =
 			await ethers.getContractFactory('ContributionTest')
@@ -49,6 +51,7 @@ describe('Liquidity', () => {
 				await l1ScrollMessenger.getAddress(),
 				rollup,
 				withdrawal,
+				claim,
 				analyzer.address,
 				await contribution.getAddress(),
 				INITIAL_ERC20_TOKEN_ADDRESSES,
@@ -61,6 +64,7 @@ describe('Liquidity', () => {
 			scrollMessenger: l1ScrollMessenger,
 			rollup,
 			withdrawal,
+			claim,
 			contribution,
 			withdrawalLibTest,
 		}
@@ -93,6 +97,7 @@ describe('Liquidity', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					ethers.ZeroAddress,
 					[ethers.ZeroAddress],
 				),
 			).to.be.revertedWithCustomError(liquidity, 'InvalidInitialization')
@@ -112,6 +117,16 @@ describe('Liquidity', () => {
 				const role = await liquidity.ANALYZER()
 				expect(await liquidity.hasRole(role, analyzer.address)).to.be.true
 			})
+			it('withdrawal has withdrawal role', async () => {
+				const { liquidity, withdrawal } = await loadFixture(setup)
+				const role = await liquidity.WITHDRAWAL()
+				expect(await liquidity.hasRole(role, withdrawal)).to.be.true
+			})
+			it('claim has withdrawal role', async () => {
+				const { liquidity, claim } = await loadFixture(setup)
+				const role = await liquidity.WITHDRAWAL()
+				expect(await liquidity.hasRole(role, claim)).to.be.true
+			})
 		})
 		describe('fail', () => {
 			it('should revert when initializing twice', async () => {
@@ -119,6 +134,7 @@ describe('Liquidity', () => {
 
 				await expect(
 					liquidity.initialize(
+						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
@@ -137,6 +153,7 @@ describe('Liquidity', () => {
 						liquidityFactory,
 						[
 							ethers.ZeroAddress,
+							tmpAddress,
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
@@ -161,6 +178,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
@@ -180,6 +198,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
@@ -193,6 +212,27 @@ describe('Liquidity', () => {
 					upgrades.deployProxy(
 						liquidityFactory,
 						[
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							ethers.ZeroAddress,
+							tmpAddress,
+							tmpAddress,
+							tmpAddress,
+							INITIAL_ERC20_TOKEN_ADDRESSES,
+						],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
+			})
+			it('claim is zero address', async () => {
+				const liquidityFactory = await ethers.getContractFactory('Liquidity')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						liquidityFactory,
+						[
+							tmpAddress,
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
@@ -216,6 +256,7 @@ describe('Liquidity', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
 							INITIAL_ERC20_TOKEN_ADDRESSES,
@@ -231,6 +272,7 @@ describe('Liquidity', () => {
 					upgrades.deployProxy(
 						liquidityFactory,
 						[
+							tmpAddress,
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
@@ -328,6 +370,20 @@ describe('Liquidity', () => {
 		})
 
 		describe('fail', () => {
+			it('revert DepositAmountExceedsLimit', async () => {
+				const { liquidity } = await loadFixture(setup)
+				const { user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const depositAmount = ethers.parseEther('1000')
+
+				await expect(
+					liquidity
+						.connect(user)
+						.depositNativeToken(recipientSaltHash, { value: depositAmount }),
+				)
+					.to.be.revertedWithCustomError(liquidity, 'DepositAmountExceedsLimit')
+					.withArgs(depositAmount, ethers.parseEther('100'))
+			})
 			it('revert DepositHashAlreadyExists', async () => {
 				const { liquidity } = await loadFixture(setup)
 				const { user } = await getSigners()
@@ -389,7 +445,7 @@ describe('Liquidity', () => {
 				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-				const depositAmount = ethers.parseEther('100')
+				const depositAmount = ethers.parseEther('0.000000001')
 
 				await testERC20
 					.connect(user)
@@ -421,7 +477,7 @@ describe('Liquidity', () => {
 				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-				const depositAmount = ethers.parseEther('100')
+				const depositAmount = ethers.parseEther('0.00000001')
 
 				await testERC20
 					.connect(user)
@@ -442,11 +498,33 @@ describe('Liquidity', () => {
 		})
 
 		describe('fail', () => {
+			it('fail DepositAmountExceedsLimit', async () => {
+				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
+				const { user } = await getSigners()
+				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
+				const depositAmount = ethers.parseEther('1')
+
+				await testERC20
+					.connect(user)
+					.approve(await liquidity.getAddress(), depositAmount)
+
+				await expect(
+					liquidity
+						.connect(user)
+						.depositERC20(
+							await testERC20.getAddress(),
+							recipientSaltHash,
+							depositAmount,
+						),
+				)
+					.to.be.revertedWithCustomError(liquidity, 'DepositAmountExceedsLimit')
+					.withArgs(depositAmount, '500000000000')
+			})
 			it('revert DepositHashAlreadyExists', async () => {
 				const { liquidity, testERC20 } = await loadFixture(setupForDepositERC20)
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
-				const depositAmount = ethers.parseEther('100')
+				const depositAmount = ethers.parseEther('0.00000001')
 
 				await testERC20
 					.connect(user)
@@ -569,6 +647,7 @@ describe('Liquidity', () => {
 				const { user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
 				const tokenId = 0
+				const isEligible = true
 
 				await testNFT
 					.connect(user)
@@ -585,9 +664,11 @@ describe('Liquidity', () => {
 				const tokenIndex = events[0].args.tokenIndex
 
 				await liquidity.connect(user).cancelDeposit(depositId, {
+					depositor: user.address,
 					recipientSaltHash,
 					tokenIndex: tokenIndex,
 					amount: 1,
+					isEligible,
 				})
 				await testNFT
 					.connect(user)
@@ -608,6 +689,7 @@ describe('Liquidity', () => {
 				const { admin, user } = await getSigners()
 				const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
 				const tokenId = 0
+				const isEligible = true
 
 				await testNFT
 					.connect(user)
@@ -624,9 +706,11 @@ describe('Liquidity', () => {
 				const tokenIndex = events[0].args.tokenIndex
 
 				await liquidity.connect(user).cancelDeposit(depositId, {
+					depositor: user.address,
 					recipientSaltHash,
 					tokenIndex: tokenIndex,
 					amount: 1,
+					isEligible,
 				})
 				await testNFT
 					.connect(user)
@@ -871,21 +955,27 @@ describe('Liquidity', () => {
 				)
 
 				const depositHash0 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test0')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const depositHash2 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test2')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const depositHash4 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test4')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const funcSelector = ethers
@@ -920,21 +1010,27 @@ describe('Liquidity', () => {
 				const gasLimit = 1000000
 
 				const depositHash0 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test0')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const depositHash2 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test2')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const depositHash4 = getDepositHash(
+					user.address,
 					ethers.keccak256(ethers.toUtf8Bytes('test4')),
-					0,
 					depositAmount,
+					0,
+					true,
 				)
 
 				const funcSelector = ethers
@@ -1019,9 +1115,11 @@ describe('Liquidity', () => {
 					const initialBalance = await ethers.provider.getBalance(user.address)
 
 					const tx = await liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					})
 					const receipt = await tx.wait()
 					const gasCost = receipt!.gasUsed * receipt!.gasPrice
@@ -1038,7 +1136,7 @@ describe('Liquidity', () => {
 					const testERC20Factory = await ethers.getContractFactory('TestERC20')
 					const testERC20 = await testERC20Factory.deploy(user.address)
 
-					const depositAmount = ethers.parseEther('100')
+					const depositAmount = ethers.parseEther('0.00000001')
 					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
 
 					await testERC20
@@ -1061,9 +1159,11 @@ describe('Liquidity', () => {
 					)
 
 					await liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 3, // Assuming 1 is the index for the first ERC20 token
 						amount: depositAmount,
+						isEligible: true,
 					})
 
 					// Check balances after cancellation
@@ -1103,9 +1203,11 @@ describe('Liquidity', () => {
 					const depositId = await liquidity.getLastDepositId()
 
 					await liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 3,
 						amount: 1,
+						isEligible: true,
 					})
 
 					expect(await testNFT.ownerOf(tokenId)).to.equal(user.address)
@@ -1142,9 +1244,11 @@ describe('Liquidity', () => {
 					)
 
 					await liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 3, // Assuming 3 is the index for the first ERC1155 token
 						amount: amount,
+						isEligible: true,
 					})
 
 					const finalBalance = await testERC1155.balanceOf(
@@ -1161,9 +1265,11 @@ describe('Liquidity', () => {
 
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				)
 					.to.emit(liquidity, 'DepositCanceled')
@@ -1181,9 +1287,11 @@ describe('Liquidity', () => {
 					})
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				)
 					.to.emit(liquidity, 'DepositCanceled')
@@ -1207,9 +1315,11 @@ describe('Liquidity', () => {
 				const nextDepositId = depositId + 1n
 				await expect(
 					liquidity.connect(user).cancelDeposit(nextDepositId, {
+						depositor: user.address,
 						recipientSaltHash: recipientSaltHash2,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				)
 					.to.emit(liquidity, 'DepositCanceled')
@@ -1224,9 +1334,11 @@ describe('Liquidity', () => {
 
 				await expect(
 					liquidity.connect(analyzer).cancelDeposit(depositId, {
+						depositor: analyzer.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				).to.be.revertedWithCustomError(liquidity, 'OnlySenderCanCancelDeposit')
 			})
@@ -1237,13 +1349,21 @@ describe('Liquidity', () => {
 
 				const wrongHash = ethers.keccak256(ethers.toUtf8Bytes('wrong'))
 				const depositData = await liquidity.getDepositData(depositId)
-				const wrongDepositHash = getDepositHash(wrongHash, 0, depositAmount)
+				const wrongDepositHash = getDepositHash(
+					user.address,
+					wrongHash,
+					depositAmount,
+					0,
+					true,
+				)
 
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash: wrongHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				)
 					.to.be.revertedWithCustomError(liquidity, 'InvalidDepositHash')
@@ -1255,16 +1375,20 @@ describe('Liquidity', () => {
 				const { user } = await getSigners()
 
 				await liquidity.connect(user).cancelDeposit(depositId, {
+					depositor: user.address,
 					recipientSaltHash,
 					tokenIndex: 0,
 					amount: depositAmount,
+					isEligible: true,
 				})
 
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				).to.be.revertedWithCustomError(liquidity, 'OnlySenderCanCancelDeposit')
 			})
@@ -1279,9 +1403,11 @@ describe('Liquidity', () => {
 					})
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
+						depositor: user.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
+						isEligible: true,
 					}),
 				).to.be.revertedWithCustomError(liquidity, 'AlreadyAnalyzed')
 			})
@@ -1349,7 +1475,7 @@ describe('Liquidity', () => {
 						const testERC20Factory =
 							await ethers.getContractFactory('TestERC20')
 						const testERC20 = await testERC20Factory.deploy(user.address)
-						const depositAmount = ethers.parseEther('100')
+						const depositAmount = ethers.parseEther('0.000000001')
 						const recipientSaltHash = ethers.keccak256(
 							ethers.toUtf8Bytes('test'),
 						)
@@ -1465,7 +1591,7 @@ describe('Liquidity', () => {
 						const testERC20Factory =
 							await ethers.getContractFactory('TestERC20')
 						const testERC20 = await testERC20Factory.deploy(user.address)
-						const depositAmount = ethers.parseEther('100')
+						const depositAmount = ethers.parseEther('0.000000001')
 						const recipientSaltHash = ethers.keccak256(
 							ethers.toUtf8Bytes('test'),
 						)
@@ -1833,7 +1959,7 @@ describe('Liquidity', () => {
 					const testERC20Factory = await ethers.getContractFactory('TestERC20')
 					const testERC20 = await testERC20Factory.deploy(user.address)
 
-					const withdrawalAmount = ethers.parseEther('100')
+					const withdrawalAmount = ethers.parseEther('0.000000001')
 					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'))
 
 					// Approve and deposit ERC20 tokens
@@ -2231,9 +2357,11 @@ describe('Liquidity', () => {
 
 			const depositData0 = await liquidity.getDepositData(1)
 			const depositHash0 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test0')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			expect(depositData0.depositHash).to.equal(depositHash0)
@@ -2242,9 +2370,11 @@ describe('Liquidity', () => {
 
 			const depositData2 = await liquidity.getDepositData(3)
 			const depositHash2 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test2')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			expect(depositData2.depositHash).to.equal(depositHash2)
@@ -2271,15 +2401,19 @@ describe('Liquidity', () => {
 
 			const depositDataList = await liquidity.getDepositDataBatch([1, 3])
 			const depositHash0 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test0')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			const depositHash2 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test2')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			expect(depositDataList[0].depositHash).to.equal(depositHash0)
@@ -2310,18 +2444,22 @@ describe('Liquidity', () => {
 
 			const depositDataHash0 = await liquidity.getDepositDataHash(1)
 			const depositHash0 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test0')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			expect(depositDataHash0).to.equal(depositHash0)
 
 			const depositDataHash2 = await liquidity.getDepositDataHash(3)
 			const depositHash2 = getDepositHash(
+				user.address,
 				ethers.keccak256(ethers.toUtf8Bytes('test2')),
-				0,
 				depositAmount,
+				0,
+				true,
 			)
 
 			expect(depositDataHash2).to.equal(depositHash2)
@@ -2373,6 +2511,7 @@ describe('Liquidity', () => {
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
 				depositAmount,
+				true,
 				user.address,
 			)
 			expect(result).to.equal(true)
@@ -2392,6 +2531,7 @@ describe('Liquidity', () => {
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
 				depositAmount + 1n,
+				true,
 				user.address,
 			)
 			expect(result).to.equal(false)
@@ -2411,6 +2551,7 @@ describe('Liquidity', () => {
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
 				depositAmount,
+				true,
 				ethers.ZeroAddress,
 			)
 			expect(result).to.equal(false)
@@ -2434,6 +2575,7 @@ describe('Liquidity', () => {
 				recipientSaltHash,
 				0, // tokenIndex for ETH should be 0
 				depositAmount,
+				true,
 				user.address,
 			)
 			expect(result).to.equal(false)
