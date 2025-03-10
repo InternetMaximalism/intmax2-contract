@@ -151,7 +151,7 @@ library AllocationLib {
 	function _getAllocationPerDay(
 		State storage state,
 		uint256 periodNumber
-	) internal view returns (uint256) {
+	) private view returns (uint256) {
 		uint256 elapsedDays = (state.startTimestamp +
 			periodNumber *
 			1 days -
