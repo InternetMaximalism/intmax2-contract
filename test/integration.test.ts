@@ -9,7 +9,7 @@ import type {
 	Rollup,
 	TestERC20,
 	Contribution,
-	Claim
+	Claim,
 } from '../typechain-types'
 import { expect } from 'chai'
 import { loadFullBlocks, postBlock } from '../utils/rollup'
@@ -118,7 +118,7 @@ describe('Integration', function () {
 			kind: 'uups',
 			unsafeAllow: ['constructor'],
 		})) as unknown as Claim
-	
+
 		// get address
 		const testTokenAddress = await testToken.getAddress()
 		const l1ScrollMessengerAddress = await l1ScrollMessenger.getAddress()
