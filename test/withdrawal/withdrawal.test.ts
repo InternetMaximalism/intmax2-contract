@@ -264,7 +264,7 @@ describe('Withdrawal', () => {
 				const { admin } = await getSigners()
 				const tmpAddress = ethers.Wallet.createRandom().address
 				await withdrawal.addOwner(admin.address)
-				// await withdrawal.connect(admin).addDirectWithdrawalTokenIndices([1])
+				await withdrawal.connect(admin).addDirectWithdrawalTokenIndices([1])
 				await expect(
 					withdrawal.initialize(
 						tmpAddress,

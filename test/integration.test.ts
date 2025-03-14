@@ -9,6 +9,7 @@ import type {
 	Rollup,
 	TestERC20,
 	Contribution,
+	Claim
 } from '../typechain-types'
 import { expect } from 'chai'
 import { loadFullBlocks, postBlock } from '../utils/rollup'
@@ -34,6 +35,7 @@ describe('Integration', function () {
 	let liquidity: Liquidity
 
 	let testToken: TestERC20
+	let claim: Claim
 
 	this.beforeEach(async function () {
 		const deployer = (await ethers.getSigners())[0]
@@ -110,6 +112,13 @@ describe('Integration', function () {
 			unsafeAllow: ['constructor'],
 		})) as unknown as Liquidity
 
+		const claimFactory = await ethers.getContractFactory('Claim')
+		claim = (await upgrades.deployProxy(claimFactory, [], {
+			initializer: false,
+			kind: 'uups',
+			unsafeAllow: ['constructor'],
+		})) as unknown as Claim
+	
 		// get address
 		const testTokenAddress = await testToken.getAddress()
 		const l1ScrollMessengerAddress = await l1ScrollMessenger.getAddress()
@@ -119,6 +128,7 @@ describe('Integration', function () {
 		const withdrawalAddress = await withdrawal.getAddress()
 		const liquidityAddress = await liquidity.getAddress()
 		const l1ContributionAddress = await l1Contribution.getAddress()
+		const claimAddress = await claim.getAddress()
 
 		// L1 initialize
 		await liquidity.initialize(
@@ -126,6 +136,7 @@ describe('Integration', function () {
 			l1ScrollMessengerAddress,
 			rollupAddress,
 			withdrawalAddress,
+			claimAddress,
 			analyzer.address,
 			l1ContributionAddress,
 			[testTokenAddress], // testToken
@@ -239,7 +250,6 @@ describe('Integration', function () {
 
 	it('withdrawal', async function () {
 		// setup: post blocks
-		await registry.updateBlockBuilder('http://example.com')
 		const fullBlocks = loadFullBlocks()
 		for (let i = 1; i < 3; i++) {
 			await postBlock(fullBlocks[i], rollup)
@@ -257,7 +267,6 @@ describe('Integration', function () {
 			withdrawalInfo.withdrawalProofPublicInputs,
 			'0x',
 		)
-
 		const sentEvent = await getLastSentEvent(
 			await l2ScrollMessenger.getAddress(),
 			await withdrawal.getAddress(),

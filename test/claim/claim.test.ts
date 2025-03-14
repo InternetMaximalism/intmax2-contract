@@ -506,7 +506,10 @@ describe('Claim', () => {
 		it('get allocation info', async () => {
 			const { claim } = await loadFixture(setup)
 			const info = await claim.getAllocationConstants()
-			expect(info[0]).to.equal(1741870800n)
+			const timestamp = await time.latest()
+			const oneHourSeconds = 3600
+			const tmp = Math.floor(timestamp / oneHourSeconds) * oneHourSeconds
+			expect(info[0]).to.equal(tmp)
 			expect(info[1]).to.equal(3600n)
 			expect(info[2]).to.equal(1722999120n)
 			expect(info[3]).to.equal(8937500000000000000000000n)
