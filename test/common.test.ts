@@ -1,5 +1,4 @@
 import { ethers } from 'hardhat'
-import { ContractTransactionResponse } from 'ethers'
 
 export const getDepositHash = (
 	depositor: string,
@@ -15,11 +14,4 @@ export const getDepositHash = (
 	)
 	const hash = ethers.keccak256(packed)
 	return hash
-}
-
-export const getGasCost = async (
-	res: ContractTransactionResponse,
-): Promise<bigint> => {
-	const transaction = await res.wait()
-	return ethers.toBigInt(transaction!.gasPrice * transaction!.gasUsed)
 }

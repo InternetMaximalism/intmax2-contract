@@ -12,8 +12,7 @@ import {
 } from '../../typechain-types'
 import { loadPairingData } from '../../utils/rollup'
 import block1 from '../../test_data/block1.json'
-import { getGasCost } from '../common.test'
-
+import { ContractTransactionResponse } from 'ethers'
 describe('Rollup', () => {
 	const FIRST_BLOCK_HASH =
 		'0x4c31b986e463b14e7defe40aa79c4a6479cfdf134fde381d7ea90711d5fbfea2'
@@ -47,7 +46,12 @@ describe('Rollup', () => {
 		)) as unknown as Rollup
 		return [rollup, l2ScrollMessenger, contribution]
 	}
-
+	const getGasCost = async (
+		res: ContractTransactionResponse,
+	): Promise<bigint> => {
+		const transaction = await res.wait()
+		return ethers.toBigInt(transaction!.gasPrice * transaction!.gasUsed)
+	}
 	type signers = {
 		deployer: HardhatEthersSigner
 		admin: HardhatEthersSigner
