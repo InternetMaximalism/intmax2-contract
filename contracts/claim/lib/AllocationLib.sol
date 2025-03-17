@@ -2,6 +2,7 @@
 pragma solidity 0.8.27;
 
 library AllocationLib {
+	// Period interval. 1 hour in testnet, 1 day in mainnet
 	uint256 private constant PERIOD_INTERVAL = 1 hours;
 
 	// constants for the token minting curve
@@ -140,7 +141,7 @@ library AllocationLib {
 		State storage state,
 		uint256 periodNumber
 	) internal view returns (uint256) {
-		uint256 rewardPerDay = _getAllocationPerDay(state, periodNumber);
+		uint256 rewardPerDay = getAllocationPerDay(state, periodNumber);
 		return (rewardPerDay * PERIOD_INTERVAL) / 1 days;
 	}
 
@@ -148,7 +149,7 @@ library AllocationLib {
 	/// @param state The allocation state
 	/// @param periodNumber The period number
 	/// @return The allocation per day
-	function _getAllocationPerDay(
+	function getAllocationPerDay(
 		State storage state,
 		uint256 periodNumber
 	) private view returns (uint256) {
