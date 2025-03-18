@@ -141,30 +141,35 @@ library AllocationLib {
 		State storage state,
 		uint256 periodNumber
 	) internal view returns (uint256) {
-		uint256 rewardPerDay = getAllocationPerDay(state, periodNumber);
+		uint256 rewardPerDay = getAllocationPerDay(
+			state.startTimestamp,
+			periodNumber
+		);
 		return (rewardPerDay * PERIOD_INTERVAL) / 1 days;
 	}
 
-	/// @notice Gets the allocation per day
-	/// @param state The allocation state
+	/// @notice Gets the allocation per period
+	/// @param startTimestamp The start timestamp
 	/// @param periodNumber The period number
-	/// @return The allocation per day
+	/// @return The allocation per period
 	function getAllocationPerDay(
-		State storage state,
+		uint256 startTimestamp,
 		uint256 periodNumber
-	) private view returns (uint256) {
-		uint256 elapsedDays = (state.startTimestamp +
+	) private pure returns (uint256) {
+		uint256 elapsedDays = (startTimestamp +
 			periodNumber *
-			1 days -
+			PERIOD_INTERVAL -
 			GENESIS_TIMESTAMP) / 1 days;
 		uint256 rewardPerDay = PHASE0_REWARD_PER_DAY;
-		for (uint256 i = 0; i < NUM_PHASES; i++) {
-			uint256 phaseDays = PHASE0_PERIOD << i;
-			if (elapsedDays < phaseDays) {
-				return rewardPerDay;
+		unchecked {
+			for (uint256 i = 0; i < NUM_PHASES; i++) {
+				uint256 phaseDays = PHASE0_PERIOD << i;
+				if (elapsedDays < phaseDays) {
+					return rewardPerDay;
+				}
+				elapsedDays -= phaseDays;
+				rewardPerDay >>= 1;
 			}
-			elapsedDays -= phaseDays;
-			rewardPerDay >>= 1;
 		}
 		return 0;
 	}
