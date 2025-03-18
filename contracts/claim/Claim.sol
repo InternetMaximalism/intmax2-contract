@@ -58,29 +58,22 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		address _claimVerifier,
 		address _liquidity,
 		address _rollup,
-		address _contribution
+		address _contribution,
+		uint256 periodInterval
 	) external initializer {
-		if (_admin == address(0)) {
-			revert AddressZero();
-		}
-		if (_scrollMessenger == address(0)) {
-			revert AddressZero();
-		}
-		if (_claimVerifier == address(0)) {
-			revert AddressZero();
-		}
-		if (_liquidity == address(0)) {
-			revert AddressZero();
-		}
-		if (_rollup == address(0)) {
-			revert AddressZero();
-		}
-		if (_contribution == address(0)) {
+		if (
+			_admin == address(0) ||
+			_scrollMessenger == address(0) ||
+			_claimVerifier == address(0) ||
+			_liquidity == address(0) ||
+			_rollup == address(0) ||
+			_contribution == address(0)
+		) {
 			revert AddressZero();
 		}
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
-		AllocationLib.setStartTimeStamp(allocationState);
+		AllocationLib.initialize(allocationState, periodInterval);
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		claimVerifier = IPlonkVerifier(_claimVerifier);
 		rollup = IRollup(_rollup);

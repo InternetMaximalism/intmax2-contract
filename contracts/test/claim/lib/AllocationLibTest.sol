@@ -10,8 +10,8 @@ contract AllocationLibTest {
 
 	uint256 public userAllocation;
 
-	function setStartTimeStamp() external {
-		state.setStartTimeStamp();
+	function initialize(uint256 periodInterval) external {
+		state.initialize(periodInterval);
 	}
 
 	function recordContribution(
@@ -69,11 +69,13 @@ contract AllocationLibTest {
 	function getStateStartTimestamp() external view returns (uint256) {
 		return state.startTimestamp;
 	}
+
 	function getTotalContributions(
 		uint256 key
 	) external view returns (uint256) {
 		return state.totalContributions[key];
 	}
+
 	function getUserContributions(
 		uint256 key,
 		address user

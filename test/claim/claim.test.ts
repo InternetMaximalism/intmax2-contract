@@ -49,6 +49,7 @@ describe('Claim', () => {
 				liquidityAddress,
 				await rollupTestForClaim.getAddress(),
 				await contributionTest.getAddress(),
+				60 * 60 // 1 hour
 			],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Claim
@@ -86,6 +87,7 @@ describe('Claim', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					0
 				),
 			).to.be.revertedWithCustomError(claim, 'InvalidInitialization')
 		})
@@ -114,6 +116,7 @@ describe('Claim', () => {
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
+						0
 					),
 				).to.be.revertedWithCustomError(claim, 'InvalidInitialization')
 			})
@@ -130,6 +133,7 @@ describe('Claim', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
@@ -148,6 +152,7 @@ describe('Claim', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
@@ -166,6 +171,7 @@ describe('Claim', () => {
 							tmpAddress,
 							tmpAddress,
 							tmpAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
@@ -184,6 +190,7 @@ describe('Claim', () => {
 							ethers.ZeroAddress,
 							tmpAddress,
 							tmpAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
@@ -202,6 +209,7 @@ describe('Claim', () => {
 							tmpAddress,
 							ethers.ZeroAddress,
 							tmpAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
@@ -220,6 +228,7 @@ describe('Claim', () => {
 							tmpAddress,
 							tmpAddress,
 							ethers.ZeroAddress,
+							0
 						],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),

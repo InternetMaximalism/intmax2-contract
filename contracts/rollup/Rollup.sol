@@ -82,16 +82,12 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		address _liquidity,
 		address _contribution
 	) external initializer {
-		if (_admin == address(0)) {
-			revert AddressZero();
-		}
-		if (_scrollMessenger == address(0)) {
-			revert AddressZero();
-		}
-		if (_liquidity == address(0)) {
-			revert AddressZero();
-		}
-		if (_contribution == address(0)) {
+		if (
+			_admin == address(0) ||
+			_scrollMessenger == address(0) ||
+			_liquidity == address(0) ||
+			_contribution == address(0)
+		) {
 			revert AddressZero();
 		}
 		__Ownable_init(_admin);

@@ -42,12 +42,12 @@ describe('AllocationLibTest', function () {
 
 		return expectedAllocationPerPeriod
 	}
-	describe('setStartTimeStamp', function () {
-		it('set time stamp', async function () {
+	describe('initialize', function () {
+		it('initialize', async function () {
 			const lib = await loadFixture(setup)
 			const before = await lib.getStateStartTimestamp()
 			expect(before).to.equal(0)
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const timestamp = await time.latest()
 			const after = await lib.getStateStartTimestamp()
 			expect(after).to.not.equal(
@@ -60,7 +60,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution (based on calculateContribution)
 
 			const period = await lib.getCurrentPeriod()
@@ -78,7 +78,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution
 			const period = await lib.getCurrentPeriod()
 			await lib.recordContribution(tmpAddress, depositAmount)
@@ -97,7 +97,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const period = await lib.getCurrentPeriod()
 
 			// totalContributions[period] is 0 by default
@@ -111,7 +111,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution
 			const period = await lib.getCurrentPeriod()
 
@@ -135,7 +135,7 @@ describe('AllocationLibTest', function () {
 				const lib = await loadFixture(setup)
 				const tmpAddress = ethers.Wallet.createRandom().address
 
-				await lib.setStartTimeStamp()
+				await lib.initialize(PERIOD_INTERVAL)
 				const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution
 				const period = await lib.getCurrentPeriod()
 
@@ -174,7 +174,7 @@ describe('AllocationLibTest', function () {
 				const lib = await loadFixture(setup)
 				const tmpAddress = ethers.Wallet.createRandom().address
 
-				await lib.setStartTimeStamp()
+				await lib.initialize(PERIOD_INTERVAL)
 				const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution
 				const period = await lib.getCurrentPeriod()
 
@@ -192,7 +192,7 @@ describe('AllocationLibTest', function () {
 		it('should return correct allocation for the first period', async function () {
 			const lib = await loadFixture(setup)
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const period = await lib.getCurrentPeriod()
 
 			// Get necessary timestamps
@@ -210,7 +210,7 @@ describe('AllocationLibTest', function () {
 		it('should return 0 allocation for far future period (after all phases ended)', async function () {
 			const lib = await loadFixture(setup)
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 
 			// Set period number far in the future (assuming phase reduction reaches 0)
 			const farFuturePeriod = 1000000
@@ -275,7 +275,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const period = await lib.getCurrentPeriod()
 
 			// Call getAllocationInfo when no contribution has been recorded
@@ -299,7 +299,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 			const tmpAddress = ethers.Wallet.createRandom().address
 
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 			const depositAmount = ethers.parseEther('1.0') // 1 ether -> 4 contribution
 			const period = await lib.getCurrentPeriod()
 
@@ -327,7 +327,7 @@ describe('AllocationLibTest', function () {
 			const lib = await loadFixture(setup)
 
 			// Set start timestamp first
-			await lib.setStartTimeStamp()
+			await lib.initialize(PERIOD_INTERVAL)
 
 			// Call getAllocationConstants
 			const constants = await lib.getAllocationConstants()
