@@ -35,7 +35,7 @@ contract Liquidity is
 	using DepositQueueLib for DepositQueueLib.DepositQueue;
 
 	/// @notice Analyzer role constant
-	bytes32 public constant ANALYZER = keccak256("ANALYZER");
+	bytes32 public constant RELAYER = keccak256("RELAYER");
 
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
@@ -107,7 +107,7 @@ contract Liquidity is
 		address _rollup,
 		address _withdrawal,
 		address _claim,
-		address _analyzer,
+		address _relayer,
 		address _contribution,
 		address[] memory initialERC20Tokens
 	) external initializer {
@@ -117,13 +117,13 @@ contract Liquidity is
 			_rollup == address(0) ||
 			_withdrawal == address(0) ||
 			_claim == address(0) ||
-			_analyzer == address(0) ||
+			_relayer == address(0) ||
 			_contribution == address(0)
 		) {
 			revert AddressZero();
 		}
 		_grantRole(DEFAULT_ADMIN_ROLE, _admin);
-		_grantRole(ANALYZER, _analyzer);
+		_grantRole(RELAYER, _relayer);
 		_grantRole(WITHDRAWAL, _withdrawal);
 		_grantRole(WITHDRAWAL, _claim);
 		__UUPSUpgradeable_init();
@@ -133,7 +133,7 @@ contract Liquidity is
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
-		
+
 		rollup = _rollup;
 		// Set deployment time to the next day
 		deploymentTime = (block.timestamp / 1 days + 1) * 1 days;
@@ -220,19 +220,13 @@ contract Liquidity is
 		_deposit(_msgSender(), recipientSaltHash, tokenIndex, amount);
 	}
 
-	function analyzeAndRelayDeposits(
+	function relayDeposits(
 		uint256 upToDepositId,
-		uint256[] memory rejectDepositIds,
 		uint256 gasLimit
-	) external payable onlyRole(ANALYZER) {
-		bytes32[] memory depositHashes = depositQueue.analyze(
-			upToDepositId,
-			rejectDepositIds
-		);
+	) external payable onlyRole(RELAYER) {
 		bytes memory message = abi.encodeWithSelector(
 			IRollup.processDeposits.selector,
-			upToDepositId,
-			depositHashes
+			upToDepositId
 		);
 		// note
 		// The specification of ScrollMessenger may change in the future.
@@ -244,12 +238,7 @@ contract Liquidity is
 			gasLimit,
 			_msgSender()
 		);
-		emit DepositsAnalyzedAndRelayed(
-			upToDepositId,
-			rejectDepositIds,
-			gasLimit,
-			message
-		);
+		emit DepositsRelayed(upToDepositId, gasLimit, message);
 	}
 
 	function claimWithdrawals(

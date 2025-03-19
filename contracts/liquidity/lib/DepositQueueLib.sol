@@ -4,26 +4,6 @@ pragma solidity 0.8.27;
 /// @title Deposit Queue Library
 /// @notice A library for managing a queue of pending deposits
 library DepositQueueLib {
-	/// @notice Error thrown when trying to analyze deposits outside the queue range
-	/// @param upToDepositId The requested deposit ID to analyze up to
-	/// @param firstDepositId The first deposit ID in the queue
-	/// @param lastDepositId The last deposit ID in the queue
-	error TriedAnalyzeOutOfRange(
-		uint256 upToDepositId,
-		uint256 firstDepositId,
-		uint256 lastDepositId
-	);
-
-	/// @notice Error thrown when trying to reject a deposit outside the analyzed range
-	/// @param rejectIndex The index of the deposit to be rejected
-	/// @param front The front index of the queue
-	/// @param upToDepositId The upper bound of the analyzed range
-	error TriedToRejectOutOfRange(
-		uint256 rejectIndex,
-		uint256 front,
-		uint256 upToDepositId
-	);
-
 	/// @notice Represents a queue of pending deposits
 	/// @param depositData Array of deposits that are pending
 	/// @param front Index of the first element in the queue
@@ -75,66 +55,5 @@ library DepositQueueLib {
 	) internal returns (DepositData memory depositData) {
 		depositData = depositQueue.depositData[depositId];
 		delete depositQueue.depositData[depositId];
-	}
-
-	/// @notice Analyzes deposits in the queue, marking some as rejected
-	/// @dev Collects deposit hashes from front to upToDepositId, skipping rejected ones
-	/// @param depositQueue The storage reference to the DepositQueue struct
-	/// @param upToDepositId The upper bound deposit ID for analysis
-	/// @param rejectIndices Array of deposit IDs to be marked as rejected
-	/// @return An array of deposit hashes that were not rejected
-	function analyze(
-		DepositQueue storage depositQueue,
-		uint256 upToDepositId,
-		uint256[] memory rejectIndices
-	) internal returns (bytes32[] memory) {
-		uint256 front = depositQueue.front;
-		if (
-			upToDepositId >= depositQueue.depositData.length ||
-			upToDepositId < front
-		) {
-			revert TriedAnalyzeOutOfRange(
-				upToDepositId,
-				front,
-				depositQueue.depositData.length - 1
-			);
-		}
-		for (uint256 i = 0; i < rejectIndices.length; i++) {
-			uint256 rejectIndex = rejectIndices[i];
-			if (rejectIndex > upToDepositId || rejectIndex < front) {
-				revert TriedToRejectOutOfRange(
-					rejectIndex,
-					front,
-					upToDepositId
-				);
-			}
-			depositQueue.depositData[rejectIndex].isRejected = true;
-		}
-		uint256 counter = 0;
-		for (uint256 i = front; i <= upToDepositId; i++) {
-			if (depositQueue.depositData[i].sender == address(0)) {
-				continue;
-			}
-			if (depositQueue.depositData[i].isRejected) {
-				continue;
-			}
-			counter++;
-		}
-		bytes32[] memory depositHashes = new bytes32[](counter);
-		uint256 depositHashesIndex = 0;
-		for (uint256 i = front; i <= upToDepositId; i++) {
-			if (depositQueue.depositData[i].sender == address(0)) {
-				continue;
-			}
-			if (depositQueue.depositData[i].isRejected) {
-				continue;
-			}
-			depositHashes[depositHashesIndex] = depositQueue
-				.depositData[i]
-				.depositHash;
-			depositHashesIndex++;
-		}
-		depositQueue.front = upToDepositId + 1;
-		return depositHashes;
 	}
 }
