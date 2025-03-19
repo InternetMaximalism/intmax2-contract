@@ -42,6 +42,12 @@ interface ILiquidity {
 	/// @notice Error thrown when the deposit amount exceeds the limit
 	error DepositAmountExceedsLimit(uint256 depositAmount, uint256 limit);
 
+	/// @notice Error thrown when aml Validation failed
+	error amlValidationFailed();
+
+	/// @notice Error thrown when mining Validation failed
+	error miningValidationFailed();
+
 	/// @notice Event emitted when a deposit is made
 	/// @param depositId The unique identifier for the deposit
 	/// @param sender The address that made the deposit
@@ -110,7 +116,13 @@ interface ILiquidity {
 	/// @notice Deposit native token
 	/// @dev recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt
 	/// @param recipientSaltHash The hash of the recipient's address and a secret salt
-	function depositNativeToken(bytes32 recipientSaltHash) external payable;
+	/// @param amlPermission The data to verify AML check
+	/// @param eligibilityPermission The data to verify eligibility check
+	function depositNativeToken(
+		bytes32 recipientSaltHash,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
+	) external payable;
 
 	/// @notice Deposit a specified amount of ERC20 token
 	/// @dev Requires prior approval for this contract to spend the tokens
@@ -118,10 +130,14 @@ interface ILiquidity {
 	/// @param tokenAddress The address of the ERC20 token contract
 	/// @param recipientSaltHash The hash of the recipient's address and a secret salt
 	/// @param amount The amount of tokens to deposit
+	/// @param amlPermission The data to verify AML check
+	/// @param eligibilityPermission The data to verify eligibility check
 	function depositERC20(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
-		uint256 amount
+		uint256 amount,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external;
 
 	/// @notice Deposit an ERC721 token
@@ -129,10 +145,14 @@ interface ILiquidity {
 	/// @param tokenAddress The address of the ERC721 token contract
 	/// @param recipientSaltHash The hash of the recipient's address and a secret salt
 	/// @param tokenId The ID of the token to deposit
+	/// @param amlPermission The data to verify AML check
+	/// @param eligibilityPermission The data to verify eligibility check
 	function depositERC721(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
-		uint256 tokenId
+		uint256 tokenId,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external;
 
 	/// @notice Deposit a specified amount of ERC1155 tokens
@@ -140,11 +160,15 @@ interface ILiquidity {
 	/// @param recipientSaltHash The hash of the recipient's address and a secret salt
 	/// @param tokenId The ID of the token to deposit
 	/// @param amount The amount of tokens to deposit
+	/// @param amlPermission The data to verify AML check
+	/// @param eligibilityPermission The data to verify eligibility check
 	function depositERC1155(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 tokenId,
-		uint256 amount
+		uint256 amount,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external;
 
 	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method

@@ -53,6 +53,14 @@ contract Liquidity is
 	/// @notice Address of the Rollup contract
 	address private rollup;
 
+	/// @notice Address of the AML Permitter contract
+	/// @dev If not set, we skip AML check
+	IPermitter public amlPermitter;
+
+	/// @notice Address of the Circulation Permitter contract
+	/// @dev If not set, we skip eligibility permission check
+	IPermitter public eligibilityPermitter;
+
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => uint256) public claimableWithdrawals;
 
@@ -110,6 +118,8 @@ contract Liquidity is
 		address _claim,
 		address _analyzer,
 		address _contribution,
+		address _amlPermitter,
+		address _eligibilityPermitter,
 		address[] memory initialERC20Tokens
 	) external initializer {
 		if (
@@ -134,10 +144,20 @@ contract Liquidity is
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
+		amlPermitter = IPermitter(_amlPermitter);
+		eligibilityPermitter = IPermitter(_eligibilityPermitter);
 
 		rollup = _rollup;
 		// Set deployment time to the next day
 		deploymentTime = (block.timestamp / 1 days + 1) * 1 days;
+	}
+
+	function setPermitter(
+		address _amlPermitter,
+		address _eligibilityPermitter
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		amlPermitter = IPermitter(_amlPermitter);
+		eligibilityPermitter = IPermitter(_eligibilityPermitter);
 	}
 
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -149,19 +169,35 @@ contract Liquidity is
 	}
 
 	function depositNativeToken(
-		bytes32 recipientSaltHash
+		bytes32 recipientSaltHash,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external payable whenNotPaused {
 		if (msg.value == 0) {
 			revert TriedToDepositZero();
 		}
 		uint32 tokenIndex = getNativeTokenIndex();
-		_deposit(_msgSender(), recipientSaltHash, tokenIndex, msg.value);
+		bytes memory encodedData = abi.encodeWithSignature(
+			"depositNativeToken(bytes32)",
+			recipientSaltHash
+		);
+		_deposit(
+			_msgSender(),
+			recipientSaltHash,
+			tokenIndex,
+			msg.value,
+			encodedData,
+			amlPermission,
+			eligibilityPermission
+		);
 	}
 
 	function depositERC20(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
-		uint256 amount
+		uint256 amount,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external whenNotPaused {
 		if (amount == 0) {
 			revert TriedToDepositZero();
@@ -176,13 +212,29 @@ contract Liquidity is
 			tokenAddress,
 			0
 		);
-		_deposit(_msgSender(), recipientSaltHash, tokenIndex, amount);
+		bytes memory encodedData = abi.encodeWithSignature(
+			"depositERC20(address,bytes32,uint256)",
+			tokenAddress,
+			recipientSaltHash,
+			amount
+		);
+		_deposit(
+			_msgSender(),
+			recipientSaltHash,
+			tokenIndex,
+			amount,
+			encodedData,
+			amlPermission,
+			eligibilityPermission
+		);
 	}
 
 	function depositERC721(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
-		uint256 tokenId
+		uint256 tokenId,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external whenNotPaused {
 		IERC721(tokenAddress).transferFrom(
 			_msgSender(),
@@ -194,14 +246,30 @@ contract Liquidity is
 			tokenAddress,
 			tokenId
 		);
-		_deposit(_msgSender(), recipientSaltHash, tokenIndex, 1);
+		bytes memory encodedData = abi.encodeWithSignature(
+			"depositERC721(address,bytes32,uint256)",
+			tokenAddress,
+			recipientSaltHash,
+			tokenId
+		);
+		_deposit(
+			_msgSender(),
+			recipientSaltHash,
+			tokenIndex,
+			1,
+			encodedData,
+			amlPermission,
+			eligibilityPermission
+		);
 	}
 
 	function depositERC1155(
 		address tokenAddress,
 		bytes32 recipientSaltHash,
 		uint256 tokenId,
-		uint256 amount
+		uint256 amount,
+		bytes calldata amlPermission,
+		bytes calldata eligibilityPermission
 	) external whenNotPaused {
 		if (amount == 0) {
 			revert TriedToDepositZero();
@@ -218,7 +286,22 @@ contract Liquidity is
 			tokenAddress,
 			tokenId
 		);
-		_deposit(_msgSender(), recipientSaltHash, tokenIndex, amount);
+		bytes memory encodedData = abi.encodeWithSignature(
+			"depositERC1155(address,bytes32,uint256,uint256)",
+			tokenAddress,
+			recipientSaltHash,
+			tokenId,
+			amount
+		);
+		_deposit(
+			_msgSender(),
+			recipientSaltHash,
+			tokenIndex,
+			amount,
+			encodedData,
+			amlPermission,
+			eligibilityPermission
+		);
 	}
 
 	function analyzeAndRelayDeposits(
@@ -296,8 +379,16 @@ contract Liquidity is
 		address sender,
 		bytes32 recipientSaltHash,
 		uint32 tokenIndex,
-		uint256 amount
+		uint256 amount,
+		bytes memory encodedData,
+		bytes memory amlPermission,
+		bytes memory eligibilityPermission
 	) private {
+		validateAmlPermission(amlPermission, encodedData);
+		bool isEligible = validateEligibilityPermission(
+			eligibilityPermission,
+			encodedData
+		);
 		uint256 depositLimit = DepositLimit.getDepositLimit(
 			tokenIndex,
 			deploymentTime
@@ -305,7 +396,6 @@ contract Liquidity is
 		if (amount > depositLimit) {
 			revert DepositAmountExceedsLimit(amount, depositLimit);
 		}
-		bool isEligible = true; // TODO: Implement eligibility check
 		bytes32 depositHash = DepositLib
 			.Deposit(sender, recipientSaltHash, amount, tokenIndex, isEligible)
 			.getHash();
@@ -466,6 +556,47 @@ contract Liquidity is
 		bytes calldata
 	) external pure returns (bytes4) {
 		return this.onERC1155Received.selector;
+	}
+
+	function validateAmlPermission(
+		bytes memory encodedData,
+		bytes memory amlPermission
+	) internal {
+		if (address(amlPermitter) == address(0)) {
+			// if aml permitter is not set, skip aml check
+			return;
+		}
+		bool result = amlPermitter.authorize(
+			_msgSender(),
+			msg.value,
+			encodedData,
+			amlPermission
+		);
+		if (!result) {
+			revert amlValidationFailed();
+		}
+		return;
+	}
+
+	function validateEligibilityPermission(
+		bytes memory encodedData,
+		bytes memory eligibilityPermission
+	) internal returns (bool) {
+		if (address(eligibilityPermitter) == address(0)) {
+			// if eligibility permitter is not set, skip eligibility check
+			return true;
+		}
+		if (eligibilityPermission.length == 0) {
+			// if eligibility permitter is set but permission does'nt returned, return false.
+			return false;
+		}
+		return
+			eligibilityPermitter.authorize(
+				_msgSender(),
+				msg.value,
+				encodedData,
+				eligibilityPermission
+			);
 	}
 
 	function getDepositData(

@@ -19,16 +19,18 @@ contract PredicatePermitter is
 		__UUPSUpgradeable_init();
 	}
 
-	function permit(
+	function authorize(
 		address user,
+		uint256 value,
 		bytes calldata encodedData,
 		bytes calldata permission
-	) external {
+	) external returns (bool) {
 		PredicateMessage memory predicateMessage = abi.decode(
 			permission,
 			(PredicateMessage)
 		);
-		_authorizeTransaction(predicateMessage, encodedData, user, 0);
+		return
+			_authorizeTransaction(predicateMessage, encodedData, user, value);
 	}
 
 	function setPolicy(string memory policyID) external onlyOwner {
