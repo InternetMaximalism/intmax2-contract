@@ -133,6 +133,7 @@ contract Liquidity is
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
+		
 		rollup = _rollup;
 		// Set deployment time to the next day
 		deploymentTime = (block.timestamp / 1 days + 1) * 1 days;

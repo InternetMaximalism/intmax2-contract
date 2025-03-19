@@ -14,6 +14,9 @@ library AllocationLib {
 	/// @notice Emitted when an attempt is made to consume allocations for the current period
 	error NotFinishedPeriod();
 
+	/// @notice Emitted when the period interval is zero
+	error periodIntervalZero();
+
 	/// @notice Emitted when a contribution is recorded
 	/// @param period current period
 	/// @param recipient user address
@@ -69,10 +72,19 @@ library AllocationLib {
 	/// @notice Initializes the allocation state
 	/// @param state The allocation state
 	function initialize(State storage state, uint256 periodInterval) internal {
+		if (periodInterval == 0) {
+			revert periodIntervalZero();
+		}
 		state.periodInterval = periodInterval;
-		state.startTimestamp =
-			(block.timestamp / periodInterval) *
-			periodInterval;
+		if (periodInterval > 1 days) {
+			// align the start timestamp to the start of the day
+			state.startTimestamp = (block.timestamp / 1 days) * 1 days;
+		} else {
+			// align the start timestamp to the start of the period
+			state.startTimestamp =
+				(block.timestamp / periodInterval) *
+				periodInterval;
+		}
 	}
 
 	/// @notice Records a user's contribution
