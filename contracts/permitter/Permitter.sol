@@ -19,7 +19,7 @@ contract PredicatePermitter is
 		__UUPSUpgradeable_init();
 	}
 
-	function authorize(
+	function permit(
 		address user,
 		uint256 value,
 		bytes calldata encodedData,

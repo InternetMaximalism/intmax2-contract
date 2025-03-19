@@ -562,7 +562,7 @@ contract Liquidity is
 			// if aml permitter is not set, skip aml check
 			return;
 		}
-		bool result = amlPermitter.authorize(
+		bool result = amlPermitter.permit(
 			_msgSender(),
 			msg.value,
 			encodedData,
@@ -587,7 +587,7 @@ contract Liquidity is
 			return false;
 		}
 		return
-			eligibilityPermitter.authorize(
+			eligibilityPermitter.permit(
 				_msgSender(),
 				msg.value,
 				encodedData,
