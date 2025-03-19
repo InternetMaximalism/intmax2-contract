@@ -380,10 +380,10 @@ contract Liquidity is
 		bytes memory amlPermission,
 		bytes memory eligibilityPermission
 	) private {
-		validateAmlPermission(amlPermission, encodedData);
+		validateAmlPermission(encodedData, amlPermission);
 		bool isEligible = validateEligibilityPermission(
-			eligibilityPermission,
-			encodedData
+			encodedData,
+			eligibilityPermission
 		);
 		uint256 depositLimit = DepositLimit.getDepositLimit(
 			tokenIndex,
