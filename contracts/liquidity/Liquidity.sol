@@ -118,8 +118,6 @@ contract Liquidity is
 		address _claim,
 		address _analyzer,
 		address _contribution,
-		address _amlPermitter,
-		address _eligibilityPermitter,
 		address[] memory initialERC20Tokens
 	) external initializer {
 		if (
@@ -144,8 +142,6 @@ contract Liquidity is
 		depositQueue.initialize();
 		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
-		amlPermitter = IPermitter(_amlPermitter);
-		eligibilityPermitter = IPermitter(_eligibilityPermitter);
 
 		rollup = _rollup;
 		// Set deployment time to the next day
