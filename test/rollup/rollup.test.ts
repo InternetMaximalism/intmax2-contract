@@ -214,11 +214,6 @@ describe('Rollup', () => {
 				const blockHash = await rollup.blockHashes(0)
 				expect(blockHash).to.equal(FIRST_BLOCK_HASH)
 			})
-			it('should add initial blockBuilder', async () => {
-				const [rollup] = await loadFixture(setup)
-				const blockBuilder = await rollup.blockBuilders(0)
-				expect(blockBuilder).to.equal(ethers.ZeroAddress)
-			})
 		})
 		describe('fail', () => {
 			it('should revert when initializing twice', async () => {
@@ -392,26 +387,6 @@ describe('Rollup', () => {
 					1,
 				)
 				expect(blockHash).to.equal(currentBlockHash)
-			})
-			it('should add sender address to blockBuilders', async () => {
-				const [rollup] = await loadFixture(setup)
-				const inputs = await generateValidInputs()
-				const signers = await getSigners()
-
-				await rollup
-					.connect(signers.user1)
-					.postRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.expiry,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.senderPublicKeys,
-					)
-
-				const blockBuilder = await rollup.blockBuilders(1)
-				expect(blockBuilder).to.equal(signers.user1.address)
 			})
 			it('generate BlockPosted event', async () => {
 				const [rollup] = await loadFixture(setup)
@@ -726,27 +701,6 @@ describe('Rollup', () => {
 					1,
 				)
 				expect(blockHash).to.equal(currentBlockHash)
-			})
-			it('should add sender address to blockBuilders', async () => {
-				const [rollup] = await loadFixture(setup)
-				const inputs = await generateValidInputs()
-				const signers = await getSigners()
-
-				await rollup
-					.connect(signers.user1)
-					.postNonRegistrationBlock(
-						inputs.txTreeRoot,
-						inputs.expiry,
-						inputs.senderFlags,
-						inputs.aggregatedPublicKey,
-						inputs.aggregatedSignature,
-						inputs.messagePoint,
-						inputs.publicKeysHash,
-						inputs.senderAccountIds,
-					)
-
-				const blockBuilder = await rollup.blockBuilders(1)
-				expect(blockBuilder).to.equal(signers.user1.address)
 			})
 			it('generate BlockPosted event', async () => {
 				const [rollup] = await loadFixture(setup)
@@ -1118,45 +1072,6 @@ describe('Rollup', () => {
 						depositHashes,
 					),
 				).to.be.revertedWithCustomError(rollup, 'OnlyLiquidity')
-			})
-		})
-	})
-	describe('getBlockBuilder', () => {
-		describe('success cases', () => {
-			it('should return the correct block builder for the genesis block', async () => {
-				const [rollup] = await loadFixture(setup)
-				const genesisBlockBuilder = await rollup.getBlockBuilder(0)
-				expect(genesisBlockBuilder).to.equal(ethers.ZeroAddress)
-			})
-
-			it('should return the correct block builder for a non-genesis block', async () => {
-				const [rollup] = await loadFixture(setup)
-				const signers = await getSigners()
-				await addBlock(rollup, signers.user1)
-				const blockBuilder = await rollup.getBlockBuilder(1)
-				expect(blockBuilder).to.equal(signers.user1.address)
-			})
-
-			it('should return the correct block builder after multiple blocks have been added', async () => {
-				const [rollup] = await loadFixture(setup)
-				const signers = await getSigners()
-				await addBlock(rollup, signers.user1)
-				await addBlock(rollup, signers.user2)
-				await addBlock(rollup, signers.user3)
-
-				expect(await rollup.getBlockBuilder(1)).to.equal(signers.user1.address)
-				expect(await rollup.getBlockBuilder(2)).to.equal(signers.user2.address)
-				expect(await rollup.getBlockBuilder(3)).to.equal(signers.user3.address)
-			})
-		})
-
-		describe('failure cases', () => {
-			it('should revert when querying a non-existent block number', async () => {
-				const [rollup] = await loadFixture(setup)
-				await expect(rollup.getBlockBuilder(1)).to.be.revertedWithCustomError(
-					rollup,
-					'BlockNumberOutOfRange',
-				)
 			})
 		})
 	})

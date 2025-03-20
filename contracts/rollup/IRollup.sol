@@ -124,13 +124,6 @@ interface IRollup {
 	/// @return The latest block number
 	function getLatestBlockNumber() external view returns (uint32);
 
-	/// @notice Get the block builder for a specific block number
-	/// @param blockNumber The block number to query
-	/// @return The address of the block builder
-	function getBlockBuilder(
-		uint32 blockNumber
-	) external view returns (address);
-
 	/// @notice Get current penalty fee for rate limiter
 	/// @return The penalty fee for next block
 	function getPenalty() external view returns (uint256);

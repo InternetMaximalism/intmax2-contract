@@ -32,9 +32,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	/// @notice block hashes
 	bytes32[] public blockHashes;
 
-	/// @notice block builders
-	address[] public blockBuilders;
-
 	/// @notice L2 ScrollMessenger contract
 	IL2ScrollMessenger private l2ScrollMessenger;
 
@@ -92,7 +89,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 		depositTreeRoot = depositTree.getRoot();
 		blockHashes.pushGenesisBlockHash(depositTreeRoot);
-		blockBuilders.push(address(0));
 	}
 
 	function postRegistrationBlock(
@@ -238,7 +234,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			signatureHash,
 			timestamp
 		);
-		blockBuilders.push(_msgSender());
 		emit BlockPosted(
 			prevBlockHash,
 			_msgSender(),
@@ -273,15 +268,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 	function getLatestBlockNumber() external view returns (uint32) {
 		return blockHashes.getBlockNumber() - 1;
-	}
-
-	function getBlockBuilder(
-		uint32 blockNumber
-	) external view returns (address) {
-		if (blockNumber >= blockHashes.getBlockNumber()) {
-			revert BlockNumberOutOfRange();
-		}
-		return blockBuilders[blockNumber];
 	}
 
 	function getBlockHash(uint32 blockNumber) external view returns (bytes32) {
