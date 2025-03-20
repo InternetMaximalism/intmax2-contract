@@ -43,10 +43,10 @@ interface ILiquidity {
 	error DepositAmountExceedsLimit(uint256 depositAmount, uint256 limit);
 
 	/// @notice Error thrown when aml Validation failed
-	error amlValidationFailed();
+	error AmlValidationFailed();
 
-	/// @notice Error thrown when mining Validation failed
-	error miningValidationFailed();
+	/// @notice Error thrown when eligibility Validation failed
+	error EligibilityValidationFailed();
 
 	/// @notice Event emitted when a deposit is made
 	/// @param depositId The unique identifier for the deposit

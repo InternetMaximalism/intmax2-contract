@@ -55,13 +55,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 	modifier onlyLiquidityContract() {
 		IL2ScrollMessenger l2ScrollMessengerCached = l2ScrollMessenger;
-		// note
-		// The specification of ScrollMessenger may change in the future.
-		// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
-
-		// The L2 scrollMessenger is now the sender,
-		// but the sendMessage executor of the L1 scrollMessenger will eventually
-		// be set as the sender, so the following source needs to be modified at that time
 		if (_msgSender() != address(l2ScrollMessengerCached)) {
 			revert OnlyScrollMessenger();
 		}

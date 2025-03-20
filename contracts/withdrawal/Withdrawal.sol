@@ -170,8 +170,6 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
-	// The specification of ScrollMessenger may change in the future.
-	// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
 	function _relayMessage(bytes memory message) private {
 		uint256 value = 0; // relay to non-payable function
 		// In the current implementation of ScrollMessenger, the `gasLimit` is simply included in the L2 event log

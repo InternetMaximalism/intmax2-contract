@@ -71,7 +71,6 @@ contract Liquidity is
 	DepositQueueLib.DepositQueue private depositQueue;
 
 	modifier onlyWithdrawalRole() {
-		// Cache the values to avoid multiple storage reads
 		IL1ScrollMessenger l1ScrollMessengerCached = l1ScrollMessenger;
 		if (_msgSender() != address(l1ScrollMessengerCached)) {
 			revert SenderIsNotScrollMessenger();
@@ -314,9 +313,6 @@ contract Liquidity is
 			upToDepositId,
 			depositHashes
 		);
-		// note
-		// The specification of ScrollMessenger may change in the future.
-		// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
 		l1ScrollMessenger.sendMessage{value: msg.value}(
 			rollup, // to
 			0, // value
@@ -569,7 +565,7 @@ contract Liquidity is
 			amlPermission
 		);
 		if (!result) {
-			revert amlValidationFailed();
+			revert AmlValidationFailed();
 		}
 		return;
 	}
@@ -586,13 +582,16 @@ contract Liquidity is
 			// if eligibility permitter is set but permission does'nt returned, return false.
 			return false;
 		}
-		return
-			eligibilityPermitter.permit(
-				_msgSender(),
-				msg.value,
-				encodedData,
-				eligibilityPermission
-			);
+		bool result = amlPermitter.permit(
+			_msgSender(),
+			msg.value,
+			encodedData,
+			eligibilityPermission
+		);
+		if (!result) {
+			revert EligibilityValidationFailed();
+		}
+		return true;
 	}
 
 	function getDepositData(

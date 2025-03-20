@@ -39,6 +39,9 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	/// @notice Contribution contract
 	IContribution private contribution;
 
+	/// @notice Nonce to make nullifier unique
+	uint256 private nullifierNonce;
+
 	/// @notice allocation state
 	AllocationLib.State private allocationState;
 
@@ -123,16 +126,21 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 			memory directWithdrawals = new WithdrawalLib.Withdrawal[](
 				users.length
 			);
+		uint256 nullifierNonceCached = nullifierNonce;
 		for (uint256 i = 0; i < directWithdrawals.length; i++) {
 			address user = users[i];
 			uint256 allocation = allocationState.consumeUserAllocation(
 				period,
 				user
 			);
-			// nullifier can be anything if it's unique
+			// nullifier can be any unique value
+			// only used for direct withdrawal compatibility
+			// uniqueness prevents overwriting an existing claimable withdrawal
+			// when direct withdrawals fail
 			bytes32 nullifier = keccak256(
-				abi.encodePacked(period, block.timestamp, user)
+				abi.encodePacked("claim", nullifierNonceCached)
 			);
+			nullifierNonceCached++;
 			WithdrawalLib.Withdrawal memory withdrawal = WithdrawalLib
 				.Withdrawal(user, REWARD_TOKEN_INDEX, allocation, nullifier);
 			emit DirectWithdrawalQueued(
@@ -142,6 +150,7 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 			);
 			directWithdrawals[i] = withdrawal;
 		}
+		nullifierNonce = nullifierNonceCached;
 		bytes memory message = abi.encodeWithSelector(
 			ILiquidity.processWithdrawals.selector,
 			directWithdrawals,
@@ -156,8 +165,6 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
-	// The specification of ScrollMessenger may change in the future.
-	// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
 	function _relayMessage(bytes memory message) private {
 		uint256 value = 0; // relay to non-payable function
 		// In the current implementation of ScrollMessenger, the `gasLimit` is simply included in the L2 event log
