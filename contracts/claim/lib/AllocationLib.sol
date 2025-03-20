@@ -154,7 +154,7 @@ library AllocationLib {
 	) private view returns (uint256) {
 		uint256 elapsedDays = (state.startTimestamp +
 			periodNumber *
-			1 days -
+			PERIOD_INTERVAL -
 			GENESIS_TIMESTAMP) / 1 days;
 		uint256 rewardPerDay = PHASE0_REWARD_PER_DAY;
 		for (uint256 i = 0; i < NUM_PHASES; i++) {
