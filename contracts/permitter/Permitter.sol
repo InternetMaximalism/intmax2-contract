@@ -14,9 +14,15 @@ contract PredicatePermitter is
 	OwnableUpgradeable,
 	IPermitter
 {
-	function initialize(address _admin) external initializer {
+	function initialize(
+		address _admin,
+		address predicateManager,
+		string calldata policyID
+	) external initializer {
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
+		_setPredicateManager(predicateManager);
+		_setPolicy(policyID);
 	}
 
 	function permit(
@@ -33,7 +39,7 @@ contract PredicatePermitter is
 			_authorizeTransaction(predicateMessage, encodedData, user, value);
 	}
 
-	function setPolicy(string memory policyID) external onlyOwner {
+	function setPolicy(string calldata policyID) external onlyOwner {
 		_setPolicy(policyID);
 	}
 
