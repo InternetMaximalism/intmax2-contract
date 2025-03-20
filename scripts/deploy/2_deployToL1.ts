@@ -18,20 +18,6 @@ async function main() {
 	}
 
 	let deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.mockL1ScrollMessenger) {
-		console.log('deploying mockL1ScrollMessenger')
-		const MockL1ScrollMessenger_ = await ethers.getContractFactory(
-			'MockL1ScrollMessenger',
-		)
-		const l1ScrollMessenger = await MockL1ScrollMessenger_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			mockL1ScrollMessenger: await l1ScrollMessenger.getAddress(),
-			...deployedContracts,
-		})
-		await sleep(30)
-	}
-
 	if (!deployedContracts.l1Contribution) {
 		console.log('deploying l1Contribution')
 		const contributionFactory = await ethers.getContractFactory('Contribution')
@@ -48,7 +34,16 @@ async function main() {
 			...deployedContracts,
 		})
 	}
-
+	if (!deployedContracts.testErc20) {
+		console.log('deploying testErc20')
+		const testErc20Factory = await ethers.getContractFactory('TestERC20')
+		const testErc20 = await testErc20Factory.deploy(admin)
+		const deployedContracts = await readDeployedContracts()
+		await writeDeployedContracts({
+			testErc20: await testErc20.getAddress(),
+			...deployedContracts,
+		})
+	}
 	if (!deployedContracts.liquidity) {
 		console.log('deploying liquidity')
 		const deployedL2Contracts = await readDeployedContracts()
