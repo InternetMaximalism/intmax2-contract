@@ -123,24 +123,27 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		}
 
 		WithdrawalLib.Withdrawal[]
-			memory directWithdrawals = new WithdrawalLib.Withdrawal[](
+			memory tempDirectWithdrawals = new WithdrawalLib.Withdrawal[](
 				users.length
 			);
 		uint256 nullifierNonceCached = nullifierNonce;
-		for (uint256 i = 0; i < directWithdrawals.length; i++) {
+		uint256 counter = 0;
+		for (uint256 i = 0; i < users.length; i++) {
 			address user = users[i];
 			uint256 allocation = allocationState.consumeUserAllocation(
 				period,
 				user
 			);
+			if (allocation == 0) {
+				continue;
+			}
 			// nullifier can be any unique value
 			// only used for direct withdrawal compatibility
 			// uniqueness prevents overwriting an existing claimable withdrawal
 			// when direct withdrawals fail
 			bytes32 nullifier = keccak256(
-				abi.encodePacked("claim", nullifierNonceCached)
+				abi.encodePacked("claim", nullifierNonceCached + counter)
 			);
-			nullifierNonceCached++;
 			WithdrawalLib.Withdrawal memory withdrawal = WithdrawalLib
 				.Withdrawal(user, REWARD_TOKEN_INDEX, allocation, nullifier);
 			emit DirectWithdrawalQueued(
@@ -148,9 +151,18 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 				withdrawal.recipient,
 				withdrawal
 			);
-			directWithdrawals[i] = withdrawal;
+			tempDirectWithdrawals[counter] = withdrawal;
+			counter++;
 		}
-		nullifierNonce = nullifierNonceCached;
+		nullifierNonce = nullifierNonceCached + counter;
+
+		// cut the array to the actual size
+		WithdrawalLib.Withdrawal[]
+			memory directWithdrawals = new WithdrawalLib.Withdrawal[](counter);
+		for (uint256 i = 0; i < counter; i++) {
+			directWithdrawals[i] = tempDirectWithdrawals[i];
+		}
+
 		bytes memory message = abi.encodeWithSelector(
 			ILiquidity.processWithdrawals.selector,
 			directWithdrawals,
@@ -161,7 +173,7 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		contribution.recordContribution(
 			keccak256("RELAY_CLAIM"),
 			_msgSender(),
-			users.length
+			counter
 		);
 	}
 

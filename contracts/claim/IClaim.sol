@@ -43,6 +43,13 @@ interface IClaim {
 		bytes calldata proof
 	) external;
 
+	/// @notice relay claims to the liquidity contract as withdrawals
+	function relayClaims(uint256 period, address[] calldata users) external;
+
+	/// @notice Get the current period number
+	/// @return The current period number
+	function getCurrentPeriod() external view returns (uint256);
+
 	/// @notice Get the allocation info for a user in a period
 	/// @param periodNumber The period number
 	/// @param user The user address
@@ -52,6 +59,10 @@ interface IClaim {
 		address user
 	) external view returns (AllocationLib.AllocationInfo memory);
 
-	/// @notice relay claims to the liquidity contract as withdrawals
-	function relayClaims(uint256 period, address[] calldata users) external;
+	// @notice Get the allocation constants
+	/// @return The allocation constants
+	function getAllocationConstants()
+		external
+		view
+		returns (AllocationLib.AllocationConstants memory);
 }
