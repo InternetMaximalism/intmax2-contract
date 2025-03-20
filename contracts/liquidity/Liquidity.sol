@@ -582,7 +582,7 @@ contract Liquidity is
 			// if eligibility permitter is set but permission does'nt returned, return false.
 			return false;
 		}
-		bool result = amlPermitter.permit(
+		bool result = eligibilityPermitter.permit(
 			_msgSender(),
 			msg.value,
 			encodedData,
