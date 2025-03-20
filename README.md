@@ -9,7 +9,6 @@
 ## Deployment
 
 ```sh
-echo "{}" > ./scripts/data/deployedContracts.json # initialize contract addresses
 npx hardhat run ./scripts/deploy/1_deployToL2.ts --network sepolia
 npx hardhat run ./scripts/deploy/2_deployToL1.ts --network sepolia
 npx hardhat run ./scripts/deploy/3_initializeOnL2.ts --network sepolia
