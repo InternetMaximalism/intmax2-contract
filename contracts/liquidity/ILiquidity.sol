@@ -3,7 +3,6 @@ pragma solidity 0.8.27;
 
 import {DepositLib} from "../common/DepositLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
-import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
 
 interface ILiquidity {
 	/// @notice address is zero address
@@ -145,27 +144,6 @@ interface ILiquidity {
 		uint256 amount
 	) external;
 
-	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
-	/// @dev upToDepositId specifies the last deposit id that have been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @dev rejectDepositIndices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.
-	/// @param upToDepositId The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @param rejectDepositIds An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.
-	/// @param gasLimit The gas limit for the l2 transaction.
-	function analyzeAndRelayDeposits(
-		uint256 upToDepositId,
-		uint256[] memory rejectDepositIds,
-		uint256 gasLimit
-	) external payable;
-
-	/// @notice Method to cancel a deposit
-	/// @dev The deposit ID and its content should be included in the calldata
-	/// @param depositId The ID of the deposit to cancel
-	/// @param deposit The deposit data
-	function cancelDeposit(
-		uint256 depositId,
-		DepositLib.Deposit calldata deposit
-	) external;
-
 	/// @notice Process withdrawals, called by the scroll messenger
 	/// @param withdrawals Array of withdrawals to process
 	/// @param withdrawalHahes Array of withdrawal hashes
@@ -182,49 +160,11 @@ interface ILiquidity {
 	/// @return The ID of the last deposit
 	function getLastDepositId() external view returns (uint256);
 
-	/// @notice Get deposit data for a given deposit ID
-	/// @param depositId The ID of the deposit
-	/// @return The deposit data
-	function getDepositData(
-		uint256 depositId
-	) external view returns (DepositQueueLib.DepositData memory);
-
-	/// @notice Get deposit data list for a given deposit IDs
-	/// @param depositIds The IDs of the deposit
-	/// @return The deposit data list
-	function getDepositDataBatch(
-		uint256[] memory depositIds
-	) external view returns (DepositQueueLib.DepositData[] memory);
-
-	/// @notice Get deposit data hash for a given deposit ID
-	/// @param depositId The ID of the deposit
-	/// @return The deposit data hash
-	function getDepositDataHash(
-		uint256 depositId
-	) external view returns (bytes32);
-
 	/// @notice Claim withdrawals for tokens that are not direct withdrawals
 	/// @param withdrawals Array of withdrawals to claim
 	function claimWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external;
-
-	/// @notice Check if the deposit is valid
-	/// @param depositId The ID of the deposit
-	/// @param recipientSaltHash The hash of the recipient's intmax2 address (BLS public key) and a secret salt
-	/// @param tokenIndex The index of the token being deposited
-	/// @param amount The amount of tokens deposited
-	/// @param isEligible Whether the deposit is eligible for mining rewards
-	/// @param sender The address that made the deposit
-	/// @return True if the deposit is valid
-	function isDepositValid(
-		uint256 depositId,
-		bytes32 recipientSaltHash,
-		uint32 tokenIndex,
-		uint256 amount,
-		bool isEligible,
-		address sender
-	) external view returns (bool);
 
 	/// @notice ERC1155 token receiver function
 	/// @return bytes4 The function selector

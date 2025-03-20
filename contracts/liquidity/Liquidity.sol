@@ -17,7 +17,6 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 
 import {DepositLib} from "../common/DepositLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
-import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
 import {ERC20CallOptionalLib} from "./lib/ERC20CallOptionalLib.sol";
 import {DepositLimit} from "./lib/DepositLimit.sol";
 
@@ -32,7 +31,6 @@ contract Liquidity is
 	using ERC20CallOptionalLib for IERC20;
 	using DepositLib for DepositLib.Deposit;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
-	using DepositQueueLib for DepositQueueLib.DepositQueue;
 
 	/// @notice Analyzer role constant
 	bytes32 public constant ANALYZER = keccak256("ANALYZER");
@@ -42,6 +40,9 @@ contract Liquidity is
 
 	/// @notice Deployment time which is used to calculate the deposit limit
 	uint256 private deploymentTime;
+
+	/// @notice Deposit ID
+	uint256 private depositId;
 
 	IContribution private contribution;
 
@@ -54,33 +55,9 @@ contract Liquidity is
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => bool) private doesDepositHashExist;
 
-	/// @notice deposit information queue
-	DepositQueueLib.DepositQueue private depositQueue;
-
 	modifier onlyWithdrawalRole() {
 		if (!hasRole(WITHDRAWAL, _msgSender())) {
 			revert InvalidWithdrawalAddress();
-		}
-		_;
-	}
-
-	modifier canCancelDeposit(
-		uint256 depositId,
-		DepositLib.Deposit memory deposit
-	) {
-		DepositQueueLib.DepositData memory depositData = depositQueue
-			.depositData[depositId];
-		if (depositData.sender != _msgSender()) {
-			revert OnlySenderCanCancelDeposit();
-		}
-		bytes32 depositHash = deposit.getHash();
-		if (depositData.depositHash != depositHash) {
-			revert InvalidDepositHash(depositData.depositHash, depositHash);
-		}
-		if (depositId <= getLastRelayedDepositId()) {
-			if (!depositData.isRejected) {
-				revert AlreadyAnalyzed();
-			}
 		}
 		_;
 	}
@@ -125,7 +102,6 @@ contract Liquidity is
 		__AccessControl_init();
 		__TokenData_init(initialERC20Tokens);
 		__Pausable_init();
-		depositQueue.initialize();
 		contribution = IContribution(_contribution);
 		rollup = _rollup;
 		// Set deployment time to the next day
@@ -213,26 +189,6 @@ contract Liquidity is
 		_deposit(_msgSender(), recipientSaltHash, tokenIndex, amount);
 	}
 
-	function analyzeAndRelayDeposits(
-		uint256 upToDepositId,
-		uint256[] memory rejectDepositIds,
-		uint256 gasLimit
-	) external payable onlyRole(ANALYZER) {
-		bytes32[] memory depositHashes = depositQueue.analyze(
-			upToDepositId,
-			rejectDepositIds
-		);
-		IRollup(rollup).processDeposits{gas: gasLimit}(
-			upToDepositId,
-			depositHashes
-		);
-		emit DepositsAnalyzedAndRelayed(
-			upToDepositId,
-			rejectDepositIds,
-			gasLimit
-		);
-	}
-
 	function claimWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external {
@@ -255,23 +211,6 @@ contract Liquidity is
 		}
 	}
 
-	function cancelDeposit(
-		uint256 depositId,
-		DepositLib.Deposit memory deposit
-	) external canCancelDeposit(depositId, deposit) {
-		DepositQueueLib.DepositData memory depositData = depositQueue
-			.deleteDeposit(depositId);
-		TokenInfo memory tokenInfo = getTokenInfo(deposit.tokenIndex);
-		_sendToken(
-			tokenInfo.tokenType,
-			tokenInfo.tokenAddress,
-			depositData.sender,
-			deposit.amount,
-			tokenInfo.tokenId
-		);
-		emit DepositCanceled(depositId);
-	}
-
 	function _deposit(
 		address sender,
 		bytes32 recipientSaltHash,
@@ -292,8 +231,9 @@ contract Liquidity is
 		if (doesDepositHashExist[depositHash]) {
 			revert DepositHashAlreadyExists(depositHash);
 		}
-		doesDepositHashExist[depositHash] = true;
-		uint256 depositId = depositQueue.enqueue(depositHash, sender);
+		bytes32[] memory depositHashes = new bytes32[](1);
+		depositHashes[0] = depositHash;
+		IRollup(rollup).processDeposits(depositId, depositHashes);
 		emit Deposited(
 			depositId,
 			sender,
@@ -334,32 +274,6 @@ contract Liquidity is
 	) external onlyWithdrawalRole {
 		_processDirectWithdrawals(withdrawals);
 		_processClaimableWithdrawals(withdrawalHashes);
-	}
-
-	function isDepositValid(
-		uint256 depositId,
-		bytes32 recipientSaltHash,
-		uint32 tokenIndex,
-		uint256 amount,
-		bool isEligible,
-		address sender
-	) external view returns (bool) {
-		DepositQueueLib.DepositData memory depositData = depositQueue
-			.depositData[depositId];
-		bytes32 depositHash = DepositLib
-			.Deposit(sender, recipientSaltHash, amount, tokenIndex, isEligible)
-			.getHash();
-
-		if (depositData.depositHash != depositHash) {
-			return false;
-		}
-		if (depositData.sender != sender) {
-			return false;
-		}
-		if (depositData.isRejected) {
-			return false;
-		}
-		return true;
 	}
 
 	function _processDirectWithdrawals(
@@ -448,37 +362,12 @@ contract Liquidity is
 		return this.onERC1155Received.selector;
 	}
 
-	function getDepositData(
-		uint256 depositId
-	) external view returns (DepositQueueLib.DepositData memory) {
-		return depositQueue.depositData[depositId];
-	}
-
-	function getDepositDataBatch(
-		uint256[] memory depositIds
-	) external view returns (DepositQueueLib.DepositData[] memory) {
-		DepositQueueLib.DepositData[]
-			memory depositData = new DepositQueueLib.DepositData[](
-				depositIds.length
-			);
-		for (uint256 i = 0; i < depositIds.length; i++) {
-			depositData[i] = depositQueue.depositData[depositIds[i]];
-		}
-		return depositData;
-	}
-
-	function getDepositDataHash(
-		uint256 depositId
-	) external view returns (bytes32) {
-		return depositQueue.depositData[depositId].depositHash;
-	}
-
 	function getLastRelayedDepositId() public view returns (uint256) {
-		return depositQueue.front - 1;
+		return depositId;
 	}
 
 	function getLastDepositId() external view returns (uint256) {
-		return depositQueue.depositData.length - 1;
+		return depositId;
 	}
 
 	function _authorizeUpgrade(
