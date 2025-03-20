@@ -1,8 +1,6 @@
 import { ethers, network } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
-import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
@@ -31,9 +29,7 @@ async function main() {
 		throw new Error('all l2 contracts should be deployed')
 	}
 
-	const deployedL1Contracts = await readDeployedContracts(
-		getCounterPartNetwork(),
-	)
+	const deployedL1Contracts = await readDeployedContracts()
 	if (!deployedL1Contracts.liquidity) {
 		throw new Error('liquidity should be deployed')
 	}
@@ -65,8 +61,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing Rollup')
 		const tx = await rollup.initialize(
-			admin,
-			await getL2MessengerAddress(),
+			env.ADMIN_ADDRESS,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.l2Contribution,
 		)
@@ -81,7 +76,6 @@ async function main() {
 		console.log('Initializing Withdrawal')
 		const tx = await withdrawal.initialize(
 			admin,
-			await getL2MessengerAddress(),
 			deployedL2Contracts.withdrawalPlonkVerifier,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
@@ -99,7 +93,6 @@ async function main() {
 		console.log('Initializing Claim')
 		const tx = await claim.initialize(
 			admin,
-			await getL2MessengerAddress(),
 			deployedL2Contracts.claimPlonkVerifier,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
@@ -110,23 +103,6 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		await l2Contribution.grantRole(contributorRole, claim)
 		await sleep(env.SLEEP_TIME)
-	}
-	if ((await claim.owner()) === ethers.ZeroAddress) {
-		await sleep(10)
-		console.log('Initializing Claim')
-		const tx = await claim.initialize(
-			env.ADMIN_ADDRESS,
-			await getL2MessengerAddress(),
-			deployedL2Contracts.withdrawalPlonkVerifier,
-			deployedL1Contracts.liquidity,
-			deployedL2Contracts.rollup,
-			deployedL2Contracts.l2Contribution,
-		)
-		await tx.wait()
-		console.log('Claim initialized')
-		await sleep(10)
-		await l2Contribution.grantRole(contributorRole, claim)
-		await sleep(20)
 	}
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)

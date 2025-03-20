@@ -62,12 +62,10 @@ interface ILiquidity {
 	/// @param upToDepositId The highest deposit ID that was analyzed
 	/// @param rejectedIndices Array of deposit IDs that were rejected
 	/// @param gasLimit The gas limit for the L2 transaction
-	/// @param message Additional message data
 	event DepositsAnalyzedAndRelayed(
 		uint256 indexed upToDepositId,
 		uint256[] rejectedIndices,
-		uint256 gasLimit,
-		bytes message
+		uint256 gasLimit
 	);
 
 	/// @notice Event emitted when a deposit is canceled

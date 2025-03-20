@@ -35,10 +35,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	/// @notice block builders
 	address[] public blockBuilders;
 
-	/// @notice L2 ScrollMessenger contract
-	IL2ScrollMessenger private l2ScrollMessenger;
-
-	/// @notice contribution contract
 	IContribution private contribution;
 
 	/// @notice deposit tree
@@ -54,18 +50,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	uint32 public depositIndex;
 
 	modifier onlyLiquidityContract() {
-		IL2ScrollMessenger l2ScrollMessengerCached = l2ScrollMessenger;
-		// note
-		// The specification of ScrollMessenger may change in the future.
-		// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
-
-		// The L2 scrollMessenger is now the sender,
-		// but the sendMessage executor of the L1 scrollMessenger will eventually
-		// be set as the sender, so the following source needs to be modified at that time
-		if (_msgSender() != address(l2ScrollMessengerCached)) {
-			revert OnlyScrollMessenger();
-		}
-		if (liquidity != l2ScrollMessengerCached.xDomainMessageSender()) {
+		if (liquidity != _msgSender()) {
 			revert OnlyLiquidity();
 		}
 		_;
@@ -78,14 +63,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 
 	function initialize(
 		address _admin,
-		address _scrollMessenger,
 		address _liquidity,
 		address _contribution
 	) external initializer {
 		if (_admin == address(0)) {
-			revert AddressZero();
-		}
-		if (_scrollMessenger == address(0)) {
 			revert AddressZero();
 		}
 		if (_liquidity == address(0)) {
@@ -97,7 +78,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
 		depositTree.initialize();
-		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		liquidity = _liquidity;
 		contribution = IContribution(_contribution);
 

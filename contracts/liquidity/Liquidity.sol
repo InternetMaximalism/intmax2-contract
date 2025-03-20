@@ -43,10 +43,6 @@ contract Liquidity is
 	/// @notice Deployment time which is used to calculate the deposit limit
 	uint256 private deploymentTime;
 
-	/// @notice Address of the L1 ScrollMessenger contract
-	IL1ScrollMessenger private l1ScrollMessenger;
-
-	/// @notice Address of the Contribution contract
 	IContribution private contribution;
 
 	/// @notice Address of the Rollup contract
@@ -62,14 +58,7 @@ contract Liquidity is
 	DepositQueueLib.DepositQueue private depositQueue;
 
 	modifier onlyWithdrawalRole() {
-		// Cache the values to avoid multiple storage reads
-		IL1ScrollMessenger l1ScrollMessengerCached = l1ScrollMessenger;
-		if (_msgSender() != address(l1ScrollMessengerCached)) {
-			revert SenderIsNotScrollMessenger();
-		}
-		if (
-			!hasRole(WITHDRAWAL, l1ScrollMessengerCached.xDomainMessageSender())
-		) {
+		if (!hasRole(WITHDRAWAL, _msgSender())) {
 			revert InvalidWithdrawalAddress();
 		}
 		_;
@@ -103,7 +92,6 @@ contract Liquidity is
 
 	function initialize(
 		address _admin,
-		address _l1ScrollMessenger,
 		address _rollup,
 		address _withdrawal,
 		address _claim,
@@ -112,9 +100,6 @@ contract Liquidity is
 		address[] memory initialERC20Tokens
 	) external initializer {
 		if (_admin == address(0)) {
-			revert AddressZero();
-		}
-		if (_l1ScrollMessenger == address(0)) {
 			revert AddressZero();
 		}
 		if (_rollup == address(0)) {
@@ -141,7 +126,6 @@ contract Liquidity is
 		__TokenData_init(initialERC20Tokens);
 		__Pausable_init();
 		depositQueue.initialize();
-		l1ScrollMessenger = IL1ScrollMessenger(_l1ScrollMessenger);
 		contribution = IContribution(_contribution);
 		rollup = _rollup;
 		// Set deployment time to the next day
@@ -238,26 +222,14 @@ contract Liquidity is
 			upToDepositId,
 			rejectDepositIds
 		);
-		bytes memory message = abi.encodeWithSelector(
-			IRollup.processDeposits.selector,
+		IRollup(rollup).processDeposits{gas: gasLimit}(
 			upToDepositId,
 			depositHashes
-		);
-		// note
-		// The specification of ScrollMessenger may change in the future.
-		// https://docs.scroll.io/en/developers/l1-and-l2-bridging/the-scroll-messenger/
-		l1ScrollMessenger.sendMessage{value: msg.value}(
-			rollup, // to
-			0, // value
-			message,
-			gasLimit,
-			_msgSender()
 		);
 		emit DepositsAnalyzedAndRelayed(
 			upToDepositId,
 			rejectDepositIds,
-			gasLimit,
-			message
+			gasLimit
 		);
 	}
 

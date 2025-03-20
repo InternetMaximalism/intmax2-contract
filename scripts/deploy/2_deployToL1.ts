@@ -1,9 +1,7 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
-import { getL1MessengerAddress } from '../utils/addressBook'
-import { sleep } from '../../utils/sleep'
-import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, num, str } from 'envalid'
+import { sleep } from '../../utils/sleep'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
@@ -31,19 +29,7 @@ async function main() {
 			mockL1ScrollMessenger: await l1ScrollMessenger.getAddress(),
 			...deployedContracts,
 		})
-		await sleep(env.SLEEP_TIME)
-	}
-
-	if (!deployedContracts.testErc20) {
-		console.log('deploying testErc20')
-		const TestERC20 = await ethers.getContractFactory('TestERC20')
-		const owner = (await ethers.getSigners())[0]
-		const testErc20 = await TestERC20.deploy(owner.address)
-		const deployedContracts = await readDeployedContracts()
-		await writeDeployedContracts({
-			testErc20: await testErc20.getAddress(),
-			...deployedContracts,
-		})
+		await sleep(30)
 	}
 
 	if (!deployedContracts.l1Contribution) {
@@ -65,9 +51,7 @@ async function main() {
 
 	if (!deployedContracts.liquidity) {
 		console.log('deploying liquidity')
-		const deployedL2Contracts = await readDeployedContracts(
-			getCounterPartNetwork(),
-		)
+		const deployedL2Contracts = await readDeployedContracts()
 		if (!deployedL2Contracts.rollup) {
 			throw new Error('rollup address is not set')
 		}
@@ -94,8 +78,7 @@ async function main() {
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
 			[
-				admin,
-				await getL1MessengerAddress(),
+				env.ADMIN_ADDRESS,
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
 				deployedL2Contracts.claim,
