@@ -23,14 +23,8 @@ contract DepositQueueLibTest {
 		deletedData = depositQueue.deleteDeposit(depositId);
 	}
 
-	function analyze(
-		uint256 upToDepositId,
-		uint256[] memory rejectIndices
-	) external {
-		latestDepositHashes = depositQueue.analyze(
-			upToDepositId,
-			rejectIndices
-		);
+	function analyze(uint256 upToDepositId) external {
+		latestDepositHashes = depositQueue.analyze(upToDepositId);
 	}
 
 	// Helper functions to access internal state for testing

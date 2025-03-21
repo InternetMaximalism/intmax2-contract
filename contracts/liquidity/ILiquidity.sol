@@ -64,14 +64,12 @@ interface ILiquidity {
 		uint256 depositedAt
 	);
 
-	/// @notice Event emitted when deposits are analyzed and relayed
+	/// @notice Event emitted when deposits are relayed
 	/// @param upToDepositId The highest deposit ID that was analyzed
-	/// @param rejectedIndices Array of deposit IDs that were rejected
 	/// @param gasLimit The gas limit for the L2 transaction
 	/// @param message Additional message data
-	event DepositsAnalyzedAndRelayed(
+	event DepositsRelayed(
 		uint256 indexed upToDepositId,
-		uint256[] rejectedIndices,
 		uint256 gasLimit,
 		bytes message
 	);
@@ -173,13 +171,10 @@ interface ILiquidity {
 
 	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
 	/// @dev upToDepositId specifies the last deposit id that have been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @dev rejectDepositIndices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.
 	/// @param upToDepositId The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @param rejectDepositIds An array of ids of deposits to exclude. These indices must be greater than lastAnalyzedDeposit and less than or equal to upToDepositId.
 	/// @param gasLimit The gas limit for the l2 transaction.
-	function analyzeAndRelayDeposits(
+	function relayDeposits(
 		uint256 upToDepositId,
-		uint256[] memory rejectDepositIds,
 		uint256 gasLimit
 	) external payable;
 

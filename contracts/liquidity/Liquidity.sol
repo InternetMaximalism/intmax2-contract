@@ -97,9 +97,7 @@ contract Liquidity is
 			revert InvalidDepositHash(depositData.depositHash, depositHash);
 		}
 		if (depositId <= getLastRelayedDepositId()) {
-			if (!depositData.isRejected) {
-				revert AlreadyAnalyzed();
-			}
+			revert AlreadyAnalyzed();
 		}
 		_;
 	}
@@ -299,15 +297,11 @@ contract Liquidity is
 		);
 	}
 
-	function analyzeAndRelayDeposits(
+	function relayDeposits(
 		uint256 upToDepositId,
-		uint256[] memory rejectDepositIds,
 		uint256 gasLimit
 	) external payable onlyRole(ANALYZER) {
-		bytes32[] memory depositHashes = depositQueue.analyze(
-			upToDepositId,
-			rejectDepositIds
-		);
+		bytes32[] memory depositHashes = depositQueue.analyze(upToDepositId);
 		bytes memory message = abi.encodeWithSelector(
 			IRollup.processDeposits.selector,
 			upToDepositId,
@@ -320,12 +314,7 @@ contract Liquidity is
 			gasLimit,
 			_msgSender()
 		);
-		emit DepositsAnalyzedAndRelayed(
-			upToDepositId,
-			rejectDepositIds,
-			gasLimit,
-			message
-		);
+		emit DepositsRelayed(upToDepositId, gasLimit, message);
 	}
 
 	function claimWithdrawals(
@@ -456,9 +445,6 @@ contract Liquidity is
 			return false;
 		}
 		if (depositData.sender != sender) {
-			return false;
-		}
-		if (depositData.isRejected) {
 			return false;
 		}
 		return true;
