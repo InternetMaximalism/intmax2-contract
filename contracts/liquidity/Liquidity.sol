@@ -36,7 +36,7 @@ contract Liquidity is
 	using DepositQueueLib for DepositQueueLib.DepositQueue;
 
 	/// @notice Analyzer role constant
-	bytes32 public constant ANALYZER = keccak256("ANALYZER");
+	bytes32 public constant RELAYER = keccak256("RELAYER");
 
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
@@ -113,7 +113,7 @@ contract Liquidity is
 		address _rollup,
 		address _withdrawal,
 		address _claim,
-		address _analyzer,
+		address _relayer,
 		address _contribution,
 		address[] memory initialERC20Tokens
 	) external initializer {
@@ -123,13 +123,13 @@ contract Liquidity is
 			_rollup == address(0) ||
 			_withdrawal == address(0) ||
 			_claim == address(0) ||
-			_analyzer == address(0) ||
+			_relayer == address(0) ||
 			_contribution == address(0)
 		) {
 			revert AddressZero();
 		}
 		_grantRole(DEFAULT_ADMIN_ROLE, _admin);
-		_grantRole(ANALYZER, _analyzer);
+		_grantRole(RELAYER, _relayer);
 		_grantRole(WITHDRAWAL, _withdrawal);
 		_grantRole(WITHDRAWAL, _claim);
 		__UUPSUpgradeable_init();
@@ -301,7 +301,7 @@ contract Liquidity is
 	function relayDeposits(
 		uint256 upToDepositId,
 		uint256 gasLimit
-	) external payable onlyRole(ANALYZER) {
+	) external payable onlyRole(RELAYER) {
 		bytes32[] memory depositHashes = depositQueue.batchDequeue(
 			upToDepositId
 		);

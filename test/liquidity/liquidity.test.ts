@@ -18,7 +18,7 @@ import {
 import { getDepositHash } from '../common.test'
 import { INITIAL_ERC20_TOKEN_ADDRESSES, TokenType } from './common.test'
 
-describe.only('Liquidity', () => {
+describe('Liquidity', () => {
 	type TestObjects = {
 		liquidity: Liquidity
 		scrollMessenger: L1ScrollMessengerTestForLiquidity
@@ -51,7 +51,7 @@ describe.only('Liquidity', () => {
 		const amlPermitterTest = await permitterTestFactory.deploy()
 		const eligibilityPermitterTest = await permitterTestFactory.deploy()
 
-		const { admin, analyzer } = await getSigners()
+		const { admin, relayer } = await getSigners()
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		const liquidity = (await upgrades.deployProxy(
 			liquidityFactory,
@@ -61,7 +61,7 @@ describe.only('Liquidity', () => {
 				rollup,
 				withdrawal,
 				claim,
-				analyzer.address,
+				relayer.address,
 				await contribution.getAddress(),
 				INITIAL_ERC20_TOKEN_ADDRESSES,
 			],
@@ -89,15 +89,15 @@ describe.only('Liquidity', () => {
 	type Signers = {
 		deployer: HardhatEthersSigner
 		admin: HardhatEthersSigner
-		analyzer: HardhatEthersSigner
+		relayer: HardhatEthersSigner
 		user: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<Signers> => {
-		const [deployer, admin, analyzer, user] = await ethers.getSigners()
+		const [deployer, admin, relayer, user] = await ethers.getSigners()
 		return {
 			deployer,
 			admin,
-			analyzer,
+			relayer,
 			user,
 		}
 	}
@@ -128,11 +128,11 @@ describe.only('Liquidity', () => {
 				const role = await liquidity.DEFAULT_ADMIN_ROLE()
 				expect(await liquidity.hasRole(role, admin.address)).to.be.true
 			})
-			it('analyzer has analyzer role', async () => {
+			it('relayer has relayer role', async () => {
 				const { liquidity } = await loadFixture(setup)
-				const { analyzer } = await getSigners()
-				const role = await liquidity.ANALYZER()
-				expect(await liquidity.hasRole(role, analyzer.address)).to.be.true
+				const { relayer } = await getSigners()
+				const role = await liquidity.RELAYER()
+				expect(await liquidity.hasRole(role, relayer.address)).to.be.true
 			})
 			it('withdrawal has withdrawal role', async () => {
 				const { liquidity, withdrawal } = await loadFixture(setup)
@@ -262,7 +262,7 @@ describe.only('Liquidity', () => {
 					),
 				).to.be.revertedWithCustomError(liquidityFactory, 'AddressZero')
 			})
-			it('analyzer is zero address', async () => {
+			it('relayer is zero address', async () => {
 				const liquidityFactory = await ethers.getContractFactory('Liquidity')
 				const tmpAddress = ethers.Wallet.createRandom().address
 				await expect(
@@ -1628,7 +1628,7 @@ describe.only('Liquidity', () => {
 		describe('success', () => {
 			it('send scroll messenger', async () => {
 				const { liquidity, scrollMessenger, rollup } = await loadFixture(setup)
-				const { analyzer, user } = await getSigners()
+				const { relayer, user } = await getSigners()
 
 				// Create some deposits using ETH
 				const depositAmount = ethers.parseEther('1')
@@ -1653,7 +1653,7 @@ describe.only('Liquidity', () => {
 				const gasLimit = 1000000
 
 				await liquidity
-					.connect(analyzer)
+					.connect(relayer)
 					.relayDeposits(upToDepositId, gasLimit, {
 						value: ethers.parseEther('1'),
 					})
@@ -1661,7 +1661,7 @@ describe.only('Liquidity', () => {
 				expect(await scrollMessenger.to()).to.equal(rollup)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(await scrollMessenger.gasLimit()).to.equal(gasLimit)
-				expect(await scrollMessenger.sender()).to.equal(analyzer.address)
+				expect(await scrollMessenger.sender()).to.equal(relayer.address)
 				expect(await scrollMessenger.msgValue()).to.equal(
 					ethers.parseEther('1'),
 				)
@@ -1728,7 +1728,7 @@ describe.only('Liquidity', () => {
 			})
 			it('emit DepositsRelayed event', async () => {
 				const { liquidity } = await loadFixture(setup)
-				const { analyzer, user } = await getSigners()
+				const { relayer, user } = await getSigners()
 
 				// Create some deposits using ETH
 				const depositAmount = ethers.parseEther('1')
@@ -1808,7 +1808,7 @@ describe.only('Liquidity', () => {
 				const expectedEncodedData = funcSelector + encodedParams.slice(2)
 
 				await expect(
-					liquidity.connect(analyzer).relayDeposits(upToDepositId, gasLimit, {
+					liquidity.connect(relayer).relayDeposits(upToDepositId, gasLimit, {
 						value: ethers.parseEther('1'),
 					}),
 				)
@@ -1817,7 +1817,7 @@ describe.only('Liquidity', () => {
 			})
 		})
 		describe('fail', () => {
-			it('only analyzer', async () => {
+			it('only relayer', async () => {
 				const { liquidity } = await loadFixture(setup)
 				const { user } = await getSigners()
 				const upToDepositId = 5
@@ -1830,7 +1830,7 @@ describe.only('Liquidity', () => {
 						liquidity,
 						'AccessControlUnauthorizedAccount',
 					)
-					.withArgs(user.address, await liquidity.ANALYZER())
+					.withArgs(user.address, await liquidity.RELAYER())
 			})
 		})
 	})
@@ -2046,12 +2046,12 @@ describe.only('Liquidity', () => {
 					.to.emit(liquidity, 'DepositCanceled')
 					.withArgs(depositId)
 			})
-			it('can deposit not analyzed amount', async () => {
+			it('can deposit not amount', async () => {
 				const { liquidity, depositAmount, depositId } =
 					await loadFixture(setupCancelDeposit)
-				const { user, analyzer } = await getSigners()
+				const { user, relayer } = await getSigners()
 
-				await liquidity.connect(analyzer).relayDeposits(depositId, 1000000, {
+				await liquidity.connect(relayer).relayDeposits(depositId, 1000000, {
 					value: ethers.parseEther('1'),
 				})
 
@@ -2085,11 +2085,11 @@ describe.only('Liquidity', () => {
 			it('revert OnlySenderCanCancelDeposit', async () => {
 				const { liquidity, depositAmount, recipientSaltHash, depositId } =
 					await loadFixture(setupCancelDeposit)
-				const { analyzer } = await getSigners()
+				const { relayer } = await getSigners()
 
 				await expect(
-					liquidity.connect(analyzer).cancelDeposit(depositId, {
-						depositor: analyzer.address,
+					liquidity.connect(relayer).cancelDeposit(depositId, {
+						depositor: relayer.address,
 						recipientSaltHash,
 						tokenIndex: 0,
 						amount: depositAmount,
@@ -2150,8 +2150,8 @@ describe.only('Liquidity', () => {
 			it('cannot not rejected deposit', async () => {
 				const { liquidity, depositAmount, recipientSaltHash, depositId } =
 					await loadFixture(setupCancelDeposit)
-				const { user, analyzer } = await getSigners()
-				await liquidity.connect(analyzer).relayDeposits(depositId, 1000000, {
+				const { user, relayer } = await getSigners()
+				await liquidity.connect(relayer).relayDeposits(depositId, 1000000, {
 					value: ethers.parseEther('1'),
 				})
 				await expect(
@@ -3329,7 +3329,7 @@ describe.only('Liquidity', () => {
 	describe('getLastRelayedDepositId, getLastDepositId', () => {
 		it('get DepositId', async () => {
 			const { liquidity } = await loadFixture(setup)
-			const { analyzer, user } = await getSigners()
+			const { relayer, user } = await getSigners()
 
 			expect(await liquidity.getLastRelayedDepositId()).to.equal(0)
 			expect(await liquidity.getLastDepositId()).to.equal(0)
@@ -3356,7 +3356,7 @@ describe.only('Liquidity', () => {
 			expect(await liquidity.getLastRelayedDepositId()).to.equal(0)
 			expect(await liquidity.getLastDepositId()).to.equal(5)
 
-			await liquidity.connect(analyzer).relayDeposits(3, 1000000)
+			await liquidity.connect(relayer).relayDeposits(3, 1000000)
 
 			expect(await liquidity.getLastRelayedDepositId()).to.equal(3)
 			expect(await liquidity.getLastDepositId()).to.equal(5)
@@ -3458,9 +3458,9 @@ describe.only('Liquidity', () => {
 				liquidity2Factory,
 				{ unsafeAllow: ['constructor'] },
 			)
-			const beforeRole = await liquidity.ANALYZER()
+			const beforeRole = await liquidity.RELAYER()
 
-			const afterRole = await next.ANALYZER()
+			const afterRole = await next.RELAYER()
 			expect(afterRole).to.equal(beforeRole)
 			const val = await next.getVal()
 			expect(val).to.equal(7)
