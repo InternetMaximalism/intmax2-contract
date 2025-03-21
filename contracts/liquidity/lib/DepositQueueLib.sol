@@ -65,11 +65,11 @@ library DepositQueueLib {
 		delete depositQueue.depositData[depositId];
 	}
 
-	/// @notice Analyzes deposits in the queue, marking some as rejected
-	/// @dev Collects deposit hashes from front to upToDepositId, skipping rejected ones
+	/// @notice relayed deposits in the queue
+	/// @dev Collects deposit hashes from front to upToDepositId
 	/// @param depositQueue The storage reference to the DepositQueue struct
-	/// @param upToDepositId The upper bound deposit ID for analysis
-	/// @return An array of deposit hashes that were not rejected
+	/// @param upToDepositId The upper bound deposit ID
+	/// @return An array of deposit hashes
 	function batchDequeue(
 		DepositQueue storage depositQueue,
 		uint256 upToDepositId

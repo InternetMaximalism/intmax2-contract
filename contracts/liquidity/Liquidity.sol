@@ -35,7 +35,7 @@ contract Liquidity is
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using DepositQueueLib for DepositQueueLib.DepositQueue;
 
-	/// @notice Analyzer role constant
+	/// @notice Relayer role constant
 	bytes32 public constant RELAYER = keccak256("RELAYER");
 
 	/// @notice Withdrawal role constant

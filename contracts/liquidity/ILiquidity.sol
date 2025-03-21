@@ -172,8 +172,8 @@ interface ILiquidity {
 	) external;
 
 	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
-	/// @dev upToDepositId specifies the last deposit id that have been relayed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @param upToDepositId The upper limit of the Deposit ID that has been relayed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
+	/// @dev upToDepositId specifies the last deposit id that have been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID.
+	/// @param upToDepositId The upper limit of the Deposit ID that has been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID.
 	/// @param gasLimit The gas limit for the l2 transaction.
 	function relayDeposits(
 		uint256 upToDepositId,
