@@ -367,8 +367,8 @@ contract Liquidity is
 		bytes memory amlPermission,
 		bytes memory eligibilityPermission
 	) private {
-		validateAmlPermission(encodedData, amlPermission);
-		bool isEligible = validateEligibilityPermission(
+		_validateAmlPermission(encodedData, amlPermission);
+		bool isEligible = _validateEligibilityPermission(
 			encodedData,
 			eligibilityPermission
 		);
@@ -538,10 +538,10 @@ contract Liquidity is
 		return this.onERC1155Received.selector;
 	}
 
-	function validateAmlPermission(
+	function _validateAmlPermission(
 		bytes memory encodedData,
 		bytes memory amlPermission
-	) internal {
+	) private {
 		if (address(amlPermitter) == address(0)) {
 			// if aml permitter is not set, skip aml check
 			return;
@@ -558,10 +558,10 @@ contract Liquidity is
 		return;
 	}
 
-	function validateEligibilityPermission(
+	function _validateEligibilityPermission(
 		bytes memory encodedData,
 		bytes memory eligibilityPermission
-	) internal returns (bool) {
+	) private returns (bool) {
 		if (address(eligibilityPermitter) == address(0)) {
 			// if eligibility permitter is not set, skip eligibility check
 			return true;
