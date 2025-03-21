@@ -918,7 +918,7 @@ describe('Liquidity', () => {
 			})
 		})
 	})
-	describe('analyzeAndRelayDeposits', () => {
+	describe('relayDeposits', () => {
 		describe('success', () => {
 			it('send scroll messenger', async () => {
 				const { liquidity, scrollMessenger, rollup } = await loadFixture(setup)
@@ -937,12 +937,11 @@ describe('Liquidity', () => {
 				}
 
 				const upToDepositId = 5
-				const rejectDepositIds: number[] = [2, 4]
 				const gasLimit = 1000000
 
 				await liquidity
 					.connect(analyzer)
-					.analyzeAndRelayDeposits(upToDepositId, rejectDepositIds, gasLimit, {
+					.relayDeposits(upToDepositId, gasLimit, {
 						value: ethers.parseEther('1'),
 					})
 
@@ -989,7 +988,7 @@ describe('Liquidity', () => {
 				const encodedData = funcSelector + encodedParams.slice(2)
 				expect(await scrollMessenger.message()).to.equal(encodedData)
 			})
-			it('emit DepositsAnalyzedAndRelayed event', async () => {
+			it('emit DepositsRelayed event', async () => {
 				const { liquidity } = await loadFixture(setup)
 				const { analyzer, user } = await getSigners()
 
@@ -1044,16 +1043,11 @@ describe('Liquidity', () => {
 				const expectedEncodedData = funcSelector + encodedParams.slice(2)
 
 				await expect(
-					liquidity
-						.connect(analyzer)
-						.analyzeAndRelayDeposits(
-							upToDepositId,
-							rejectDepositIds,
-							gasLimit,
-							{ value: ethers.parseEther('1') },
-						),
+					liquidity.connect(analyzer).relayDeposits(upToDepositId, gasLimit, {
+						value: ethers.parseEther('1'),
+					}),
 				)
-					.to.emit(liquidity, 'DepositsAnalyzedAndRelayed')
+					.to.emit(liquidity, 'DepositsRelayed')
 					.withArgs(
 						upToDepositId,
 						rejectDepositIds,
@@ -1067,13 +1061,10 @@ describe('Liquidity', () => {
 				const { liquidity } = await loadFixture(setup)
 				const { user } = await getSigners()
 				const upToDepositId = 5
-				const rejectDepositIds: number[] = [2, 4]
 				const gasLimit = 1000000
 
 				await expect(
-					liquidity
-						.connect(user)
-						.analyzeAndRelayDeposits(upToDepositId, rejectDepositIds, gasLimit),
+					liquidity.connect(user).relayDeposits(upToDepositId, gasLimit),
 				)
 					.to.be.revertedWithCustomError(
 						liquidity,
@@ -1280,11 +1271,9 @@ describe('Liquidity', () => {
 					await loadFixture(setupCancelDeposit)
 				const { user, analyzer } = await getSigners()
 
-				await liquidity
-					.connect(analyzer)
-					.analyzeAndRelayDeposits(depositId, [depositId], 1000000, {
-						value: ethers.parseEther('1'),
-					})
+				await liquidity.connect(analyzer).relayDeposits(depositId, 1000000, {
+					value: ethers.parseEther('1'),
+				})
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
 						depositor: user.address,
@@ -1302,11 +1291,9 @@ describe('Liquidity', () => {
 					await loadFixture(setupCancelDeposit)
 				const { user, analyzer } = await getSigners()
 
-				await liquidity
-					.connect(analyzer)
-					.analyzeAndRelayDeposits(depositId, [depositId], 1000000, {
-						value: ethers.parseEther('1'),
-					})
+				await liquidity.connect(analyzer).relayDeposits(depositId, 1000000, {
+					value: ethers.parseEther('1'),
+				})
 
 				const recipientSaltHash2 = ethers.keccak256(ethers.toUtf8Bytes('test2'))
 				await liquidity
@@ -1396,11 +1383,9 @@ describe('Liquidity', () => {
 				const { liquidity, depositAmount, recipientSaltHash, depositId } =
 					await loadFixture(setupCancelDeposit)
 				const { user, analyzer } = await getSigners()
-				await liquidity
-					.connect(analyzer)
-					.analyzeAndRelayDeposits(depositId, [], 1000000, {
-						value: ethers.parseEther('1'),
-					})
+				await liquidity.connect(analyzer).relayDeposits(depositId, 1000000, {
+					value: ethers.parseEther('1'),
+				})
 				await expect(
 					liquidity.connect(user).cancelDeposit(depositId, {
 						depositor: user.address,
@@ -1409,7 +1394,7 @@ describe('Liquidity', () => {
 						amount: depositAmount,
 						isEligible: true,
 					}),
-				).to.be.revertedWithCustomError(liquidity, 'AlreadyAnalyzed')
+				).to.be.revertedWithCustomError(liquidity, 'AlreadyRelayed')
 			})
 
 			it.skip('reentrancy attack', async () => {
@@ -2489,7 +2474,7 @@ describe('Liquidity', () => {
 			expect(await liquidity.getLastRelayedDepositId()).to.equal(0)
 			expect(await liquidity.getLastDepositId()).to.equal(5)
 
-			await liquidity.connect(analyzer).analyzeAndRelayDeposits(3, [], 1000000)
+			await liquidity.connect(analyzer).relayDeposits(3, 1000000)
 
 			expect(await liquidity.getLastRelayedDepositId()).to.equal(3)
 			expect(await liquidity.getLastDepositId()).to.equal(5)
@@ -2565,11 +2550,9 @@ describe('Liquidity', () => {
 			await liquidity
 				.connect(user)
 				.depositNativeToken(recipientSaltHash, { value: depositAmount })
-			await liquidity
-				.connect(analyzer)
-				.analyzeAndRelayDeposits(1, [1], 1000000, {
-					value: ethers.parseEther('1'),
-				})
+			await liquidity.connect(analyzer).relayDeposits(1, 1000000, {
+				value: ethers.parseEther('1'),
+			})
 			const result = await liquidity.isDepositValid(
 				1,
 				recipientSaltHash,
