@@ -4,11 +4,11 @@ pragma solidity 0.8.27;
 /// @title Deposit Queue Library
 /// @notice A library for managing a queue of pending deposits
 library DepositQueueLib {
-	/// @notice Error thrown when trying to analyze deposits outside the queue range
-	/// @param upToDepositId The requested deposit ID to analyze up to
+	/// @notice Error thrown when trying to deposits outside the queue range
+	/// @param upToDepositId The requested deposit ID
 	/// @param firstDepositId The first deposit ID in the queue
 	/// @param lastDepositId The last deposit ID in the queue
-	error TriedAnalyzeOutOfRange(
+	error OutOfRange(
 		uint256 upToDepositId,
 		uint256 firstDepositId,
 		uint256 lastDepositId
@@ -70,7 +70,7 @@ library DepositQueueLib {
 	/// @param depositQueue The storage reference to the DepositQueue struct
 	/// @param upToDepositId The upper bound deposit ID for analysis
 	/// @return An array of deposit hashes that were not rejected
-	function analyze(
+	function batchDequeue(
 		DepositQueue storage depositQueue,
 		uint256 upToDepositId
 	) internal returns (bytes32[] memory) {
@@ -79,7 +79,7 @@ library DepositQueueLib {
 			upToDepositId >= depositQueue.depositData.length ||
 			upToDepositId < front
 		) {
-			revert TriedAnalyzeOutOfRange(
+			revert OutOfRange(
 				upToDepositId,
 				front,
 				depositQueue.depositData.length - 1

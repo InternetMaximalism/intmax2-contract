@@ -33,8 +33,8 @@ interface ILiquidity {
 	/// @notice Error thrown when trying to deposit zero amount of native/ERC20/ERC1155 tokens
 	error TriedToDepositZero();
 
-	/// @notice Error thrown when already analyzed deposits
-	error AlreadyAnalyzed();
+	/// @notice Error thrown when already relayed deposits
+	error AlreadyRelayed();
 
 	/// @notice Error thrown when the deposit hash already exists
 	error DepositHashAlreadyExists(bytes32 depositHash);
@@ -65,7 +65,7 @@ interface ILiquidity {
 	);
 
 	/// @notice Event emitted when deposits are relayed
-	/// @param upToDepositId The highest deposit ID that was analyzed
+	/// @param upToDepositId The highest deposit ID that was relayed
 	/// @param gasLimit The gas limit for the L2 transaction
 	/// @param message Additional message data
 	event DepositsRelayed(
@@ -170,8 +170,8 @@ interface ILiquidity {
 	) external;
 
 	/// @notice Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
-	/// @dev upToDepositId specifies the last deposit id that have been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
-	/// @param upToDepositId The upper limit of the Deposit ID that has been analyzed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
+	/// @dev upToDepositId specifies the last deposit id that have been relayed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
+	/// @param upToDepositId The upper limit of the Deposit ID that has been relayed. It must be greater than lastAnalyzedDeposit and less than or equal to the latest Deposit ID.
 	/// @param gasLimit The gas limit for the l2 transaction.
 	function relayDeposits(
 		uint256 upToDepositId,

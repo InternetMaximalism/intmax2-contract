@@ -97,7 +97,7 @@ contract Liquidity is
 			revert InvalidDepositHash(depositData.depositHash, depositHash);
 		}
 		if (depositId <= getLastRelayedDepositId()) {
-			revert AlreadyAnalyzed();
+			revert AlreadyRelayed();
 		}
 		_;
 	}
@@ -301,7 +301,9 @@ contract Liquidity is
 		uint256 upToDepositId,
 		uint256 gasLimit
 	) external payable onlyRole(ANALYZER) {
-		bytes32[] memory depositHashes = depositQueue.analyze(upToDepositId);
+		bytes32[] memory depositHashes = depositQueue.batchDequeue(
+			upToDepositId
+		);
 		bytes memory message = abi.encodeWithSelector(
 			IRollup.processDeposits.selector,
 			upToDepositId,
