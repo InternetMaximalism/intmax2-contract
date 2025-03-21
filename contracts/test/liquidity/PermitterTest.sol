@@ -2,27 +2,20 @@
 pragma solidity 0.8.27;
 
 contract PermitterTest {
-	address public latestUser;
-	uint256 public latestValue;
-	bytes public latestEncodedData;
-	bytes public latestPermission;
-
 	bool public permitResult = true;
 
 	function setPermitResult(bool result) external {
 		permitResult = result;
 	}
 
+	// The original perform function is not a view function,
+	// but the compiler gives it a view in order to issue a warning.
 	function permit(
-		address user,
-		uint256 value,
-		bytes calldata encodedData,
-		bytes calldata permission
-	) external returns (bool authorized) {
-		latestUser = user;
-		latestValue = value;
-		latestEncodedData = encodedData;
-		latestPermission = permission;
+		address,
+		uint256,
+		bytes calldata,
+		bytes calldata
+	) external view returns (bool authorized) {
 		return permitResult;
 	}
 }

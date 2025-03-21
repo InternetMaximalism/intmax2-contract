@@ -54,6 +54,7 @@ interface ILiquidity {
 	/// @param recipientSaltHash The hash of the recipient's intmax2 address (BLS public key) and a secret salt
 	/// @param tokenIndex The index of the token being deposited
 	/// @param amount The amount of tokens deposited
+	/// @param isEligible if true, the deposit is eligible
 	/// @param depositedAt The timestamp of the deposit
 	event Deposited(
 		uint256 indexed depositId,
@@ -61,6 +62,7 @@ interface ILiquidity {
 		bytes32 indexed recipientSaltHash,
 		uint32 tokenIndex,
 		uint256 amount,
+		bool isEligible,
 		uint256 depositedAt
 	);
 

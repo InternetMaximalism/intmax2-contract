@@ -211,6 +211,7 @@ contract Liquidity is
 			recipientSaltHash,
 			amount
 		);
+
 		_deposit(
 			_msgSender(),
 			recipientSaltHash,
@@ -393,6 +394,7 @@ contract Liquidity is
 			recipientSaltHash,
 			tokenIndex,
 			amount,
+			isEligible,
 			block.timestamp
 		);
 	}
