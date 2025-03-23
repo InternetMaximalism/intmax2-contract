@@ -1,29 +1,27 @@
 import { expect } from 'chai'
 import { ethers, upgrades } from 'hardhat'
-import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
+import {
+	loadFixture,
+	time,
+} from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
 import { Contribution } from '../../typechain-types'
 
-describe('Contribution', function () {
+describe.only('Contribution', function () {
+	const ONE_DAY_SECONDS = 60 * 60 * 24
 	const setup = async (): Promise<[Contribution]> => {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const signers = await getSigners()
+
 		const contribution = (await upgrades.deployProxy(
 			contributionFactory,
-			[signers.admin.address],
+			[signers.admin.address, ONE_DAY_SECONDS],
 			{
 				kind: 'uups',
 				unsafeAllow: ['constructor'],
 			},
 		)) as unknown as Contribution
 
-		// register the weight of the contribution
-		const tagsStr = ['tag1', 'tag2', 'tag3']
-		const tags = tagsStr.map((tag) =>
-			ethers.solidityPackedKeccak256(['string'], [tag]),
-		)
-		const weights = [1, 2, 3]
-		await contribution.connect(signers.admin).registerWeights(0, tags, weights)
 		const role = await contribution.CONTRIBUTOR()
 		const { contributor } = await getSigners()
 		await contribution
@@ -56,115 +54,70 @@ describe('Contribution', function () {
 			const contribution =
 				(await contributionFactory.deploy()) as unknown as Contribution
 			await expect(
-				contribution.initialize(ethers.ZeroAddress),
+				contribution.initialize(ethers.ZeroAddress, 0),
 			).to.be.revertedWithCustomError(contribution, 'InvalidInitialization')
 		})
 	})
 	describe('initialize', () => {
-		it('deployer has admin role', async () => {
-			const [contribution] = await loadFixture(setup)
-			const signers = await getSigners()
-			const adminRole = await contribution.DEFAULT_ADMIN_ROLE()
-			expect(await contribution.hasRole(adminRole, signers.admin.address)).to.be
-				.true
-		})
-		it('deployer has WEIGHT_REGISTRAR role', async () => {
-			const [contribution] = await loadFixture(setup)
-			const signers = await getSigners()
-			const role = await contribution.WEIGHT_REGISTRAR()
-			expect(await contribution.hasRole(role, signers.admin.address)).to.be.true
-		})
-		it('deployer has CONTRIBUTOR role', async () => {
-			const [contribution] = await loadFixture(setup)
-			const signers = await getSigners()
-			const role = await contribution.CONTRIBUTOR()
-			expect(await contribution.hasRole(role, signers.contributor.address)).to
-				.be.true
-		})
-	})
-	describe('incrementPeriod', () => {
 		describe('success', () => {
-			it('only weight registrar', async () => {
+			it('admin has admin role', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { admin } = await getSigners()
-				const period = await contribution.currentPeriod()
-				await contribution.connect(admin).incrementPeriod()
-				expect(await contribution.currentPeriod()).to.be.equal(period + 1n)
+				const signers = await getSigners()
+				const adminRole = await contribution.DEFAULT_ADMIN_ROLE()
+				expect(await contribution.hasRole(adminRole, signers.admin.address)).to
+					.be.true
 			})
-			it('emit PeriodIncremented', async () => {
+			it('set start time stamp(one days)', async () => {
 				const [contribution] = await loadFixture(setup)
-				const { admin } = await getSigners()
-				await expect(contribution.connect(admin).incrementPeriod())
-					.to.emit(contribution, 'PeriodIncremented')
-					.withArgs(1)
+				const timestamp = await time.latest()
+				const startTime = await contribution.startTimestamp()
+				const periodInterval = await contribution.periodInterval()
+				const tmp =
+					Math.floor(timestamp / Number(periodInterval)) *
+					Number(periodInterval)
+				expect(startTime).to.equal(tmp)
+			})
+			it('set start time stamp(over one days)', async () => {
+				const contributionFactory =
+					await ethers.getContractFactory('Contribution')
+				const signers = await getSigners()
+
+				const contribution = (await upgrades.deployProxy(
+					contributionFactory,
+					[signers.admin.address, ONE_DAY_SECONDS * 2],
+					{
+						kind: 'uups',
+						unsafeAllow: ['constructor'],
+					},
+				)) as unknown as Contribution
+
+				const timestamp = await time.latest()
+				const startTime = await contribution.startTimestamp()
+				const tmp = Math.floor(timestamp / ONE_DAY_SECONDS) * ONE_DAY_SECONDS
+				expect(startTime).to.equal(tmp)
 			})
 		})
 		describe('fail', () => {
-			it('only weight registrar', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { user1 } = await getSigners()
-				const role = await contribution.WEIGHT_REGISTRAR()
-				await expect(contribution.connect(user1).incrementPeriod())
-					.to.be.revertedWithCustomError(
-						contribution,
-						'AccessControlUnauthorizedAccount',
+			it('revert periodIntervalZero', async () => {
+				const contributionFactory =
+					await ethers.getContractFactory('Contribution')
+				const signers = await getSigners()
+				try {
+					await upgrades.deployProxy(
+						contributionFactory,
+						[signers.admin.address, 0],
+						{
+							kind: 'uups',
+							unsafeAllow: ['constructor'],
+						},
 					)
-					.withArgs(user1.address, role)
-			})
-		})
-	})
-	describe('registerWeights', () => {
-		describe('success', () => {
-			it('set register weights', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { admin } = await getSigners()
-				const tagsStr = ['newTag1', 'newTag2']
-				const tags = tagsStr.map((tag) =>
-					ethers.solidityPackedKeccak256(['string'], [tag]),
-				)
-				const weights = [4, 5]
-				await contribution.connect(admin).registerWeights(1, tags, weights)
-				const registeredTags = await contribution.getTags(1)
-				const registeredWeights = await contribution.getWeights(1)
-				expect(registeredTags).to.deep.equal(tags)
-				expect(registeredWeights).to.deep.equal(weights)
-			})
-			it('emit WeightRegistered', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { admin } = await getSigners()
-				const tags = [ethers.randomBytes(32)]
-				const weights = [1]
-				await expect(
-					contribution.connect(admin).registerWeights(1, tags, weights),
-				)
-					.to.emit(contribution, 'WeightRegistered')
-					.withArgs(1, tags, weights)
-			})
-		})
-		describe('fail', () => {
-			it('only weight registrar', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { user1 } = await getSigners()
-				const role = await contribution.WEIGHT_REGISTRAR()
-				const tags = [ethers.randomBytes(32)]
-				const weights = [1]
-				await expect(
-					contribution.connect(user1).registerWeights(1, tags, weights),
-				)
-					.to.be.revertedWithCustomError(
-						contribution,
-						'AccessControlUnauthorizedAccount',
+				} catch (error) {
+					expect(error.message).to.equal(
+						"VM Exception while processing transaction: reverted with custom error 'periodIntervalZero()'",
 					)
-					.withArgs(user1.address, role)
-			})
-			it('InvalidInputLength', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { admin } = await getSigners()
-				const tags = [ethers.randomBytes(32), ethers.randomBytes(32)]
-				const weights = [1]
-				await expect(
-					contribution.connect(admin).registerWeights(1, tags, weights),
-				).to.be.revertedWithCustomError(contribution, 'InvalidInputLength')
+					return
+				}
+				expect.fail()
 			})
 		})
 	})
@@ -178,71 +131,25 @@ describe('Contribution', function () {
 				await contribution
 					.connect(contributor)
 					.recordContribution(tag, user1.address, amount)
-				const currentPeriod = await contribution.currentPeriod()
-				const totalContribution = await contribution.totalContributionsInPeriod(
+				const currentPeriod = await contribution.getCurrentPeriod()
+				const totalContribution = await contribution.totalContributions(
 					currentPeriod,
 					tag,
 				)
-				const userContribution = await contribution.contributionsInPeriod(
-					currentPeriod,
-					tag,
-					user1.address,
-				)
-				expect(totalContribution).to.equal(amount)
-				expect(userContribution).to.equal(amount)
-			})
-			it('set record(increment currentPeriod)', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { admin, contributor, user1 } = await getSigners()
-				const tag = ethers.solidityPackedKeccak256(['string'], ['tag1'])
-				const amount = 100n
-				await contribution.connect(admin).incrementPeriod()
-				const currentPeriod = await contribution.currentPeriod()
-				await contribution
-					.connect(contributor)
-					.recordContribution(tag, user1.address, amount)
-				const totalContribution = await contribution.totalContributionsInPeriod(
-					currentPeriod,
-					tag,
-				)
-				const userContribution = await contribution.contributionsInPeriod(
+				const userContribution = await contribution.userContributions(
 					currentPeriod,
 					tag,
 					user1.address,
 				)
 				expect(totalContribution).to.equal(amount)
 				expect(userContribution).to.equal(amount)
-			})
-			it('set record(add amount)', async () => {
-				const [contribution] = await loadFixture(setup)
-				const { contributor, user1 } = await getSigners()
-				const tag = ethers.solidityPackedKeccak256(['string'], ['tag1'])
-				const amount = 100n
-				await contribution
-					.connect(contributor)
-					.recordContribution(tag, user1.address, amount)
-				await contribution
-					.connect(contributor)
-					.recordContribution(tag, user1.address, amount)
-				const currentPeriod = await contribution.currentPeriod()
-				const totalContribution = await contribution.totalContributionsInPeriod(
-					currentPeriod,
-					tag,
-				)
-				const userContribution = await contribution.contributionsInPeriod(
-					currentPeriod,
-					tag,
-					user1.address,
-				)
-				expect(totalContribution).to.equal(amount * 2n)
-				expect(userContribution).to.equal(amount * 2n)
 			})
 			it('emit ContributionRecorded', async () => {
 				const [contribution] = await loadFixture(setup)
 				const { contributor, user1 } = await getSigners()
 				const tag = ethers.solidityPackedKeccak256(['string'], ['tag1'])
 				const amount = 100n
-				const currentPeriod = await contribution.currentPeriod()
+				const currentPeriod = await contribution.getCurrentPeriod()
 				await expect(
 					contribution
 						.connect(contributor)
@@ -272,57 +179,27 @@ describe('Contribution', function () {
 			})
 		})
 	})
-	describe('getContributionRate', () => {
-		it('get contribution rate', async () => {
+	describe('getCurrentPeriod', () => {
+		it('get current period', async () => {
 			const [contribution] = await loadFixture(setup)
-			const { deployer, contributor, user1 } = await getSigners()
-			const tag1 = ethers.solidityPackedKeccak256(['string'], ['tag1'])
-			const tag2 = ethers.solidityPackedKeccak256(['string'], ['tag2'])
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag1, user1.address, 100n)
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag2, user1.address, 200n)
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag1, deployer.address, 300n)
-			const rate = await contribution.getContributionRate(0, user1.address)
-			// Expected rate: (100 * 1 + 200 * 2) / (400 * 1 + 200 * 2) = 500 / 800 = 0.625
-			expect(rate).to.be.closeTo(
-				ethers.parseUnits('0.625', 18),
-				ethers.parseUnits('0.0001', 18),
+			const startTimeStamp = await contribution.startTimestamp()
+			const periodInterval = await contribution.periodInterval()
+			await time.increase(ONE_DAY_SECONDS * 10)
+			const timestamp = await time.latest()
+			const currentPeriod = await contribution.getCurrentPeriod()
+			const tmp = Math.floor(
+				Math.floor(timestamp - Number(startTimeStamp)) / Number(periodInterval),
 			)
+			expect(currentPeriod).to.equal(tmp)
 		})
 	})
-	describe('getCurrentContribution', () => {
-		it('get current contribution', async () => {
-			const [contribution] = await loadFixture(setup)
-			const { deployer, contributor, user1 } = await getSigners()
-			const tag1 = ethers.solidityPackedKeccak256(['string'], ['tag1'])
-			const tag2 = ethers.solidityPackedKeccak256(['string'], ['tag2'])
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag1, user1.address, 100n)
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag1, user1.address, 200n)
-			await contribution
-				.connect(contributor)
-				.recordContribution(tag2, deployer.address, 300n)
-			const currentContribution = await contribution.getCurrentContribution(
-				tag1,
-				user1.address,
-			)
-			expect(currentContribution).to.equal(300n)
-		})
-	})
+
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const [contribution] = await loadFixture(setup)
 			const signers = await getSigners()
 
-			await contribution.connect(signers.admin).incrementPeriod()
+			const startTimestamp = await contribution.startTimestamp()
 
 			const contribution2Factory = await ethers.getContractFactory(
 				'Contribution2Test',
@@ -333,8 +210,8 @@ describe('Contribution', function () {
 				contribution2Factory,
 				{ unsafeAllow: ['constructor'] },
 			)
-			const currentPeriod = await next.currentPeriod()
-			expect(currentPeriod).to.equal(1)
+			const startTimestamp2 = await next.startTimestamp()
+			expect(startTimestamp).to.equal(startTimestamp2)
 			const val = await next.getVal()
 			expect(val).to.equal(99)
 		})
