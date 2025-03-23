@@ -66,10 +66,19 @@ interface IRollup {
 		bytes32 signatureHash
 	);
 
+
+	struct BlockSignPayload{
+		bool isRegistrationBlock;
+		bytes32 txTreeRoot;
+		uint64 expiry;
+		uint32 builderNonce;
+	}
+
 	/// @notice Posts a registration block (for all senders' first transactions, specified by public keys)
 	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param expiry The expiry timestamp of the tx tree root. Zero means no expiry.
+	/// @param builderNonce The nonce of the block builder
 	/// @param senderFlags Flags indicating whether senders' signatures are included in the aggregated signature
 	/// @param aggregatedPublicKey The aggregated public key
 	/// @param aggregatedSignature The aggregated signature
@@ -78,6 +87,7 @@ interface IRollup {
 	function postRegistrationBlock(
 		bytes32 txTreeRoot,
 		uint64 expiry,
+		uint32 builderNonce,
 		bytes16 senderFlags,
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,
@@ -89,6 +99,7 @@ interface IRollup {
 	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param expiry The expiry timestamp of the tx tree root. Zero means no expiry.
+	/// @param builderNonce The nonce of the block builder
 	/// @param senderFlags Sender flags
 	/// @param aggregatedPublicKey The aggregated public key
 	/// @param aggregatedSignature The aggregated signature
@@ -98,6 +109,7 @@ interface IRollup {
 	function postNonRegistrationBlock(
 		bytes32 txTreeRoot,
 		uint64 expiry,
+		uint32 builderNonce,
 		bytes16 senderFlags,
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,

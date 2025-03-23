@@ -32,6 +32,12 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	/// @notice block hashes
 	bytes32[] public blockHashes;
 
+	/// @notice block builder's nonce for registration block
+	mapping(address => uint256) public builderRegistrationNonce;
+
+	/// @notice block builder's nonce for non-registration block
+	mapping(address => uint256) public builderNonRegistrationNonce;
+
 	/// @notice L2 ScrollMessenger contract
 	IL2ScrollMessenger private l2ScrollMessenger;
 
@@ -94,6 +100,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	function postRegistrationBlock(
 		bytes32 txTreeRoot,
 		uint64 expiry,
+		uint32 builderNonce,
 		bytes16 senderFlags,
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,
@@ -104,6 +111,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			revert Expired();
 		}
 		collectPenaltyFee();
+
 		uint256 length = senderPublicKeys.length;
 		if (length > NUM_SENDERS_IN_BLOCK) {
 			revert TooManySenderPublicKeys();
@@ -118,13 +126,21 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		}
 		bytes32 publicKeysHash = keccak256(abi.encodePacked(paddedKeys));
 		bytes32 accountIdsHash = 0;
-		_postBlock(
-			true,
+		bytes32 signatureHash = _getSignatureHash(
+			false,
 			txTreeRoot,
 			expiry,
+			_msgSender(),
+			builderNonce,
 			senderFlags,
 			publicKeysHash,
 			accountIdsHash,
+			aggregatedPublicKey,
+			aggregatedSignature,
+			messagePoint
+		);
+		_postBlock(
+			signatureHash,
 			aggregatedPublicKey,
 			aggregatedSignature,
 			messagePoint
@@ -134,6 +150,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	function postNonRegistrationBlock(
 		bytes32 txTreeRoot,
 		uint64 expiry,
+		uint32 builderNonce,
 		bytes16 senderFlags,
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,
@@ -145,6 +162,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			revert Expired();
 		}
 		collectPenaltyFee();
+
 		uint256 length = senderAccountIds.length;
 		if (length > FULL_ACCOUNT_IDS_BYTES) {
 			revert TooManyAccountIds();
@@ -161,13 +179,21 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			paddedAccountIds[i + 4] = 0x01;
 		}
 		bytes32 accountIdsHash = keccak256(paddedAccountIds);
-		_postBlock(
+		bytes32 signatureHash = _getSignatureHash(
 			false,
 			txTreeRoot,
 			expiry,
+			_msgSender(),
+			builderNonce,
 			senderFlags,
 			publicKeysHash,
 			accountIdsHash,
+			aggregatedPublicKey,
+			aggregatedSignature,
+			messagePoint
+		);
+		_postBlock(
+			signatureHash,
 			aggregatedPublicKey,
 			aggregatedSignature,
 			messagePoint
@@ -191,13 +217,39 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		emit DepositsProcessed(_lastProcessedDepositId, newDepositTreeRoot);
 	}
 
-	function _postBlock(
+	function _getSignatureHash(
 		bool isRegistrationBlock,
 		bytes32 txTreeRoot,
 		uint64 expiry,
+		address builderAddress,
+		uint32 builderNonce,
 		bytes16 senderFlags,
 		bytes32 publicKeysHash,
 		bytes32 accountIdsHash,
+		bytes32[2] calldata aggregatedPublicKey,
+		bytes32[4] calldata aggregatedSignature,
+		bytes32[4] calldata messagePoint
+	) private returns (bytes32) {
+		bytes32 signatureHash = keccak256(
+			abi.encodePacked(
+				uint32(isRegistrationBlock ? 1 : 0),
+				txTreeRoot,
+				expiry,
+				builderNonce,
+				builderAddress,
+				senderFlags,
+				publicKeysHash,
+				accountIdsHash,
+				aggregatedPublicKey,
+				aggregatedSignature,
+				messagePoint
+			)
+		);
+		return signatureHash;
+	}
+
+	function _postBlock(
+		bytes32 signatureHash,
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
@@ -210,20 +262,6 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		if (!success) {
 			revert PairingCheckFailed();
 		}
-
-		bytes32 signatureHash = keccak256(
-			abi.encodePacked(
-				uint32(isRegistrationBlock ? 1 : 0),
-				txTreeRoot,
-				expiry,
-				senderFlags,
-				publicKeysHash,
-				accountIdsHash,
-				aggregatedPublicKey,
-				aggregatedSignature,
-				messagePoint
-			)
-		);
 
 		uint32 blockNumber = blockHashes.getBlockNumber();
 		bytes32 prevBlockHash = blockHashes.getPrevHash();
