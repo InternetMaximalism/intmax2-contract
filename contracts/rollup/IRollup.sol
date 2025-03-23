@@ -34,6 +34,9 @@ interface IRollup {
 	/// @notice Error thrown when the expiry timestamp is in the past
 	error Expired();
 
+	/// @notice Error thrown when the nonce not greater than the previous nonce
+	error InvalidNonce();
+
 	/// @notice Event emitted when deposits bridged from the liquidity contract are processed
 	/// @param lastProcessedDepositId The ID of the last processed deposit
 	/// @param depositTreeRoot The root of the deposit tree after processing
@@ -66,12 +69,17 @@ interface IRollup {
 		bytes32 signatureHash
 	);
 
-
-	struct BlockSignPayload{
+	/// @notice An internal struct to store the data of block to avoid stack too deep error
+	struct BlockPostData {
 		bool isRegistrationBlock;
 		bytes32 txTreeRoot;
 		uint64 expiry;
+		address builderAddress;
 		uint32 builderNonce;
+		bytes16 senderFlags;
+		bytes32[2] aggregatedPublicKey;
+		bytes32[4] aggregatedSignature;
+		bytes32[4] messagePoint;
 	}
 
 	/// @notice Posts a registration block (for all senders' first transactions, specified by public keys)
