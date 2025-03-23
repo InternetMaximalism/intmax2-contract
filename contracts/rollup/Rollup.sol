@@ -223,27 +223,29 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		// nonce check
-		if (block_post_data.isRegistrationBlock) {
-			uint32 previousNonce = builderRegistrationNonce[
-				block_post_data.builderAddress
-			];
-			if (block_post_data.builderNonce < previousNonce) {
-				revert InvalidNonce();
+		// We skip the nonce check if nonce = 0, which is 
+		if (block_post_data.builderNonce != 0) {
+			if (block_post_data.isRegistrationBlock) {
+				uint32 previousNonce = builderRegistrationNonce[
+					block_post_data.builderAddress
+				];
+				if (block_post_data.builderNonce < previousNonce) {
+					revert InvalidNonce();
+				}
+				builderRegistrationNonce[block_post_data.builderAddress] =
+					block_post_data.builderNonce +
+					1;
+			} else {
+				uint32 previousNonce = builderNonRegistrationNonce[
+					block_post_data.builderAddress
+				];
+				if (block_post_data.builderNonce < previousNonce) {
+					revert InvalidNonce();
+				}
+				builderNonRegistrationNonce[block_post_data.builderAddress] =
+					block_post_data.builderNonce +
+					1;
 			}
-			builderRegistrationNonce[block_post_data.builderAddress] =
-				block_post_data.builderNonce +
-				1;
-		} else {
-			uint32 previousNonce = builderNonRegistrationNonce[
-				block_post_data.builderAddress
-			];
-			if (block_post_data.builderNonce < previousNonce) {
-				revert InvalidNonce();
-			}
-			builderNonRegistrationNonce[block_post_data.builderAddress] =
-				block_post_data.builderNonce +
-				1;
 		}
 		bool success = PairingLib.pairing(
 			aggregatedPublicKey,
@@ -287,11 +289,11 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			signatureHash
 		);
 
-		contribution.recordContribution(
-			keccak256("POST_BLOCK"),
-			_msgSender(),
-			1
-		);
+		// contribution.recordContribution(
+		// 	keccak256("POST_BLOCK"),
+		// 	_msgSender(),
+		// 	1
+		// );
 	}
 
 	function collectPenaltyFee() private {
