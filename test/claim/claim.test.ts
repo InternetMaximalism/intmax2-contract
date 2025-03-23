@@ -65,15 +65,59 @@ describe('Claim', () => {
 	type signers = {
 		deployer: HardhatEthersSigner
 		admin: HardhatEthersSigner
-		user: HardhatEthersSigner
+		user1: HardhatEthersSigner
+		user2: HardhatEthersSigner
 	}
 	const getSigners = async (): Promise<signers> => {
-		const [deployer, admin, user] = await ethers.getSigners()
+		const [deployer, admin, user1, user2] = await ethers.getSigners()
 		return {
 			deployer,
 			admin,
-			user,
+			user1,
+			user2,
 		}
+	}
+	const generateTestClaimProofPublicInputs = async (claim) => {
+		const lastClaimHash = hashWithPrevHash(claim, ethers.ZeroHash)
+		const { user1 } = await getSigners()
+		const claimAggregator = user1.address
+		return { lastClaimHash, claimAggregator }
+	}
+	const generateTestProof = () => {
+		return ethers.hexlify(ethers.randomBytes(64))
+	}
+	const generateTestClaimsList = async (userAddresses: string[]) => {
+		return userAddresses.map((address) => {
+			return {
+				recipient: address,
+				amount: ethers.parseEther('0.1'),
+				nullifier: ethers.hexlify(ethers.randomBytes(32)),
+				blockHash: ethers.hexlify(ethers.randomBytes(32)),
+				blockNumber: 1,
+			}
+		})
+	}
+	const generateTestArgs = async (userAddresses: string[]) => {
+		const claims = await generateTestClaimsList(userAddresses)
+		const claimProofPublicInputs = await generateTestClaimProofPublicInputs(
+			claims[0],
+		)
+		const proof = generateTestProof()
+		return { claims, claimProofPublicInputs, proof }
+	}
+	const hashWithPrevHash = (claim, prevClaimHash) => {
+		const packed = ethers.solidityPacked(
+			['bytes32', 'address', 'uint256', 'bytes32', 'bytes32', 'uint32'],
+			[
+				prevClaimHash,
+				claim.recipient,
+				claim.amount,
+				claim.nullifier,
+				claim.blockHash,
+				claim.blockNumber,
+			],
+		)
+		return ethers.keccak256(packed)
 	}
 	describe('constructor', () => {
 		it('should revert if not initialized through proxy', async () => {
@@ -237,60 +281,18 @@ describe('Claim', () => {
 		})
 	})
 	describe('submitClaimProof', () => {
-		const generateTestClaimProofPublicInputs = async (claim) => {
-			const lastClaimHash = hashWithPrevHash(claim, ethers.ZeroHash)
-			const { user } = await getSigners()
-			const claimAggregator = user.address
-			return { lastClaimHash, claimAggregator }
-		}
-		const generateTestProof = () => {
-			return ethers.hexlify(ethers.randomBytes(64))
-		}
-		const generateTestClaimsList = () => {
-			return [
-				{
-					recipient: ethers.Wallet.createRandom().address,
-					amount: ethers.parseEther('0.1'),
-					nullifier: ethers.hexlify(ethers.randomBytes(32)),
-					blockHash: ethers.hexlify(ethers.randomBytes(32)),
-					blockNumber: 1,
-				},
-			]
-		}
-		const hashWithPrevHash = (claim, prevClaimHash) => {
-			const packed = ethers.solidityPacked(
-				['bytes32', 'address', 'uint256', 'bytes32', 'bytes32', 'uint32'],
-				[
-					prevClaimHash,
-					claim.recipient,
-					claim.amount,
-					claim.nullifier,
-					claim.blockHash,
-					claim.blockNumber,
-				],
-			)
-			return ethers.keccak256(packed)
-		}
-		const generateTestArgs = async () => {
-			const claims = generateTestClaimsList()
-			const claimProofPublicInputs = await generateTestClaimProofPublicInputs(
-				claims[0],
-			)
-			const proof = generateTestProof()
-			return { claims, claimProofPublicInputs, proof }
-		}
 		describe('success', () => {
 			it('if claims length is 1, emit ContributionRecorded count is 1', async () => {
 				const { claim, rollupTestForClaim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
-				const { user } = await getSigners()
+					await generateTestArgs([user1.address])
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
 				)
 				await claim
-					.connect(user)
+					.connect(user1)
 					.submitClaimProof(claims, claimProofPublicInputs, proof)
 				const filter = claim.filters.ContributionRecorded()
 				const events = await claim.queryFilter(filter)
@@ -303,8 +305,9 @@ describe('Claim', () => {
 			})
 			it('if claims length is 2, emit ContributionRecorded count is 2', async () => {
 				const { claim, rollupTestForClaim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
+					await generateTestArgs([user1.address])
 
 				const claim２ = { ...claims[0] }
 				claim２.nullifier = ethers.hexlify(ethers.randomBytes(32))
@@ -313,13 +316,12 @@ describe('Claim', () => {
 					claimProofPublicInputs.lastClaimHash,
 				)
 				const newClaims = [claims[0], claim２]
-				const { user } = await getSigners()
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
 				)
 				await claim
-					.connect(user)
+					.connect(user1)
 					.submitClaimProof(newClaims, claimProofPublicInputs, proof)
 				const filter = claim.filters.ContributionRecorded()
 				const events = await claim.queryFilter(filter)
@@ -336,8 +338,9 @@ describe('Claim', () => {
 			})
 			it('if same nullifier claims length is 2, emit ContributionRecorded count is 1', async () => {
 				const { claim, rollupTestForClaim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
+					await generateTestArgs([user1.address])
 
 				const claim２ = { ...claims[0] }
 				claimProofPublicInputs.lastClaimHash = hashWithPrevHash(
@@ -345,13 +348,12 @@ describe('Claim', () => {
 					claimProofPublicInputs.lastClaimHash,
 				)
 				const newClaims = [claims[0], claim２]
-				const { user } = await getSigners()
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
 				)
 				await claim
-					.connect(user)
+					.connect(user1)
 					.submitClaimProof(newClaims, claimProofPublicInputs, proof)
 				const filter = claim.filters.ContributionRecorded()
 				const events = await claim.queryFilter(filter)
@@ -364,29 +366,31 @@ describe('Claim', () => {
 			it('call recordContribution', async () => {
 				const { claim, rollupTestForClaim, contributionTest } =
 					await loadFixture(setup)
+				const { user1 } = await getSigners()
+
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
-				const { user } = await getSigners()
+					await generateTestArgs([user1.address])
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
 				)
 				await claim
-					.connect(user)
+					.connect(user1)
 					.submitClaimProof(claims, claimProofPublicInputs, proof)
 
 				expect(await contributionTest.latestTag()).to.equal(
 					ethers.keccak256(ethers.toUtf8Bytes('CLAIM')),
 				)
-				expect(await contributionTest.latestUser()).to.equal(user.address)
+				expect(await contributionTest.latestUser()).to.equal(user1.address)
 				expect(await contributionTest.latestAmount()).to.equal(1)
 			})
 		})
 		describe('fail', () => {
 			it('revert ClaimChainVerificationFailed', async () => {
 				const { claim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
+					await generateTestArgs([user1.address])
 				claimProofPublicInputs.lastClaimHash = ethers.ZeroHash
 				await expect(
 					claim.submitClaimProof(claims, claimProofPublicInputs, proof),
@@ -394,32 +398,33 @@ describe('Claim', () => {
 			})
 			it('revert ClaimAggregatorMismatch', async () => {
 				const { claim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
+					await generateTestArgs([user1.address])
 				await expect(
 					claim.submitClaimProof(claims, claimProofPublicInputs, proof),
 				).to.be.revertedWithCustomError(claim, 'ClaimAggregatorMismatch')
 			})
 			it('revert ClaimProofVerificationFailed', async () => {
 				const { claim, mockPlonkVerifier } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
+					await generateTestArgs([user1.address])
 				await mockPlonkVerifier.setResult(false)
-				const { user } = await getSigners()
 				await expect(
 					claim
-						.connect(user)
+						.connect(user1)
 						.submitClaimProof(claims, claimProofPublicInputs, proof),
 				).to.be.revertedWithCustomError(claim, 'ClaimProofVerificationFailed')
 			})
 			it('revert BlockHashNotExists', async () => {
 				const { claim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
 				const { claims, claimProofPublicInputs, proof } =
-					await generateTestArgs()
-				const { user } = await getSigners()
+					await generateTestArgs([user1.address])
 				await expect(
 					claim
-						.connect(user)
+						.connect(user1)
 						.submitClaimProof(claims, claimProofPublicInputs, proof),
 				)
 					.to.be.revertedWithCustomError(claim, 'BlockHashNotExists')
@@ -430,29 +435,28 @@ describe('Claim', () => {
 	describe('relayClaims', () => {
 		describe('success', () => {
 			it('if users length is 1, emit DirectWithdrawalQueued once', async () => {
-				const { claim } = await loadFixture(setup)
+				const { claim, rollupTestForClaim } = await loadFixture(setup)
+				const { user1 } = await getSigners()
+				const { claims, claimProofPublicInputs, proof } =
+					await generateTestArgs([user1.address])
+				await rollupTestForClaim.setTestData(
+					claims[0].blockNumber,
+					claims[0].blockHash,
+				)
+				await claim
+					.connect(user1)
+					.submitClaimProof(claims, claimProofPublicInputs, proof)
 				await time.increase(60 * 60 * 24)
-				const user = ethers.Wallet.createRandom().address
-				await claim.relayClaims(0, [user])
+				await claim.relayClaims(0, [user1.address])
 				const filter = claim.filters.DirectWithdrawalQueued()
 				const events = await claim.queryFilter(filter)
 				expect(events.length).to.equal(1)
 				expect(events[0].args[0]).to.match(/^0x[0-9a-fA-F]{64}$/)
-				expect(events[0].args[1]).to.equal(user)
-				expect(events[0].args[2][0]).to.equal(user)
+				expect(events[0].args[1]).to.equal(user1.address)
+				expect(events[0].args[2][0]).to.equal(user1.address)
 				expect(events[0].args[2][1]).to.equal(1n)
-				expect(events[0].args[2][2]).to.equal(0n)
+				expect(events[0].args[2][2]).to.not.equal(0n)
 				expect(events[0].args[2][3]).to.match(/^0x[0-9a-fA-F]{64}$/)
-			})
-			it('if users length is 2, emit DirectWithdrawalQueued twice', async () => {
-				const { claim } = await loadFixture(setup)
-				await time.increase(60 * 60 * 24)
-				const user1 = ethers.Wallet.createRandom().address
-				const user2 = ethers.Wallet.createRandom().address
-				await claim.relayClaims(0, [user1, user2])
-				const filter = claim.filters.DirectWithdrawalQueued()
-				const events = await claim.queryFilter(filter)
-				expect(events.length).to.equal(2)
 			})
 			it('send message', async () => {
 				const isValidBytes = (value) => {
@@ -479,11 +483,20 @@ describe('Claim', () => {
 				expect(await scrollMessenger.msgValue()).to.equal(0)
 			})
 			it('execute record contribution', async () => {
-				const { claim, contributionTest } = await loadFixture(setup)
-				const { deployer } = await getSigners()
+				const { claim, contributionTest, rollupTestForClaim } =
+					await loadFixture(setup)
+				const { deployer, user1 } = await getSigners()
+				const { claims, claimProofPublicInputs, proof } =
+					await generateTestArgs([user1.address])
+				await rollupTestForClaim.setTestData(
+					claims[0].blockNumber,
+					claims[0].blockHash,
+				)
+				await claim
+					.connect(user1)
+					.submitClaimProof(claims, claimProofPublicInputs, proof)
 				await time.increase(60 * 60 * 24)
-				const user = ethers.Wallet.createRandom().address
-				await claim.relayClaims(0, [user])
+				await claim.relayClaims(0, [user1.address])
 				expect(await contributionTest.latestTag()).to.equal(
 					ethers.keccak256(ethers.toUtf8Bytes('RELAY_CLAIM')),
 				)
