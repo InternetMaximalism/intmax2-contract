@@ -1074,6 +1074,39 @@ describe('Rollup', () => {
 					),
 				).to.be.revertedWithCustomError(rollup, 'InsufficientPenaltyFee')
 			})
+			it('revert InvalidNonce', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = await generateValidInputs()
+
+				// First set a nonce
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+
+				// Then try to use a lower nonce
+				await expect(
+					rollup.postNonRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.expiry,
+						inputs.builderNonce, // Same nonce as before (should be incremented)
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.publicKeysHash,
+						inputs.senderAccountIds,
+						{ value: ethers.parseEther('1') }, // pay enough penalty
+					),
+				).to.be.revertedWithCustomError(rollup, 'InvalidNonce')
+			})
 		})
 	})
 
