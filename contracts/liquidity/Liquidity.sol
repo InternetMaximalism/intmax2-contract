@@ -107,6 +107,15 @@ contract Liquidity is
 		_disableInitializers();
 	}
 
+	/// @notice Initializes the contract with required addresses and parameters
+	/// @param _admin The address that will have admin privileges
+	/// @param _l1ScrollMessenger The address of the L1ScrollMessenger contract
+	/// @param _rollup The address of the Rollup contract
+	/// @param _withdrawal The address that will have withdrawal privileges
+	/// @param _claim The address that will have claim privileges
+	/// @param _relayer The address that will have relayer privileges
+	/// @param _contribution The address of the Contribution contract
+	/// @param initialERC20Tokens Initial list of ERC20 token addresses to support
 	function initialize(
 		address _admin,
 		address _l1ScrollMessenger,

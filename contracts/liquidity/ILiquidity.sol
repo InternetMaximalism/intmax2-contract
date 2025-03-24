@@ -113,6 +113,14 @@ interface ILiquidity {
 	/// @notice Unpause deposits
 	function unpauseDeposits() external;
 
+	/// @notice Sets the AML and eligibility permitter addresses
+	/// @param _amlPermitter The address of the AML permitter contract
+	/// @param _eligibilityPermitter The address of the eligibility permitter contract
+	function setPermitter(
+		address _amlPermitter,
+		address _eligibilityPermitter
+	) external;
+
 	/// @notice Deposit native token
 	/// @dev recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt
 	/// @param recipientSaltHash The hash of the recipient's address and a secret salt
