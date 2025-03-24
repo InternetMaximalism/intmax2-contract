@@ -191,10 +191,10 @@ interface ILiquidity {
 
 	/// @notice Process withdrawals, called by the scroll messenger
 	/// @param withdrawals Array of withdrawals to process
-	/// @param withdrawalHahes Array of withdrawal hashes
+	/// @param withdrawalHashes Array of withdrawal hashes
 	function processWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals,
-		bytes32[] calldata withdrawalHahes
+		bytes32[] calldata withdrawalHashes
 	) external;
 
 	/// @notice Get the ID of the last deposit relayed to L2

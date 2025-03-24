@@ -2,8 +2,8 @@
 pragma solidity 0.8.27;
 
 import {ILiquidity} from "./ILiquidity.sol";
-import {IRollup} from "../rollup/Rollup.sol";
-import {IContribution} from "../contribution/Contribution.sol";
+import {IRollup} from "../rollup/IRollup.sol";
+import {IContribution} from "../contribution/IContribution.sol";
 import {IPermitter} from "../permitter/IPermitter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -569,7 +569,7 @@ contract Liquidity is
 			return true;
 		}
 		if (eligibilityPermission.length == 0) {
-			// if eligibility permitter is set but permission does'nt returned, return false.
+			// if eligibility permitter is set but permission doesn't returned, return false.
 			return false;
 		}
 		bool result = eligibilityPermitter.permit(
