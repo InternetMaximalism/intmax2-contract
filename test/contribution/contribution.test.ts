@@ -7,7 +7,7 @@ import {
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
 import { Contribution } from '../../typechain-types'
 
-describe.only('Contribution', function () {
+describe('Contribution', function () {
 	const ONE_DAY_SECONDS = 60 * 60 * 24
 	const setup = async (): Promise<[Contribution]> => {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
