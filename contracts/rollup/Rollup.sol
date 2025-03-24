@@ -223,7 +223,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		// We skip the nonce check if nonce = 0, which is 
+		// We skip the nonce check if nonce = 0, which is
 		if (block_post_data.builderNonce != 0) {
 			if (block_post_data.isRegistrationBlock) {
 				uint32 previousNonce = builderRegistrationNonce[
@@ -289,11 +289,11 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 			signatureHash
 		);
 
-		// contribution.recordContribution(
-		// 	keccak256("POST_BLOCK"),
-		// 	_msgSender(),
-		// 	1
-		// );
+		contribution.recordContribution(
+			keccak256("POST_BLOCK"),
+			_msgSender(),
+			1
+		);
 	}
 
 	function collectPenaltyFee() private {
