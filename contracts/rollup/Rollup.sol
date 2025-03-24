@@ -223,7 +223,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint
 	) private {
-		// We skip the nonce check if nonce = 0, which is
+		// Bypass nonce check if nonce is 0
 		if (block_post_data.builderNonce != 0) {
 			if (block_post_data.isRegistrationBlock) {
 				uint32 previousNonce = builderRegistrationNonce[

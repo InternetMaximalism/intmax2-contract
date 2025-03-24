@@ -34,7 +34,7 @@ interface IRollup {
 	/// @notice Error thrown when the expiry timestamp is in the past
 	error Expired();
 
-	/// @notice Error thrown when the nonce not greater than the previous nonce
+	/// @notice Error thrown when the given nonce is less than the current nonce
 	error InvalidNonce();
 
 	/// @notice Event emitted when deposits bridged from the liquidity contract are processed
@@ -70,6 +70,15 @@ interface IRollup {
 	);
 
 	/// @notice An internal struct to store the data of block to avoid stack too deep error
+	/// @param isRegistrationBlock Whether the block is a registration block
+	/// @param txTreeRoot The root of the transaction tree
+	/// @param expiry The expiry timestamp of the tx tree root
+	/// @param builderAddress The address of the block builder
+	/// @param builderNonce The nonce of the block builder
+	/// @param senderFlags Flags indicating whether senders' signatures are included in the aggregated signature
+	/// @param aggregatedPublicKey The aggregated public key
+	/// @param aggregatedSignature The aggregated signature
+	/// @param messagePoint The hash of the tx tree root to G2
 	struct BlockPostData {
 		bool isRegistrationBlock;
 		bytes32 txTreeRoot;
@@ -86,7 +95,7 @@ interface IRollup {
 	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param expiry The expiry timestamp of the tx tree root. Zero means no expiry.
-	/// @param builderNonce The nonce of the block builder
+	/// @param builderNonce The registration block nonce of the block builder
 	/// @param senderFlags Flags indicating whether senders' signatures are included in the aggregated signature
 	/// @param aggregatedPublicKey The aggregated public key
 	/// @param aggregatedSignature The aggregated signature
@@ -107,7 +116,7 @@ interface IRollup {
 	/// @dev msg.value must be greater than or equal to the penalty fee of the rate limiter
 	/// @param txTreeRoot The root of the transaction tree
 	/// @param expiry The expiry timestamp of the tx tree root. Zero means no expiry.
-	/// @param builderNonce The nonce of the block builder
+	/// @param builderNonce The non registration block nonce of the block builder
 	/// @param senderFlags Sender flags
 	/// @param aggregatedPublicKey The aggregated public key
 	/// @param aggregatedSignature The aggregated signature
