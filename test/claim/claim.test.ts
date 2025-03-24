@@ -539,4 +539,42 @@ describe('Claim', () => {
 			expect(info[5]).to.equal(16n)
 		})
 	})
+	describe('upgrade', () => {
+		it('channel contract is upgradable', async () => {
+			const { claim } = await loadFixture(setup)
+			const signers = await getSigners()
+
+			const owner = await claim.owner()
+
+			const claim2Factory = await ethers.getContractFactory(
+				'Claim2Test',
+				signers.admin,
+			)
+			const next = await upgrades.upgradeProxy(
+				await claim.getAddress(),
+				claim2Factory,
+				{ unsafeAllow: ['constructor'] },
+			)
+			const owner2 = await next.owner()
+			expect(owner).to.equal(owner2)
+			const val = await next.getVal()
+			expect(val).to.equal(88)
+		})
+		it('Cannot upgrade except for a deployer.', async () => {
+			const { claim } = await loadFixture(setup)
+			const signers = await getSigners()
+			const claim2Factory = await ethers.getContractFactory(
+				'Claim2Test',
+				signers.user1,
+			)
+
+			await expect(
+				upgrades.upgradeProxy(await claim.getAddress(), claim2Factory, {
+					unsafeAllow: ['constructor'],
+				}),
+			)
+				.to.be.revertedWithCustomError(claim, 'OwnableUnauthorizedAccount')
+				.withArgs(signers.user1.address)
+		})
+	})
 })
