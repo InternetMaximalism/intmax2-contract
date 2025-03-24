@@ -72,6 +72,7 @@ describe('Rollup', () => {
 	type validInputs = {
 		txTreeRoot: string
 		expiry: number
+		builderNonce: number
 		senderFlags: string
 		aggregatedPublicKey: [string, string]
 		aggregatedSignature: [string, string, string, string]
@@ -84,6 +85,7 @@ describe('Rollup', () => {
 			txTreeRoot:
 				'0xe9fe591a2052682636a8019b6be712fd1e000544be4acfd8fc6bcaf8d750f7a0',
 			expiry: timestamp + 100,
+			builderNonce: 1,
 			senderFlags: '0xf6f27cffbbdff9cea5bc062a276505e2',
 			aggregatedPublicKey: [
 				block1.signature.aggPubkey[0],
@@ -112,6 +114,7 @@ describe('Rollup', () => {
 		await rollup.connect(signer).postRegistrationBlock(
 			inputs.txTreeRoot,
 			inputs.expiry,
+			inputs.builderNonce,
 			inputs.senderFlags,
 			inputs.aggregatedPublicKey,
 			inputs.aggregatedSignature,
@@ -134,6 +137,8 @@ describe('Rollup', () => {
 		isRegistrationBlock: boolean,
 		txTreeRoot: string,
 		expiry: number,
+		builderAddress: string,
+		builderNonce: number,
 		senderFlags: string,
 		publicKeysHash: string,
 		accountIdsHash: string,
@@ -147,6 +152,8 @@ describe('Rollup', () => {
 				'uint32',
 				'bytes32',
 				'uint64',
+				'address',
+				'uint32',
 				'bytes16',
 				'bytes32',
 				'bytes32',
@@ -158,6 +165,8 @@ describe('Rollup', () => {
 				tmp,
 				txTreeRoot,
 				expiry,
+				builderAddress,
+				builderNonce,
 				senderFlags,
 				publicKeysHash,
 				accountIdsHash,
@@ -278,6 +287,7 @@ describe('Rollup', () => {
 			})
 		})
 	})
+
 	describe('postRegistrationBlock', () => {
 		describe('success', () => {
 			it('send penalty fee', async () => {
@@ -288,6 +298,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -304,6 +315,7 @@ describe('Rollup', () => {
 				const tx = await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce + 1,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -331,6 +343,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -341,6 +354,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce + 1,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -351,10 +365,12 @@ describe('Rollup', () => {
 			it('should add blockhash to blockHashes', async () => {
 				const [rollup] = await loadFixture(setup)
 				const inputs = await generateValidInputs()
+				const { deployer } = await getSigners()
 
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -371,6 +387,8 @@ describe('Rollup', () => {
 					true,
 					inputs.txTreeRoot,
 					inputs.expiry,
+					deployer.address,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					publicKeysHash,
 					ethers.ZeroHash,
@@ -400,6 +418,8 @@ describe('Rollup', () => {
 					true,
 					inputs.txTreeRoot,
 					inputs.expiry,
+					signers.user1.address,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					publicKeysHash,
 					ethers.ZeroHash,
@@ -413,6 +433,7 @@ describe('Rollup', () => {
 						.postRegistrationBlock(
 							inputs.txTreeRoot,
 							inputs.expiry,
+							inputs.builderNonce,
 							inputs.senderFlags,
 							inputs.aggregatedPublicKey,
 							inputs.aggregatedSignature,
@@ -438,6 +459,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -451,6 +473,54 @@ describe('Rollup', () => {
 				)
 				expect(await contribution.latestAmount()).to.equal(1)
 			})
+			it('should update builderRegistrationNonce', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { deployer } = await getSigners()
+				const inputs = await generateValidInputs()
+
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+
+				const nonce = await rollup.builderRegistrationNonce(deployer.address)
+				expect(nonce).to.equal(inputs.builderNonce + 1)
+			})
+			it('should allow nonce=0 to bypass nonce check', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = await generateValidInputs()
+
+				// First set a nonce
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+
+				// Then use nonce=0 which should bypass the check
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					0, // nonce = 0 bypasses check
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+					{ value: ethers.parseEther('1') }, // pay enough penalty
+				)
+			})
 		})
 		describe('fail', () => {
 			it('expiry < block.timestamp', async () => {
@@ -462,6 +532,7 @@ describe('Rollup', () => {
 					rollup.postRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -479,6 +550,7 @@ describe('Rollup', () => {
 					rollup.postRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -506,6 +578,7 @@ describe('Rollup', () => {
 					rollup.postRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -520,6 +593,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -530,6 +604,7 @@ describe('Rollup', () => {
 					rollup.postRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce + 1,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -538,13 +613,46 @@ describe('Rollup', () => {
 					),
 				).to.be.revertedWithCustomError(rollup, 'InsufficientPenaltyFee')
 			})
+			it('revert InvalidNonce', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = await generateValidInputs()
+
+				// First set a nonce
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+
+				// Then try to use a lower nonce
+				await expect(
+					rollup.postRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.expiry,
+						inputs.builderNonce, // Same nonce as before (should be incremented)
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.senderPublicKeys,
+						{ value: ethers.parseEther('1') }, // pay enough penalty
+					),
+				).to.be.revertedWithCustomError(rollup, 'InvalidNonce')
+			})
 		})
 	})
+
 
 	describe('postNonRegistrationBlock', () => {
 		type validInputs = {
 			txTreeRoot: string
-			expiry: number
+			expiry: number,
+			builderNonce: number,
 			senderFlags: string
 			aggregatedPublicKey: [string, string]
 			aggregatedSignature: [string, string, string, string]
@@ -559,6 +667,7 @@ describe('Rollup', () => {
 				txTreeRoot:
 					'0xe9fe591a2052682636a8019b6be712fd1e000544be4acfd8fc6bcaf8d750f7a0',
 				expiry: timestamp + 100,
+				builderNonce: 1,
 				senderFlags: '0xf6f27cffbbdff9cea5bc062a276505e2',
 				aggregatedPublicKey: [
 					block1.signature.aggPubkey[0],
@@ -601,6 +710,7 @@ describe('Rollup', () => {
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -618,6 +728,7 @@ describe('Rollup', () => {
 				const tx = await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce + 1,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -646,6 +757,7 @@ describe('Rollup', () => {
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -657,6 +769,7 @@ describe('Rollup', () => {
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce + 1,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -667,11 +780,13 @@ describe('Rollup', () => {
 			})
 			it('should add blockhash to blockHashes', async () => {
 				const [rollup] = await loadFixture(setup)
+				const { deployer } = await getSigners()
 				const inputs = await generateValidInputs()
 
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -686,6 +801,8 @@ describe('Rollup', () => {
 					false,
 					inputs.txTreeRoot,
 					inputs.expiry,
+					deployer.address,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.publicKeysHash,
 					getAccountIdsHash(inputs.senderAccountIds),
@@ -712,6 +829,8 @@ describe('Rollup', () => {
 					false,
 					inputs.txTreeRoot,
 					inputs.expiry,
+					signers.user1.address,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.publicKeysHash,
 					getAccountIdsHash(inputs.senderAccountIds),
@@ -725,6 +844,7 @@ describe('Rollup', () => {
 						.postNonRegistrationBlock(
 							inputs.txTreeRoot,
 							inputs.expiry,
+							inputs.builderNonce,
 							inputs.senderFlags,
 							inputs.aggregatedPublicKey,
 							inputs.aggregatedSignature,
@@ -751,6 +871,7 @@ describe('Rollup', () => {
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -765,7 +886,59 @@ describe('Rollup', () => {
 				)
 				expect(await contribution.latestAmount()).to.equal(1)
 			})
+			it('should update builderNonRegistrationNonce', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { deployer } = await getSigners()
+				const inputs = await generateValidInputs()
+
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+
+				const nonce = await rollup.builderNonRegistrationNonce(deployer.address)
+				expect(nonce).to.equal(inputs.builderNonce + 1)
+			})
+			it('should allow nonce=0 to bypass nonce check', async () => {
+				const [rollup] = await loadFixture(setup)
+				const inputs = await generateValidInputs()
+
+				// First set a nonce
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+				)
+
+				// Then use nonce=0 which should bypass the check
+				await rollup.postNonRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					0, // nonce = 0 bypasses check
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.publicKeysHash,
+					inputs.senderAccountIds,
+					{ value: ethers.parseEther('1') }, // pay enough penalty
+				)
+			})
 		})
+
 		describe('fail', () => {
 			it('expiry < block.timestamp', async () => {
 				const [rollup] = await loadFixture(setup)
@@ -776,6 +949,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -794,6 +968,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -812,6 +987,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -830,6 +1006,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -858,6 +1035,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -874,6 +1052,7 @@ describe('Rollup', () => {
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -885,6 +1064,7 @@ describe('Rollup', () => {
 					rollup.postNonRegistrationBlock(
 						inputs.txTreeRoot,
 						inputs.expiry,
+						inputs.builderNonce,
 						inputs.senderFlags,
 						inputs.aggregatedPublicKey,
 						inputs.aggregatedSignature,
@@ -906,6 +1086,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -915,6 +1096,7 @@ describe('Rollup', () => {
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
+					inputs.builderNonce + 1,
 					inputs.senderFlags,
 					inputs.aggregatedPublicKey,
 					inputs.aggregatedSignature,
@@ -1098,7 +1280,7 @@ describe('Rollup', () => {
 				const signers = await getSigners()
 
 				await addBlock(rollup, signers.user1)
-				await addBlock(rollup, signers.user1)
+				await addBlock(rollup, signers.user2) // change sender to avoid nonce increment
 
 				const blockHash1 = await rollup.getBlockHash(1)
 				const blockHash2 = await rollup.getBlockHash(2)
