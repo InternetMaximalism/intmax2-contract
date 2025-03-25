@@ -5,6 +5,9 @@ import { cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	PERIOD_INTERVAL: num({
+		default: 60 * 60, // 1 hour
+	}),
 	SLEEP_TIME: num({
 		default: 30,
 	}),
@@ -93,7 +96,7 @@ async function main() {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const l2Contribution = await upgrades.deployProxy(
 			contributionFactory,
-			[admin],
+			[admin, env.PERIOD_INTERVAL],
 			{
 				kind: 'uups',
 			},
