@@ -5,7 +5,6 @@ import { makeWithdrawalInfo } from '../../utils/withdrawal'
 
 async function main() {
 	// note that to submit a withdrawal proof, you need to post at least one block
-
 	const deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.rollup || !deployedContracts.withdrawal) {
 		throw new Error('rollup and withdrawal contracts should be deployed')

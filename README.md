@@ -9,7 +9,8 @@
 Create a `.env` file with the following:
 
 - `DEPLOYER_PRIVATE_KEY`: Deployer's private key
-- `ANALYZER_PRIVATE_KEY`: Analyzer's private key
+- `ADMIN_ADDRESS`: Admin's address
+- `RELAYER_ADDRESS`: Relayer's address
 - `ALCHEMY_KEY`: Key for Alchemy API access
 - `ETHERSCAN_API_KEY`: Key for Etherscan verification
 - `SCROLLSCAN_API_KEY`: Key for Scrollscan verification

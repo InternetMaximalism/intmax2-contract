@@ -7,7 +7,7 @@ import { cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
-	ANALYZER_ADDRESS: str(),
+	RELAYER_ADDRESS: str(),
 	PERIOD_INTERVAL: num({
 		default: 60 * 60, // 1 hour
 	}),
@@ -102,7 +102,7 @@ async function main() {
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
 				deployedL2Contracts.claim,
-				env.ANALYZER_ADDRESS,
+				env.RELAYER_ADDRESS,
 				deployedContracts.l1Contribution,
 				initialERC20Tokens,
 			],

@@ -2,7 +2,6 @@ import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 
 async function main() {
-	// note you have to analyze the deposits before relaying them
 	const deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.liquidity) {
 		throw new Error('liquidity contracts should be deployed')
@@ -18,15 +17,15 @@ async function main() {
 	const numDepositsToRelay = lastDepositId - lastRelayedDepositId
 	console.log('number of deposits to relay:', numDepositsToRelay)
 
-	const analyzer = (await ethers.getSigners())[1]
-	console.log('analyzer address:', analyzer.address)
+	const relayer = (await ethers.getSigners())[1]
+	console.log('relayer address:', relayer.address)
 
 	// The estimated gas limit is about 220k + 20k * numDeposits.
 	const buffer = 100_000n
 	const gasLimit = 220_000n + 20_000n * numDepositsToRelay + buffer
 	try {
 		const tx = await liquidity
-			.connect(analyzer)
+			.connect(relayer)
 			.relayDeposits(lastDepositId, gasLimit, {
 				value: ethers.parseEther('0.1'), // will be refunded
 			})
