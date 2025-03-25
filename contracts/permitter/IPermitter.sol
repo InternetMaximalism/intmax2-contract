@@ -2,18 +2,6 @@
 pragma solidity 0.8.27;
 
 interface IPermitter {
-	/// @notice address is zero address
-	error AddressZero();
-
-	/// @notice policy id is empty
-	error PolicyIDEmpty();
-
-	/// @notice Emitted when the policy is set
-	event PolicySet(string policyID);
-
-	/// @notice Emitted when the predicate manager is set
-	event PredicateManagerSet(address predicateManager);
-
 	/// @notice Validates if a user has the right to execute a specified action
 	/// @param user The address of the user attempting the action
 	/// @param value The msg.value of the transaction

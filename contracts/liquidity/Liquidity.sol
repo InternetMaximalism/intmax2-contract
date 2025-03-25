@@ -160,6 +160,7 @@ contract Liquidity is
 	) external onlyRole(DEFAULT_ADMIN_ROLE) {
 		amlPermitter = IPermitter(_amlPermitter);
 		eligibilityPermitter = IPermitter(_eligibilityPermitter);
+		emit PermitterSet(_amlPermitter, _eligibilityPermitter);
 	}
 
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {

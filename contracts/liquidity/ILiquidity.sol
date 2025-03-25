@@ -107,6 +107,14 @@ interface ILiquidity {
 		bytes32 indexed withdrawalHash
 	);
 
+	/// @notice Event emitted when permitter addresses are set
+	/// @param amlPermitter The address of the AML permitter contract
+	/// @param eligibilityPermitter The address of the eligibility permitter contract
+	event PermitterSet(
+		address indexed amlPermitter,
+		address indexed eligibilityPermitter
+	);
+
 	/// @notice Pause deposits
 	function pauseDeposits() external;
 

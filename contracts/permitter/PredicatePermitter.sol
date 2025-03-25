@@ -14,6 +14,18 @@ contract PredicatePermitter is
 	OwnableUpgradeable,
 	IPermitter
 {
+	/// @notice address is zero address
+	error AddressZero();
+
+	/// @notice policy id is empty
+	error PolicyIDEmpty();
+
+	/// @notice Emitted when the policy is set
+	event PolicySet(string policyID);
+
+	/// @notice Emitted when the predicate manager is set
+	event PredicateManagerSet(address predicateManager);
+
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
