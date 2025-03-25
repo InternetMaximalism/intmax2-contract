@@ -1,6 +1,5 @@
-import { ethers, } from 'hardhat'
+import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()

@@ -40,7 +40,13 @@ async function main() {
 
 	tx = await liquidity
 		.connect(user)
-		.depositERC20(await testErc20.getAddress(), recipientSaltHash, amount, "0x", "0x")
+		.depositERC20(
+			await testErc20.getAddress(),
+			recipientSaltHash,
+			amount,
+			'0x',
+			'0x',
+		)
 	console.log('deposit tx hash:', tx.hash)
 	const res = await tx.wait()
 	if (!res?.blockNumber) {

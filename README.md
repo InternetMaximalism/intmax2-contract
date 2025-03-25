@@ -16,22 +16,25 @@ Create a `.env` file with the following:
 - `SCROLLSCAN_API_KEY`: Key for Scrollscan verification
 
 ## Deployment
+
 The deployment process consists of 3 stages. Please execute the following scripts in sequence.
 
 For localhost environment:
+
 ```
 L1_NETWORK=localhost
 L2_NETWORK=localhost
 ```
 
-
 For testnet environment:
+
 ```
 L1_NETWORK=sepolia
 L2_NETWORK=scrollSepolia
 ```
 
 For mainnet environment:
+
 ```
 L1_NETWORK=mainnet
 L2_NETWORK=scroll

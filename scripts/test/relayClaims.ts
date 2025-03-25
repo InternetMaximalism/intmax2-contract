@@ -11,13 +11,13 @@ async function main() {
 
 	const user = (await ethers.getSigners())[0]
 	const period = 0
-	const allocationPerPeriod = await claim.getAllocationInfo(period, user.address)
+	const allocationPerPeriod = await claim.getAllocationInfo(
+		period,
+		user.address,
+	)
 	console.log('allocation per period:', allocationPerPeriod.toString())
 
-	const tx = await claim.relayClaims(
-		period,
-		[user.address],
-	)
+	const tx = await claim.relayClaims(period, [user.address])
 	console.log('relay claims tx hash:', tx.hash)
 	await tx.wait()
 }

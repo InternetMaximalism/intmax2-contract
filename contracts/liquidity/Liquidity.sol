@@ -67,6 +67,11 @@ contract Liquidity is
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => bool) private doesDepositHashExist;
 
+	/// @notice Withdrawal fee ratio for each token index (denominated in basis points, 1bp = 0.01%, range: 0-10000)
+	/// @dev The admin is responsible for ensuring appropriate fee settings and bears the responsibility
+	///      of maintaining fair fee structures, especially for NFT withdrawals which should be set to 0.
+	mapping(uint32 => uint256) public withdrawalFeeRatio;
+
 	/// @notice deposit information queue
 	DepositQueueLib.DepositQueue private depositQueue;
 

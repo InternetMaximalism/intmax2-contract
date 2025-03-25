@@ -31,7 +31,7 @@ async function main() {
 
 	tx = await liquidity
 		.connect(user)
-		.depositNativeToken(deposit.recipientSaltHash, "0x", "0x", {
+		.depositNativeToken(deposit.recipientSaltHash, '0x', '0x', {
 			value: deposit.amount,
 		})
 	console.log('deposit tx hash:', tx.hash)
