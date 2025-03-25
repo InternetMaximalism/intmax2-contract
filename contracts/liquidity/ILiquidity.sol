@@ -107,6 +107,11 @@ interface ILiquidity {
 		bytes32 indexed withdrawalHash
 	);
 
+	/// @notice Event emitted when withdrawal fee is collected
+	/// @param token The index of the token
+	/// @param amount The amount of tokens collected
+	event WithdrawalFeeCollected(uint32 indexed token, uint256 amount);
+
 	/// @notice Event emitted when permitter addresses are set
 	/// @param amlPermitter The address of the AML permitter contract
 	/// @param eligibilityPermitter The address of the eligibility permitter contract

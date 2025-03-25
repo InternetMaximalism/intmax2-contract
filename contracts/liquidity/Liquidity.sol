@@ -352,16 +352,21 @@ contract Liquidity is
 			if (claimableWithdrawals[withdrawalHash] == 0) {
 				revert WithdrawalNotFound(withdrawalHash);
 			}
+			uint256 fee = _getWithdrawalFee(w.tokenIndex, w.amount);
+			uint256 amountAfterFee = w.amount - fee;
 			TokenInfo memory tokenInfo = getTokenInfo(w.tokenIndex);
 			delete claimableWithdrawals[withdrawalHash];
 			_sendToken(
 				tokenInfo.tokenType,
 				tokenInfo.tokenAddress,
 				w.recipient,
-				w.amount,
+				amountAfterFee,
 				tokenInfo.tokenId
 			);
 			emit ClaimedWithdrawal(w.recipient, withdrawalHash);
+			if (fee > 0) {
+				emit WithdrawalFeeCollected(w.tokenIndex, fee);
+			}
 		}
 	}
 
@@ -478,19 +483,21 @@ contract Liquidity is
 		WithdrawalLib.Withdrawal memory withdrawal_
 	) internal {
 		TokenInfo memory tokenInfo = getTokenInfo(withdrawal_.tokenIndex);
-
+		uint256 fee = _getWithdrawalFee(
+			withdrawal_.tokenIndex,
+			withdrawal_.amount
+		);
+		uint256 amountAfterFee = withdrawal_.amount - fee;
 		bool result = true;
 		if (tokenInfo.tokenType == TokenType.NATIVE) {
 			// solhint-disable-next-line check-send-result
-			bool success = payable(withdrawal_.recipient).send(
-				withdrawal_.amount
-			);
+			bool success = payable(withdrawal_.recipient).send(amountAfterFee);
 			result = success;
 		} else if (tokenInfo.tokenType == TokenType.ERC20) {
 			bytes memory transferCall = abi.encodeWithSelector(
 				IERC20(tokenInfo.tokenAddress).transfer.selector,
 				withdrawal_.recipient,
-				withdrawal_.amount
+				amountAfterFee
 			);
 			result = IERC20(tokenInfo.tokenAddress).callOptionalReturnBool(
 				transferCall
@@ -504,6 +511,9 @@ contract Liquidity is
 				withdrawal_.getHash(),
 				withdrawal_.recipient
 			);
+			if (fee > 0) {
+				emit WithdrawalFeeCollected(withdrawal_.tokenIndex, fee);
+			}
 		} else {
 			bytes32 withdrawalHash = withdrawal_.getHash();
 			// solhint-disable-next-line reentrancy
@@ -582,6 +592,14 @@ contract Liquidity is
 			revert EligibilityValidationFailed();
 		}
 		return true;
+	}
+
+	function _getWithdrawalFee(
+		uint32 tokenIndex,
+		uint256 amount
+	) internal view returns (uint256) {
+		uint256 feeRatio = withdrawalFeeRatio[tokenIndex];
+		return (amount * feeRatio) / 10000;
 	}
 
 	function isDepositValid(
