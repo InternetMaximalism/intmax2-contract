@@ -1,9 +1,6 @@
-import { ethers, upgrades, network } from 'hardhat'
+import { ethers, } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 
-if (network.name !== 'sepolia') {
-	throw new Error('This script should be run on sepolia network')
-}
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
@@ -14,7 +11,6 @@ async function main() {
 		'TestERC20',
 		deployedContracts.testErc20,
 	)
-
 	const signer = (await ethers.getSigners())[0]
 	const balance = await token.balanceOf(signer.address)
 	console.log('Balance:', ethers.formatEther(balance))
