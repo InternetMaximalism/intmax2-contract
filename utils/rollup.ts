@@ -23,14 +23,14 @@ export async function postBlock(
 	fullBlock: FullBlock,
 	rollup: Rollup,
 ): Promise<ContractTransactionResponse> {
-	if (fullBlock.signature.isRegistrationBlock) {
+	if (fullBlock.signature.blockSignPayload.isRegistrationBlock) {
 		if (!fullBlock.pubkeys) {
 			throw new Error('pubkeys are required')
 		}
 		const tx = await rollup.postRegistrationBlock(
-			fullBlock.signature.txTreeRoot,
-			fullBlock.signature.expiry,
-			fullBlock.signature.builderNonce,
+			fullBlock.signature.blockSignPayload.txTreeRoot,
+			fullBlock.signature.blockSignPayload.expiry,
+			fullBlock.signature.blockSignPayload.blockBuilderNonce,
 			fullBlock.signature.senderFlag,
 			fullBlock.signature.aggPubkey,
 			fullBlock.signature.aggSignature,
@@ -44,9 +44,9 @@ export async function postBlock(
 			throw new Error('accountIds are required')
 		}
 		const tx = await rollup.postNonRegistrationBlock(
-			fullBlock.signature.txTreeRoot,
-			fullBlock.signature.expiry,
-			fullBlock.signature.builderNonce,
+			fullBlock.signature.blockSignPayload.txTreeRoot,
+			fullBlock.signature.blockSignPayload.expiry,
+			fullBlock.signature.blockSignPayload.blockBuilderNonce,
 			fullBlock.signature.senderFlag,
 			fullBlock.signature.aggPubkey,
 			fullBlock.signature.aggSignature,
