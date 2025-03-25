@@ -168,6 +168,14 @@ contract Liquidity is
 		emit PermitterSet(_amlPermitter, _eligibilityPermitter);
 	}
 
+	function setWithdrawalFeeRatio(
+		uint32 tokenIndex,
+		uint256 feeRatio
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		withdrawalFeeRatio[tokenIndex] = feeRatio;
+		emit WithdrawalFeeRatioSet(tokenIndex, feeRatio);
+	}
+
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
 		_pause();
 	}
@@ -446,29 +454,6 @@ contract Liquidity is
 		_processClaimableWithdrawals(withdrawalHashes);
 	}
 
-	function isDepositValid(
-		uint256 depositId,
-		bytes32 recipientSaltHash,
-		uint32 tokenIndex,
-		uint256 amount,
-		bool isEligible,
-		address sender
-	) external view returns (bool) {
-		DepositQueueLib.DepositData memory depositData = depositQueue
-			.depositData[depositId];
-		bytes32 depositHash = DepositLib
-			.Deposit(sender, recipientSaltHash, amount, tokenIndex, isEligible)
-			.getHash();
-
-		if (depositData.depositHash != depositHash) {
-			return false;
-		}
-		if (depositData.sender != sender) {
-			return false;
-		}
-		return true;
-	}
-
 	function _processDirectWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) private {
@@ -595,6 +580,29 @@ contract Liquidity is
 		);
 		if (!result) {
 			revert EligibilityValidationFailed();
+		}
+		return true;
+	}
+
+	function isDepositValid(
+		uint256 depositId,
+		bytes32 recipientSaltHash,
+		uint32 tokenIndex,
+		uint256 amount,
+		bool isEligible,
+		address sender
+	) external view returns (bool) {
+		DepositQueueLib.DepositData memory depositData = depositQueue
+			.depositData[depositId];
+		bytes32 depositHash = DepositLib
+			.Deposit(sender, recipientSaltHash, amount, tokenIndex, isEligible)
+			.getHash();
+
+		if (depositData.depositHash != depositHash) {
+			return false;
+		}
+		if (depositData.sender != sender) {
+			return false;
 		}
 		return true;
 	}
