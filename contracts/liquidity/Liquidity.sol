@@ -64,13 +64,16 @@ contract Liquidity is
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => uint256) public claimableWithdrawals;
 
-	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
-	mapping(bytes32 => bool) private doesDepositHashExist;
-
 	/// @notice Withdrawal fee ratio for each token index (denominated in basis points, 1bp = 0.01%, range: 0-10000)
 	/// @dev The admin is responsible for ensuring appropriate fee settings and bears the responsibility
 	///      of maintaining fair fee structures, especially for NFT withdrawals which should be set to 0.
 	mapping(uint32 => uint256) public withdrawalFeeRatio;
+
+	/// @notice Mapping of token index to the total amount of withdrawal fees collected
+	mapping(uint32 => uint256) public collectedWithdrawalFees;
+
+	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
+	mapping(bytes32 => bool) private doesDepositHashExist;
 
 	/// @notice deposit information queue
 	DepositQueueLib.DepositQueue private depositQueue;
@@ -174,6 +177,29 @@ contract Liquidity is
 	) external onlyRole(DEFAULT_ADMIN_ROLE) {
 		withdrawalFeeRatio[tokenIndex] = feeRatio;
 		emit WithdrawalFeeRatioSet(tokenIndex, feeRatio);
+	}
+
+	function withdrawCollectedFees(
+		address recipient,
+		uint32[] calldata tokenIndices
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		for (uint256 i = 0; i < tokenIndices.length; i++) {
+			uint32 tokenIndex = tokenIndices[i];
+			uint256 fee = collectedWithdrawalFees[tokenIndex];
+			if (fee == 0) {
+				continue;
+			}
+			collectedWithdrawalFees[tokenIndex] = 0;
+			TokenInfo memory tokenInfo = getTokenInfo(tokenIndex);
+			_sendToken(
+				tokenInfo.tokenType,
+				tokenInfo.tokenAddress,
+				recipient,
+				fee,
+				tokenInfo.tokenId
+			);
+			emit WithdrawalFeeWithdrawn(recipient, tokenIndex, fee);
+		}
 	}
 
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -365,6 +391,7 @@ contract Liquidity is
 			);
 			emit ClaimedWithdrawal(w.recipient, withdrawalHash);
 			if (fee > 0) {
+				collectedWithdrawalFees[w.tokenIndex] += fee;
 				emit WithdrawalFeeCollected(w.tokenIndex, fee);
 			}
 		}
@@ -512,6 +539,7 @@ contract Liquidity is
 				withdrawal_.recipient
 			);
 			if (fee > 0) {
+				collectedWithdrawalFees[withdrawal_.tokenIndex] += fee;
 				emit WithdrawalFeeCollected(withdrawal_.tokenIndex, fee);
 			}
 		} else {

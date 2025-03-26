@@ -112,6 +112,16 @@ interface ILiquidity {
 	/// @param amount The amount of tokens collected
 	event WithdrawalFeeCollected(uint32 indexed token, uint256 amount);
 
+	/// @notice Event emitted when withdrawal fee are withdrawn
+	/// @param recipient The address that claimed the fees
+	/// @param token The index of the token
+	/// @param amount The amount of tokens claimed
+	event WithdrawalFeeWithdrawn(
+		address indexed recipient,
+		uint32 indexed token,
+		uint256 amount
+	);
+
 	/// @notice Event emitted when permitter addresses are set
 	/// @param amlPermitter The address of the AML permitter contract
 	/// @param eligibilityPermitter The address of the eligibility permitter contract
@@ -145,6 +155,14 @@ interface ILiquidity {
 	function setWithdrawalFeeRatio(
 		uint32 tokenIndex,
 		uint256 feeRatio
+	) external;
+
+	/// @notice Withdraw collected fees
+	/// @param recipient The address that will receive the fees
+	/// @param tokenIndices The indices of the tokens to withdraw fees from
+	function withdrawCollectedFees(
+		address recipient,
+		uint32[] calldata tokenIndices
 	) external;
 
 	/// @notice Deposit native token
