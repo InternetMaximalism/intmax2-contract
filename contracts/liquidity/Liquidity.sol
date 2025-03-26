@@ -41,8 +41,9 @@ contract Liquidity is
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
 
-	/// @notice Max withdrawal fee ratio
-	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500; // 20%
+	/// @notice Max withdrawal fee ratio limit 
+	/// @dev 1bp = 0.01%
+	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500;
 
 	/// @notice Deployment time which is used to calculate the deposit limit
 	uint256 public deploymentTime;
@@ -70,7 +71,8 @@ contract Liquidity is
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => bool) private doesDepositHashExist;
 
-	/// @notice Withdrawal fee ratio for each token index (denominated in basis points, 1bp = 0.01%, range: 0-10000)
+	/// @notice Withdrawal fee ratio for each token index
+	/// @dev 1bp = 0.01%
 	mapping(uint32 => uint256) public withdrawalFeeRatio;
 
 	/// @notice deposit information queue
