@@ -15,7 +15,6 @@ interface IContribution {
 
 	/**
 	 * @notice Emitted when a contribution is recorded
-	 * @dev This event is used to track all contributions for off-chain analysis
 	 * @param periodNumber The number of the period when the contribution was recorded
 	 * @param tag The tag associated with the contribution (used for categorization)
 	 * @param user The address of the user making the contribution

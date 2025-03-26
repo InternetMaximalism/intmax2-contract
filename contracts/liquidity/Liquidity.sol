@@ -3,8 +3,7 @@ pragma solidity 0.8.27;
 
 /**
  * @title Liquidity Contract
- * @notice This contract manages deposits and withdrawals of various token types (Native, ERC20, ERC721, ERC1155)
- * between Layer 1 and Layer 2 in the Intmax2 protocol.
+ * @notice This contract manages deposits and withdrawals of various token types (Native, ERC20, ERC721, ERC1155).
  * @dev Handles deposit queuing, withdrawal processing, fee collection, and AML/eligibility checks.
  */
 import {ILiquidity} from "./ILiquidity.sol";
@@ -47,7 +46,7 @@ contract Liquidity is
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
 
-	/// @notice Max withdrawal fee ratio limit
+	/// @notice Withdrawal fee ratio limit
 	/// @dev 1bp = 0.01%
 	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500;
 
@@ -65,18 +64,18 @@ contract Liquidity is
 
 	/// @notice Address of the AML Permitter contract
 	/// @dev If not set, we skip AML check
-	IPermitter public amlPermitter;
+	IPermitter private amlPermitter;
 
 	/// @notice Address of the Circulation Permitter contract
 	/// @dev If not set, we skip eligibility permission check
-	IPermitter public eligibilityPermitter;
+	IPermitter private eligibilityPermitter;
 
 	/// @notice Mapping of withdrawal hashes to their timestamp when they became claimable
 	/// @dev A value of 0 means the withdrawal is not claimable
 	mapping(bytes32 => uint256) public claimableWithdrawals;
 
 	/// @notice Withdrawal fee ratio for each token index
-	/// @dev 1bp = 0.01%, so 1500 = 15%
+	/// @dev 1bp = 0.01%
 	mapping(uint32 => uint256) public withdrawalFeeRatio;
 
 	/// @notice Mapping of token index to the total amount of withdrawal fees collected
@@ -412,8 +411,8 @@ contract Liquidity is
 			depositHashes
 		);
 		l1ScrollMessenger.sendMessage{value: msg.value}(
-			rollup, // to
-			0, // value
+			rollup, 
+			0, 
 			message,
 			gasLimit,
 			_msgSender()

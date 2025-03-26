@@ -8,7 +8,6 @@ import {IContribution} from "./IContribution.sol";
 /**
  * @title Contribution
  * @notice Contract for tracking user contributions across different time periods
- * @dev Implements the IContribution interface with upgradeable and access control functionality
  */
 contract Contribution is
 	IContribution,

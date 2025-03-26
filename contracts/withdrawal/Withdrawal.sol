@@ -63,7 +63,7 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	 * @notice Mapping of nullifiers to their used status
 	 * @dev Prevents double-spending of withdrawals
 	 */
-	mapping(bytes32 => bool) private nullifiers;
+	mapping(bytes32 => bool) public nullifiers;
 
 	/**
 	 * @notice Set of token indices that can be withdrawn directly

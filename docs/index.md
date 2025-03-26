@@ -937,8 +937,6 @@ _Uses keccak256 to hash the packed encoding of all withdrawal fields_
 
 Contract for tracking user contributions across different time periods
 
-_Implements the IContribution interface with upgradeable and access control functionality_
-
 ### CONTRIBUTOR
 
 ```solidity
@@ -1085,8 +1083,6 @@ event ContributionRecorded(uint256 periodNumber, bytes32 tag, address user, uint
 ```
 
 Emitted when a contribution is recorded
-
-_This event is used to track all contributions for off-chain analysis_
 
 #### Parameters
 
@@ -1975,7 +1971,7 @@ Withdrawal role constant
 uint256 WITHDRAWAL_FEE_RATIO_LIMIT
 ```
 
-Max withdrawal fee ratio limit
+Withdrawal fee ratio limit
 
 _1bp = 0.01%_
 
@@ -1986,26 +1982,6 @@ uint256 deploymentTime
 ```
 
 Deployment time which is used to calculate the deposit limit
-
-### amlPermitter
-
-```solidity
-contract IPermitter amlPermitter
-```
-
-Address of the AML Permitter contract
-
-_If not set, we skip AML check_
-
-### eligibilityPermitter
-
-```solidity
-contract IPermitter eligibilityPermitter
-```
-
-Address of the Circulation Permitter contract
-
-_If not set, we skip eligibility permission check_
 
 ### claimableWithdrawals
 
@@ -2025,7 +2001,7 @@ mapping(uint32 => uint256) withdrawalFeeRatio
 
 Withdrawal fee ratio for each token index
 
-_1bp = 0.01%, so 1500 = 15%_
+_1bp = 0.01%_
 
 ### collectedWithdrawalFees
 
@@ -4075,6 +4051,54 @@ _Useful for checking the penalty before actually updating the state_
 | ---- | ---- | ----------- |
 | [0] | uint256 | The calculated penalty fee in wei |
 
+## ClaimPlonkVerifier
+
+### Verify
+
+```solidity
+function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
+```
+
+Verify a Plonk proof.
+Reverts if the proof or the public inputs are malformed.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
+| public_inputs | uint256[] | (must be reduced) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| success | bool | true if the proof passes false otherwise |
+
+## WithdrawalPlonkVerifier
+
+### Verify
+
+```solidity
+function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
+```
+
+Verify a Plonk proof.
+Reverts if the proof or the public inputs are malformed.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
+| public_inputs | uint256[] | (must be reduced) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| success | bool | true if the proof passes false otherwise |
+
 ## IWithdrawal
 
 Interface for the Withdrawal contract that processes withdrawals from L2 to L1
@@ -4311,6 +4335,16 @@ Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
 
 _Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
 
+### nullifiers
+
+```solidity
+mapping(bytes32 => bool) nullifiers
+```
+
+Mapping of nullifiers to their used status
+
+_Prevents double-spending of withdrawals_
+
 ### directWithdrawalTokenIndices
 
 ```solidity
@@ -4530,52 +4564,4 @@ _This hash is used as input to the zero-knowledge proof verification_
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
-
-## ClaimPlonkVerifier
-
-### Verify
-
-```solidity
-function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
-```
-
-Verify a Plonk proof.
-Reverts if the proof or the public inputs are malformed.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
-| public_inputs | uint256[] | (must be reduced) |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| success | bool | true if the proof passes false otherwise |
-
-## WithdrawalPlonkVerifier
-
-### Verify
-
-```solidity
-function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
-```
-
-Verify a Plonk proof.
-Reverts if the proof or the public inputs are malformed.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
-| public_inputs | uint256[] | (must be reduced) |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| success | bool | true if the proof passes false otherwise |
 
