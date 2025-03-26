@@ -41,8 +41,11 @@ contract Liquidity is
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
 
+	/// @notice Max withdrawal fee ratio
+	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500; // 20%
+
 	/// @notice Deployment time which is used to calculate the deposit limit
-	uint256 private deploymentTime;
+	uint256 public deploymentTime;
 
 	/// @notice Address of the L1 ScrollMessenger contract
 	IL1ScrollMessenger private l1ScrollMessenger;
@@ -68,8 +71,6 @@ contract Liquidity is
 	mapping(bytes32 => bool) private doesDepositHashExist;
 
 	/// @notice Withdrawal fee ratio for each token index (denominated in basis points, 1bp = 0.01%, range: 0-10000)
-	/// @dev The admin is responsible for ensuring appropriate fee settings and bears the responsibility
-	///      of maintaining fair fee structures, especially for NFT withdrawals which should be set to 0.
 	mapping(uint32 => uint256) public withdrawalFeeRatio;
 
 	/// @notice deposit information queue
@@ -172,6 +173,9 @@ contract Liquidity is
 		uint32 tokenIndex,
 		uint256 feeRatio
 	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		if (feeRatio > WITHDRAWAL_FEE_RATIO_LIMIT) {
+			revert WithdrawalFeeRatioExceedsLimit();
+		}
 		withdrawalFeeRatio[tokenIndex] = feeRatio;
 		emit WithdrawalFeeRatioSet(tokenIndex, feeRatio);
 	}
@@ -597,7 +601,7 @@ contract Liquidity is
 	function _getWithdrawalFee(
 		uint32 tokenIndex,
 		uint256 amount
-	) internal view returns (uint256) {
+	) private view returns (uint256) {
 		uint256 feeRatio = withdrawalFeeRatio[tokenIndex];
 		return (amount * feeRatio) / 10000;
 	}
