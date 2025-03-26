@@ -3209,7 +3209,6 @@ describe('Liquidity', () => {
 				})
 			})
 		})
-
 		describe('fee calculation and collection', () => {
 			describe('claimWithdrawals', () => {
 				it('applies fee when claiming native token withdrawal', async () => {
@@ -3541,7 +3540,382 @@ describe('Liquidity', () => {
 				await expect(tx).to.not.emit(liquidity, 'WithdrawalFeeCollected')
 			})
 		})
-		  
+		describe('withdrawal fee management', () => {
+			describe('withdrawCollectedFees', () => {
+				it('allows admin to withdraw native token fees', async () => {
+					const { liquidity, scrollMessenger, withdrawalLibTest } = await loadFixture(setup);
+					const { admin, user } = await getSigners();
+
+					// Setup: deposit native token
+					const depositAmount = ethers.parseEther('10');
+					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'));
+					const amlPermission = ethers.toUtf8Bytes('AML');
+					const eligibilityPermission = ethers.toUtf8Bytes('Eligibility');
+
+					await liquidity.depositNativeToken(
+						recipientSaltHash,
+						amlPermission,
+						eligibilityPermission,
+						{ value: depositAmount }
+					);
+
+					// Set fee ratio to 10% (1000 basis points)
+					const tokenIndex = 0; // Native token
+					const feeRatio = 1000;
+					await liquidity.connect(admin).setWithdrawalFeeRatio(tokenIndex, feeRatio);
+
+					// Create withdrawal
+					const withdrawal = {
+						recipient: user.address,
+						tokenIndex: tokenIndex,
+						amount: depositAmount,
+						nullifier: ethers.encodeBytes32String('test'),
+					};
+
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier
+					);
+
+					// Make withdrawal claimable
+					await scrollMessenger.processWithdrawals([], [withdrawalHash]);
+
+					// Claim withdrawal to collect fees
+					await liquidity.connect(user).claimWithdrawals([withdrawal]);
+
+					// Calculate expected fee
+					const expectedFee = (depositAmount * BigInt(feeRatio)) / 10000n;
+
+					// Verify collected fees amount
+					expect(await liquidity.collectedWithdrawalFees(tokenIndex)).to.equal(expectedFee);
+
+					// Check admin balance before withdrawing fees
+					const adminBalanceBefore = await ethers.provider.getBalance(admin.address);
+
+					// Withdraw collected fees
+					const tx = await liquidity.connect(admin).withdrawCollectedFees(
+						admin.address,
+						[tokenIndex]
+					);
+					const receipt = await tx.wait();
+					const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+
+					// Check admin balance after withdrawing fees
+					const adminBalanceAfter = await ethers.provider.getBalance(admin.address);
+					expect(adminBalanceAfter).to.equal(adminBalanceBefore + expectedFee - gasCost);
+
+					// Verify fees were reset to zero
+					expect(await liquidity.collectedWithdrawalFees(tokenIndex)).to.equal(0);
+
+					// Check event emission
+					await expect(tx)
+						.to.emit(liquidity, 'WithdrawalFeeWithdrawn')
+						.withArgs(admin.address, tokenIndex, expectedFee);
+				});
+
+				it('allows admin to withdraw ERC20 token fees', async () => {
+					const { liquidity, scrollMessenger, withdrawalLibTest } = await loadFixture(setup);
+					const { admin, user } = await getSigners();
+
+					// Setup: create and deposit ERC20 token
+					const testERC20Factory = await ethers.getContractFactory('TestERC20');
+					const testERC20 = await testERC20Factory.deploy(user.address);
+
+					const depositAmount = 500000000000n;
+					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'));
+					const amlPermission = ethers.toUtf8Bytes('AML');
+					const eligibilityPermission = ethers.toUtf8Bytes('Eligibility');
+
+					await testERC20.connect(user).approve(await liquidity.getAddress(), depositAmount);
+					await liquidity.connect(user).depositERC20(
+						await testERC20.getAddress(),
+						recipientSaltHash,
+						depositAmount,
+						amlPermission,
+						eligibilityPermission
+					);
+
+					// Get token index for the ERC20
+					const [, tokenIndex] = await liquidity.getTokenIndex(
+						TokenType.ERC20,
+						await testERC20.getAddress(),
+						0
+					);
+
+					// Set fee ratio to 5% (500 basis points)
+					const feeRatio = 500;
+					await liquidity.connect(admin).setWithdrawalFeeRatio(tokenIndex, feeRatio);
+
+					// Create withdrawal
+					const withdrawal = {
+						recipient: user.address,
+						tokenIndex: tokenIndex,
+						amount: depositAmount,
+						nullifier: ethers.encodeBytes32String('test'),
+					};
+
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier
+					);
+
+					// Make withdrawal claimable
+					await scrollMessenger.processWithdrawals([], [withdrawalHash]);
+
+					// Claim withdrawal to collect fees
+					await liquidity.connect(user).claimWithdrawals([withdrawal]);
+
+					// Calculate expected fee
+					const expectedFee = (depositAmount * BigInt(feeRatio)) / 10000n;
+
+					// Verify collected fees amount
+					expect(await liquidity.collectedWithdrawalFees(tokenIndex)).to.equal(expectedFee);
+
+					// Check admin balance before withdrawing fees
+					const adminBalanceBefore = await testERC20.balanceOf(admin.address);
+
+					// Withdraw collected fees
+					const tx = await liquidity.connect(admin).withdrawCollectedFees(
+						admin.address,
+						[tokenIndex]
+					);
+
+					// Check admin balance after withdrawing fees
+					const adminBalanceAfter = await testERC20.balanceOf(admin.address);
+					expect(adminBalanceAfter - adminBalanceBefore).to.equal(expectedFee);
+
+					// Verify fees were reset to zero
+					expect(await liquidity.collectedWithdrawalFees(tokenIndex)).to.equal(0);
+
+					// Check event emission
+					await expect(tx)
+						.to.emit(liquidity, 'WithdrawalFeeWithdrawn')
+						.withArgs(admin.address, tokenIndex, expectedFee);
+				});
+
+				it('allows admin to withdraw multiple token fees in a single transaction', async () => {
+					const { liquidity, scrollMessenger, withdrawalLibTest } = await loadFixture(setup);
+					const { admin, user } = await getSigners();
+
+					// Setup: deposit native token and create ERC20 token
+					const nativeDepositAmount = ethers.parseEther('5');
+					const erc20DepositAmount = 1000000000n;
+					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'));
+					const amlPermission = ethers.toUtf8Bytes('AML');
+					const eligibilityPermission = ethers.toUtf8Bytes('Eligibility');
+
+					// Native token deposit
+					await liquidity.depositNativeToken(
+						recipientSaltHash,
+						amlPermission,
+						eligibilityPermission,
+						{ value: nativeDepositAmount }
+					);
+
+					// ERC20 token setup and deposit
+					const testERC20Factory = await ethers.getContractFactory('TestERC20');
+					const testERC20 = await testERC20Factory.deploy(user.address);
+
+					await testERC20.connect(user).approve(await liquidity.getAddress(), erc20DepositAmount);
+					await liquidity.connect(user).depositERC20(
+						await testERC20.getAddress(),
+						recipientSaltHash,
+						erc20DepositAmount,
+						amlPermission,
+						eligibilityPermission
+					);
+
+					// Get token indices
+					const nativeTokenIndex = 0;
+					const [, erc20TokenIndex] = await liquidity.getTokenIndex(
+						TokenType.ERC20,
+						await testERC20.getAddress(),
+						0
+					);
+
+					// Set fee ratios
+					const nativeFeeRatio = 300; // 3%
+					const erc20FeeRatio = 700; // 7%
+					await liquidity.connect(admin).setWithdrawalFeeRatio(nativeTokenIndex, nativeFeeRatio);
+					await liquidity.connect(admin).setWithdrawalFeeRatio(erc20TokenIndex, erc20FeeRatio);
+
+					// Create withdrawals
+					const nativeWithdrawal = {
+						recipient: user.address,
+						tokenIndex: nativeTokenIndex,
+						amount: nativeDepositAmount,
+						nullifier: ethers.encodeBytes32String('native'),
+					};
+
+					const erc20Withdrawal = {
+						recipient: user.address,
+						tokenIndex: erc20TokenIndex,
+						amount: erc20DepositAmount,
+						nullifier: ethers.encodeBytes32String('erc20'),
+					};
+
+					// Get withdrawal hashes
+					const nativeWithdrawalHash = await withdrawalLibTest.getHash(
+						nativeWithdrawal.recipient,
+						nativeWithdrawal.tokenIndex,
+						nativeWithdrawal.amount,
+						nativeWithdrawal.nullifier
+					);
+
+					const erc20WithdrawalHash = await withdrawalLibTest.getHash(
+						erc20Withdrawal.recipient,
+						erc20Withdrawal.tokenIndex,
+						erc20Withdrawal.amount,
+						erc20Withdrawal.nullifier
+					);
+
+					// Make withdrawals claimable
+					await scrollMessenger.processWithdrawals([], [nativeWithdrawalHash, erc20WithdrawalHash]);
+
+					// Claim withdrawals to collect fees
+					await liquidity.connect(user).claimWithdrawals([nativeWithdrawal]);
+					await liquidity.connect(user).claimWithdrawals([erc20Withdrawal]);
+
+					// Calculate expected fees
+					const expectedNativeFee = (nativeDepositAmount * BigInt(nativeFeeRatio)) / 10000n;
+					const expectedERC20Fee = (erc20DepositAmount * BigInt(erc20FeeRatio)) / 10000n;
+
+					// Check balances before withdrawal
+					const adminNativeBalanceBefore = await ethers.provider.getBalance(admin.address);
+					const adminERC20BalanceBefore = await testERC20.balanceOf(admin.address);
+
+					// Withdraw all collected fees in a single transaction
+					const tx = await liquidity.connect(admin).withdrawCollectedFees(
+						admin.address,
+						[nativeTokenIndex, erc20TokenIndex]
+					);
+					const receipt = await tx.wait();
+					const gasCost = receipt!.gasUsed * receipt!.gasPrice;
+
+					// Check balances after withdrawal
+					const adminNativeBalanceAfter = await ethers.provider.getBalance(admin.address);
+					const adminERC20BalanceAfter = await testERC20.balanceOf(admin.address);
+
+					expect(adminNativeBalanceAfter).to.equal(adminNativeBalanceBefore + expectedNativeFee - gasCost);
+					expect(adminERC20BalanceAfter - adminERC20BalanceBefore).to.equal(expectedERC20Fee);
+
+					// Verify fees were reset to zero
+					expect(await liquidity.collectedWithdrawalFees(nativeTokenIndex)).to.equal(0);
+					expect(await liquidity.collectedWithdrawalFees(erc20TokenIndex)).to.equal(0);
+
+					// Check events
+					await expect(tx)
+						.to.emit(liquidity, 'WithdrawalFeeWithdrawn')
+						.withArgs(admin.address, nativeTokenIndex, expectedNativeFee);
+
+					await expect(tx)
+						.to.emit(liquidity, 'WithdrawalFeeWithdrawn')
+						.withArgs(admin.address, erc20TokenIndex, expectedERC20Fee);
+				});
+
+				it('skips tokens with zero collected fees', async () => {
+					const { liquidity } = await loadFixture(setup);
+					const { admin } = await getSigners();
+
+					// Token indices with no collected fees
+					const tokenIndices = [0, 1, 2];
+
+					// Verify all have zero fees
+					for (const index of tokenIndices) {
+						expect(await liquidity.collectedWithdrawalFees(index)).to.equal(0);
+					}
+
+					// Withdraw should not emit any events or transfer tokens
+					const tx = await liquidity.connect(admin).withdrawCollectedFees(
+						admin.address,
+						tokenIndices
+					);
+
+					// No events should be emitted
+					await expect(tx).to.not.emit(liquidity, 'WithdrawalFeeWithdrawn');
+				});
+
+				it('reverts when called by non-admin', async () => {
+					const { liquidity } = await loadFixture(setup);
+					const { user } = await getSigners();
+
+					await expect(
+						liquidity.connect(user).withdrawCollectedFees(user.address, [0])
+					).to.be.revertedWithCustomError(liquidity, 'AccessControlUnauthorizedAccount');
+				});
+
+				it('allows withdrawing to a different recipient than admin', async () => {
+					const { liquidity, scrollMessenger, withdrawalLibTest } = await loadFixture(setup);
+					const { admin, user } = await getSigners();
+
+					// Create a separate recipient account
+					const recipient = ethers.Wallet.createRandom().address;
+
+					// Setup: deposit native token
+					const depositAmount = ethers.parseEther('3');
+					const recipientSaltHash = ethers.keccak256(ethers.toUtf8Bytes('test'));
+					const amlPermission = ethers.toUtf8Bytes('AML');
+					const eligibilityPermission = ethers.toUtf8Bytes('Eligibility');
+
+					await liquidity.depositNativeToken(
+						recipientSaltHash,
+						amlPermission,
+						eligibilityPermission,
+						{ value: depositAmount }
+					);
+
+					// Set fee ratio to 8% (800 basis points)
+					const tokenIndex = 0;
+					const feeRatio = 800;
+					await liquidity.connect(admin).setWithdrawalFeeRatio(tokenIndex, feeRatio);
+
+					// Create and process withdrawal
+					const withdrawal = {
+						recipient: user.address,
+						tokenIndex: tokenIndex,
+						amount: depositAmount,
+						nullifier: ethers.encodeBytes32String('test'),
+					};
+
+					const withdrawalHash = await withdrawalLibTest.getHash(
+						withdrawal.recipient,
+						withdrawal.tokenIndex,
+						withdrawal.amount,
+						withdrawal.nullifier
+					);
+
+					await scrollMessenger.processWithdrawals([], [withdrawalHash]);
+					await liquidity.connect(user).claimWithdrawals([withdrawal]);
+
+					// Calculate expected fee
+					const expectedFee = (depositAmount * BigInt(feeRatio)) / 10000n;
+
+					// Check recipient balance before
+					const recipientBalanceBefore = await ethers.provider.getBalance(recipient);
+
+					// Admin withdraws fees to the separate recipient
+					const tx = await liquidity.connect(admin).withdrawCollectedFees(
+						recipient,
+						[tokenIndex]
+					);
+
+					// Check recipient balance after
+					const recipientBalanceAfter = await ethers.provider.getBalance(recipient);
+					expect(recipientBalanceAfter - recipientBalanceBefore).to.equal(expectedFee);
+
+					// Verify event
+					await expect(tx)
+						.to.emit(liquidity, 'WithdrawalFeeWithdrawn')
+						.withArgs(recipient, tokenIndex, expectedFee);
+				});
+			});
+		});
+
+
 	})
 	describe('onERC1155Received', () => {
 		it('get selector', async () => {
