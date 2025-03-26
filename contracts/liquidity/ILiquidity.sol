@@ -48,7 +48,7 @@ interface ILiquidity {
 	/// @notice Error thrown when eligibility Validation failed
 	error EligibilityValidationFailed();
 
-	/// @notice Error thrown when the admin tries to set fee more than WITHDRAWAL_FEE_RATIO_LIMIT	
+	/// @notice Error thrown when the admin tries to set fee more than WITHDRAWAL_FEE_RATIO_LIMIT
 	error WithdrawalFeeRatioExceedsLimit();
 
 	/// @notice Event emitted when a deposit is made

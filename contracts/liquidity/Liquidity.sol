@@ -41,7 +41,7 @@ contract Liquidity is
 	/// @notice Withdrawal role constant
 	bytes32 public constant WITHDRAWAL = keccak256("WITHDRAWAL");
 
-	/// @notice Max withdrawal fee ratio limit 
+	/// @notice Max withdrawal fee ratio limit
 	/// @dev 1bp = 0.01%
 	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500;
 
@@ -545,6 +545,7 @@ contract Liquidity is
 				withdrawal_.recipient
 			);
 			if (fee > 0) {
+				// solhint-disable-next-line reentrancy
 				collectedWithdrawalFees[withdrawal_.tokenIndex] += fee;
 				emit WithdrawalFeeCollected(withdrawal_.tokenIndex, fee);
 			}
