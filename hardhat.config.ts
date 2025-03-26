@@ -5,6 +5,7 @@ import 'dotenv/config'
 import { cleanEnv, str } from 'envalid'
 import 'solidity-docgen'
 import 'hardhat-gas-reporter'
+import "solidity-coverage";
 
 const env = cleanEnv(process.env, {
 	DEPLOYER_PRIVATE_KEY: str(),
@@ -30,12 +31,16 @@ const config: HardhatUserConfig = {
 		currency: 'USD',
 	},
 	networks: {
-		sepolia: {
-			url: `https://eth-sepolia.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
+		mainnet: {
+			url: `https://eth-mainnet.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
 			accounts,
 		},
-		arbitrum: {
-			url: `https://arb-mainnet.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
+		scroll: {
+			url: `https://scroll-mainnet.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
+			accounts,
+		},
+		sepolia: {
+			url: `https://eth-sepolia.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
 			accounts,
 		},
 		scrollSepolia: {
@@ -48,10 +53,20 @@ const config: HardhatUserConfig = {
 	},
 	etherscan: {
 		apiKey: {
+			mainnet: env.ETHERSCAN_API_KEY,
 			sepolia: env.ETHERSCAN_API_KEY,
+			scroll: env.ETHERSCAN_API_KEY,
 			scrollSepolia: env.SCROLLSCAN_API_KEY,
 		},
 		customChains: [
+			{
+				network: 'scroll',
+				chainId: 534352,
+				urls: {
+					apiURL: 'https://api.scrollscan.com/api',
+					browserURL: 'https://scrollscan.com/',
+				},
+			},
 			{
 				network: 'scrollSepolia',
 				chainId: 534351,

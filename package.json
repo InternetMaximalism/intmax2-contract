@@ -2,8 +2,12 @@
 	"name": "intmax2-contract",
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "5.0.0",
+		"@openzeppelin/contracts": "5.1.0",
+		"@openzeppelin/contracts-upgradeable": "5.1.0",
 		"@openzeppelin/hardhat-upgrades": "3.2.1",
+		"@prb/math": "^4.1.0",
 		"@predicate/contracts": "^1.0.10",
+		"@scroll-tech/contracts": "0.1.1",
 		"@types/fs-extra": "11.0.4",
 		"axios": "1.7.7",
 		"dotenv": "16.4.5",
@@ -11,9 +15,11 @@
 		"fs-extra": "11.2.0",
 		"hardhat": "2.22.13",
 		"hardhat-gas-reporter": "1.0.10",
+		"poseidon-goldilocks": "0.2.3",
 		"prettier": "3.3.3",
 		"prettier-plugin-solidity": "1.4.1",
 		"solhint": "5.0.3",
+		"solidity-coverage": "^0.8.14",
 		"solidity-docgen": "0.6.0-beta.36",
 		"zod": "3.23.8"
 	},
@@ -24,12 +30,6 @@
 		"solhint": "solhint --fix --noPrompt --max-warnings 0 \"contracts/**/*.sol\"",
 		"format": "prettier --write '**/*.{sol,ts,json,md,yml}'",
 		"docgen": "hardhat docgen"
-	},
-	"dependencies": {
-		"@openzeppelin/contracts": "5.1.0",
-		"@openzeppelin/contracts-upgradeable": "5.1.0",
-		"@scroll-tech/contracts": "0.1.1",
-		"poseidon-goldilocks": "0.2.3"
 	},
 	"engines": {
 		"node": "20"
