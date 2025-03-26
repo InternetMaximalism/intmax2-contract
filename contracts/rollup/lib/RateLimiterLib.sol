@@ -13,7 +13,7 @@ library RateLimiterLib {
 	}
 
 	// Constants (using fixed-point representation)
-	uint256 public constant TARGET_INTERVAL = 15e18; // Target interval between calls (15 seconds)
+	uint256 public constant TARGET_INTERVAL = 30e18; // Target interval between calls (30 seconds)
 	uint256 public constant ALPHA = 333_333_333_333_333_333; // Smoothing factor for EMA (≈ 1/3 in fixed-point)
 	uint256 public constant K = 0.001e18; // Scaling factor for the penalty calculation
 
