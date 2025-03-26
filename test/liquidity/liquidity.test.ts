@@ -339,7 +339,6 @@ describe('Liquidity', () => {
 			})
 		})
 	})
-
 	describe('setPermitter', () => {
 		describe('success', () => {
 			it('set permitter addresses', async () => {
@@ -3542,6 +3541,7 @@ describe('Liquidity', () => {
 				await expect(tx).to.not.emit(liquidity, 'WithdrawalFeeCollected')
 			})
 		})
+		  
 	})
 	describe('onERC1155Received', () => {
 		it('get selector', async () => {

@@ -68,12 +68,15 @@ contract Liquidity is
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	mapping(bytes32 => uint256) public claimableWithdrawals;
 
-	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
-	mapping(bytes32 => bool) private doesDepositHashExist;
-
 	/// @notice Withdrawal fee ratio for each token index
 	/// @dev 1bp = 0.01%
 	mapping(uint32 => uint256) public withdrawalFeeRatio;
+
+	/// @notice Mapping of token index to the total amount of withdrawal fees collected
+	mapping(uint32 => uint256) public collectedWithdrawalFees;
+
+	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
+	mapping(bytes32 => bool) private doesDepositHashExist;
 
 	/// @notice deposit information queue
 	DepositQueueLib.DepositQueue private depositQueue;
@@ -180,6 +183,29 @@ contract Liquidity is
 		}
 		withdrawalFeeRatio[tokenIndex] = feeRatio;
 		emit WithdrawalFeeRatioSet(tokenIndex, feeRatio);
+	}
+
+	function withdrawCollectedFees(
+		address recipient,
+		uint32[] calldata tokenIndices
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		for (uint256 i = 0; i < tokenIndices.length; i++) {
+			uint32 tokenIndex = tokenIndices[i];
+			uint256 fee = collectedWithdrawalFees[tokenIndex];
+			if (fee == 0) {
+				continue;
+			}
+			collectedWithdrawalFees[tokenIndex] = 0;
+			TokenInfo memory tokenInfo = getTokenInfo(tokenIndex);
+			_sendToken(
+				tokenInfo.tokenType,
+				tokenInfo.tokenAddress,
+				recipient,
+				fee,
+				tokenInfo.tokenId
+			);
+			emit WithdrawalFeeWithdrawn(recipient, tokenIndex, fee);
+		}
 	}
 
 	function pauseDeposits() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -371,6 +397,7 @@ contract Liquidity is
 			);
 			emit ClaimedWithdrawal(w.recipient, withdrawalHash);
 			if (fee > 0) {
+				collectedWithdrawalFees[w.tokenIndex] += fee;
 				emit WithdrawalFeeCollected(w.tokenIndex, fee);
 			}
 		}
@@ -518,6 +545,7 @@ contract Liquidity is
 				withdrawal_.recipient
 			);
 			if (fee > 0) {
+				collectedWithdrawalFees[withdrawal_.tokenIndex] += fee;
 				emit WithdrawalFeeCollected(withdrawal_.tokenIndex, fee);
 			}
 		} else {
