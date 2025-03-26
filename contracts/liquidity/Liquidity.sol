@@ -64,11 +64,11 @@ contract Liquidity is
 
 	/// @notice Address of the AML Permitter contract
 	/// @dev If not set, we skip AML check
-	IPermitter private amlPermitter;
+	IPermitter public amlPermitter;
 
 	/// @notice Address of the Circulation Permitter contract
 	/// @dev If not set, we skip eligibility permission check
-	IPermitter private eligibilityPermitter;
+	IPermitter public eligibilityPermitter;
 
 	/// @notice Mapping of withdrawal hashes to their timestamp when they became claimable
 	/// @dev A value of 0 means the withdrawal is not claimable
