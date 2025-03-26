@@ -350,7 +350,7 @@ describe('Rollup', () => {
 					inputs.messagePoint,
 					inputs.senderPublicKeys,
 				)
-				await time.increase(15)
+				await time.increase(30)
 				await rollup.postRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
@@ -764,7 +764,7 @@ describe('Rollup', () => {
 					inputs.publicKeysHash,
 					inputs.senderAccountIds,
 				)
-				await time.increase(15)
+				await time.increase(30)
 				await rollup.postNonRegistrationBlock(
 					inputs.txTreeRoot,
 					inputs.expiry,
