@@ -4,20 +4,35 @@ pragma solidity 0.8.27;
 import {ITokenData} from "./ITokenData.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/**
+ * @title Token Data Contract
+ * @notice Abstract contract for managing token information and indices in the Intmax2 protocol
+ * @dev Implements the ITokenData interface and provides storage and functionality for tracking
+ * different token types (Native, ERC20, ERC721, ERC1155)
+ */
 abstract contract TokenData is Initializable, ITokenData {
-	/// @notice native currency address
+	/// @notice Native currency (ETH) address constant
+	/// @dev Used as a key in mappings to represent the native token
 	address private constant NATIVE_CURRENCY_ADDRESS = address(0);
 
-	/// @notice token information
+	/// @notice Array of all token information stored in the system
+	/// @dev Index in this array corresponds to the token index used throughout the protocol
 	TokenInfo[] private tokenInfoList;
 
-	/// @notice token index mappings
+	/// @notice Mapping from token address to token index for fungible tokens (NATIVE and ERC20)
+	/// @dev For fungible tokens, the tokenId is not relevant for indexing
 	mapping(address => uint32) private fungibleTokenIndexMap;
 
-	/// @notice nft token index mappings
+	/// @notice Mapping from token address and token ID to token index for non-fungible tokens (ERC721 and ERC1155)
+	/// @dev For non-fungible tokens, both address and ID are needed for indexing
 	mapping(address => mapping(uint256 => uint32))
 		private nonFungibleTokenIndexMap;
 
+	/**
+	 * @notice Initializes the TokenData contract with native token and initial ERC20 tokens
+	 * @dev Called during contract initialization to set up the token indices
+	 * @param initialERC20Tokens Array of ERC20 token addresses to initialize with
+	 */
 	// solhint-disable-next-line func-name-mixedcase
 	function __TokenData_init(
 		address[] memory initialERC20Tokens
@@ -28,6 +43,14 @@ abstract contract TokenData is Initializable, ITokenData {
 		}
 	}
 
+	/**
+	 * @notice Gets the token index for a token, creating a new index if it doesn't exist
+	 * @dev Used during deposit operations to ensure all tokens have an index
+	 * @param tokenType The type of the token (NATIVE, ERC20, ERC721, ERC1155)
+	 * @param tokenAddress The address of the token contract (zero address for native tokens)
+	 * @param tokenId The ID of the token (used for ERC721 and ERC1155)
+	 * @return uint32 The index of the token (either existing or newly created)
+	 */
 	function _getOrCreateTokenIndex(
 		TokenType tokenType,
 		address tokenAddress,
@@ -45,11 +68,24 @@ abstract contract TokenData is Initializable, ITokenData {
 		return _createTokenIndex(tokenType, tokenAddress, tokenId);
 	}
 
+	/**
+	 * @notice Retrieves the index of the native token (ETH)
+	 * @dev The native token is always at index 0 in the system
+	 * @return uint32 The index of the native token (always 0)
+	 */
 	function getNativeTokenIndex() public pure returns (uint32) {
 		// fungibleTokenIndexMap[NATIVE_CURRENCY_ADDRESS] = 0
 		return 0;
 	}
 
+	/**
+	 * @notice Creates a new token index for a token
+	 * @dev Adds the token to the tokenInfoList and updates the appropriate mapping
+	 * @param tokenType The type of the token (NATIVE, ERC20, ERC721, ERC1155)
+	 * @param tokenAddress The address of the token contract (zero address for native tokens)
+	 * @param tokenId The ID of the token (used for ERC721 and ERC1155)
+	 * @return uint32 The newly created token index
+	 */
 	function _createTokenIndex(
 		TokenType tokenType,
 		address tokenAddress,
@@ -73,6 +109,15 @@ abstract contract TokenData is Initializable, ITokenData {
 		return tokenIndex;
 	}
 
+	/**
+	 * @notice Retrieves the token index for given token parameters
+	 * @dev Checks the appropriate mapping based on token type
+	 * @param tokenType The type of the token (NATIVE, ERC20, ERC721, ERC1155)
+	 * @param tokenAddress The address of the token contract (zero address for native tokens)
+	 * @param tokenId The ID of the token (used for ERC721 and ERC1155)
+	 * @return bool Indicating whether the token index was found (true) or not (false)
+	 * @return uint32 The index of the token if found, 0 if not found
+	 */
 	function getTokenIndex(
 		TokenType tokenType,
 		address tokenAddress,
@@ -100,6 +145,12 @@ abstract contract TokenData is Initializable, ITokenData {
 		return (false, 0);
 	}
 
+	/**
+	 * @notice Retrieves token information for a given token index
+	 * @dev Returns the TokenInfo struct from the tokenInfoList array
+	 * @param tokenIndex The index of the token to retrieve information for
+	 * @return TokenInfo struct containing the token's type, address, and ID
+	 */
 	function getTokenInfo(
 		uint32 tokenIndex
 	) public view returns (TokenInfo memory) {
