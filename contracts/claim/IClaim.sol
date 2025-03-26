@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+/// @title IClaim
+/// @notice Interface for the Claim contract that handles claims from intmax2 and distributes rewards
+/// @dev Defines the functions and events for claim verification and reward allocation
 import {ClaimProofPublicInputsLib} from "./lib/ClaimProofPublicInputsLib.sol";
 import {ChainedClaimLib} from "./lib/ChainedClaimLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
@@ -59,7 +62,7 @@ interface IClaim {
 		address user
 	) external view returns (AllocationLib.AllocationInfo memory);
 
-	// @notice Get the allocation constants
+	/// @notice Get the allocation constants
 	/// @return The allocation constants
 	function getAllocationConstants()
 		external

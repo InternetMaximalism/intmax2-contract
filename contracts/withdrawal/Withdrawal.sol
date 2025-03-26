@@ -17,6 +17,11 @@ import {ChainedWithdrawalLib} from "./lib/ChainedWithdrawalLib.sol";
 import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {Byte32Lib} from "../common/Byte32Lib.sol";
 
+/**
+ * @title Withdrawal
+ * @notice Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
+ * @dev Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1
+ */
 contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	using EnumerableSet for EnumerableSet.UintSet;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
@@ -24,25 +29,46 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	using WithdrawalProofPublicInputsLib for WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs;
 	using Byte32Lib for bytes32;
 
-	/// @notice withdrawal verifier contract
+	/**
+	 * @notice Reference to the PLONK verifier contract for withdrawal proofs
+	 * @dev Used to verify zero-knowledge proofs of withdrawals
+	 */
 	IPlonkVerifier private withdrawalVerifier;
 
-	/// @notice L2 ScrollMessenger contract
+	/**
+	 * @notice Reference to the L2 ScrollMessenger contract
+	 * @dev Used for cross-chain communication with L1
+	 */
 	IL2ScrollMessenger private l2ScrollMessenger;
 
-	/// @notice rollup contract
+	/**
+	 * @notice Reference to the Rollup contract
+	 * @dev Used to verify block hashes for withdrawals
+	 */
 	IRollup private rollup;
 
-	/// @notice liquidity contract address
+	/**
+	 * @notice Address of the Liquidity contract on L1
+	 * @dev Target for cross-chain messages about withdrawals
+	 */
 	address private liquidity;
 
-	/// @notice direct withdrawal token indices
+	/**
+	 * @notice Reference to the Contribution contract
+	 * @dev Used to record withdrawal contributions
+	 */
 	IContribution private contribution;
 
-	/// @notice nullifiers
+	/**
+	 * @notice Mapping of nullifiers to their used status
+	 * @dev Prevents double-spending of withdrawals
+	 */
 	mapping(bytes32 => bool) private nullifiers;
 
-	/// @notice direct withdrawal token indices
+	/**
+	 * @notice Set of token indices that can be withdrawn directly
+	 * @dev Tokens not in this set will be processed as claimable withdrawals
+	 */
 	EnumerableSet.UintSet internal directWithdrawalTokenIndices;
 
 	/// @custom:oz-upgrades-unsafe-allow constructor
@@ -50,6 +76,17 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		_disableInitializers();
 	}
 
+	/**
+	 * @notice Initializes the Withdrawal contract
+	 * @dev Sets up the initial state with required contract references and token indices
+	 * @param _admin Address that will be granted ownership of the contract
+	 * @param _scrollMessenger Address of the L2 ScrollMessenger contract
+	 * @param _withdrawalVerifier Address of the PLONK verifier for withdrawal proofs
+	 * @param _liquidity Address of the Liquidity contract on L1
+	 * @param _rollup Address of the Rollup contract
+	 * @param _contribution Address of the Contribution contract
+	 * @param _directWithdrawalTokenIndices Initial list of token indices for direct withdrawals
+	 */
 	function initialize(
 		address _admin,
 		address _scrollMessenger,
@@ -170,6 +207,11 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
+	/**
+	 * @notice Relays a message to the Liquidity contract on L1
+	 * @dev Uses the ScrollMessenger to send a cross-chain message
+	 * @param message The encoded message to send to the Liquidity contract
+	 */
 	function _relayMessage(bytes memory message) private {
 		uint256 value = 0; // relay to non-payable function
 		// In the current implementation of ScrollMessenger, the `gasLimit` is simply included in the L2 event log
@@ -185,12 +227,25 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
+	/**
+	 * @notice Checks if a token can be withdrawn directly
+	 * @dev Returns true if the token index is in the directWithdrawalTokenIndices set
+	 * @param tokenIndex The index of the token to check
+	 * @return bool True if the token can be withdrawn directly, false otherwise
+	 */
 	function _isDirectWithdrawalToken(
 		uint32 tokenIndex
 	) private view returns (bool) {
 		return directWithdrawalTokenIndices.contains(tokenIndex);
 	}
 
+	/**
+	 * @notice Validates a withdrawal proof
+	 * @dev Verifies the withdrawal chain, aggregator, and ZK proof
+	 * @param withdrawals Array of chained withdrawals to validate
+	 * @param publicInputs Public inputs for the withdrawal proof
+	 * @param proof The zero-knowledge proof data
+	 */
 	function _validateWithdrawalProof(
 		ChainedWithdrawalLib.ChainedWithdrawal[] calldata withdrawals,
 		WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs
@@ -224,6 +279,11 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		innerAddDirectWithdrawalTokenIndices(tokenIndices);
 	}
 
+	/**
+	 * @notice Internal function to add token indices to the direct withdrawal set
+	 * @dev Adds each token index to the set and emits an event
+	 * @param tokenIndices Array of token indices to add
+	 */
 	function innerAddDirectWithdrawalTokenIndices(
 		uint256[] memory tokenIndices
 	) private {
@@ -248,5 +308,12 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
 	}
 
-	function _authorizeUpgrade(address) internal override onlyOwner {}
+	/**
+	 * @notice Authorizes an upgrade to a new implementation
+	 * @dev Can only be called by the contract owner
+	 * @param newImplementation Address of the new implementation contract
+	 */
+	function _authorizeUpgrade(
+		address newImplementation
+	) internal override onlyOwner {}
 }

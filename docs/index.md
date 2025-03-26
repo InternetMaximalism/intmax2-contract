@@ -1,5 +1,104 @@
 # Solidity API
 
+## BlockBuilderRegistry
+
+Registry for block builders to signal their availability in the Intmax2 protocol
+
+_Implements the IBlockBuilderRegistry interface with upgradeable and ownership functionality_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin) external
+```
+
+Initializes the contract with an admin address
+
+_Sets up the initial owner and initializes the upgradeable functionality_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| admin | address | The address that will have admin/owner privileges |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_Emits a BlockBuilderHeartbeat event with the sender's address and provided URL_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| url | string | The URL endpoint where the block builder can be reached |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to the implementation
+
+_Only callable by the owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | The address of the new implementation (unused but required by UUPS pattern) |
+
+## IBlockBuilderRegistry
+
+Interface for registering and tracking block builders in the Intmax2 protocol
+
+_Block builders emit heartbeats to signal their availability and provide their URL_
+
+### BlockBuilderHeartbeat
+
+```solidity
+event BlockBuilderHeartbeat(address blockBuilder, string url)
+```
+
+Event emitted when a block builder signals they are online
+
+_Used to track active block builders and their endpoints_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockBuilder | address | The address of the block builder emitting the heartbeat |
+| url | string | The URL endpoint where the block builder can be reached |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_The sender's address is automatically recorded as the block builder address_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| url | string | The URL endpoint where the block builder can be reached |
+
 ## Claim
 
 ### constructor
@@ -14,21 +113,39 @@ constructor() public
 function initialize(address _admin, address _scrollMessenger, address _claimVerifier, address _liquidity, address _rollup, address _contribution, uint256 periodInterval) external
 ```
 
+Initializes the Claim contract
+
+_Sets up the contract with required dependencies and initializes the allocation state_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address of the contract admin |
+| _scrollMessenger | address | Address of the Scroll Messenger contract |
+| _claimVerifier | address | Address of the claim proof verifier contract |
+| _liquidity | address | Address of the Liquidity contract |
+| _rollup | address | Address of the Rollup contract |
+| _contribution | address | Address of the Contribution contract |
+| periodInterval | uint256 | Time interval between allocation periods in seconds |
+
 ### submitClaimProof
 
 ```solidity
 function submitClaimProof(struct ChainedClaimLib.ChainedClaim[] claims, struct ClaimProofPublicInputsLib.ClaimProofPublicInputs publicInputs, bytes proof) external
 ```
 
-Submit claim proof from intmax2
+Submit and verify claim proofs from intmax2
+
+_Validates the claim proof, checks block hashes, and records contributions_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| claims | struct ChainedClaimLib.ChainedClaim[] | List of chained claims |
-| publicInputs | struct ClaimProofPublicInputsLib.ClaimProofPublicInputs | Public inputs for the claim proof |
-| proof | bytes | The proof data |
+| claims | struct ChainedClaimLib.ChainedClaim[] | Array of chained claims to be processed |
+| publicInputs | struct ClaimProofPublicInputsLib.ClaimProofPublicInputs | Public inputs for the claim proof verification |
+| proof | bytes | Zero-knowledge proof data |
 
 ### relayClaims
 
@@ -36,7 +153,16 @@ Submit claim proof from intmax2
 function relayClaims(uint256 period, address[] users) external
 ```
 
-relay claims to the liquidity contract as withdrawals
+Relay processed claims to the liquidity contract as withdrawals
+
+_Creates withdrawal objects for each user's allocation and sends them to L1_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| period | uint256 | The allocation period to process |
+| users | address[] | Array of user addresses to process allocations for |
 
 ### getCurrentPeriod
 
@@ -79,6 +205,8 @@ Get the allocation info for a user in a period
 function getAllocationConstants() external view returns (struct AllocationLib.AllocationConstants)
 ```
 
+Get the allocation constants
+
 #### Return Values
 
 | Name | Type | Description |
@@ -88,8 +216,18 @@ function getAllocationConstants() external view returns (struct AllocationLib.Al
 ### _authorizeUpgrade
 
 ```solidity
-function _authorizeUpgrade(address) internal
+function _authorizeUpgrade(address newImplementation) internal
 ```
+
+Authorizes an upgrade to a new implementation
+
+_Only the owner can authorize upgrades_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation |
 
 ## IClaim
 
@@ -220,6 +358,8 @@ Get the allocation info for a user in a period
 function getAllocationConstants() external view returns (struct AllocationLib.AllocationConstants)
 ```
 
+Get the allocation constants
+
 #### Return Values
 
 | Name | Type | Description |
@@ -258,7 +398,9 @@ uint256 PHASE0_PERIOD
 error InvalidDepositAmount()
 ```
 
-Emitted when an invalid deposit amount is provided
+Error emitted when an invalid deposit amount is provided
+
+_Thrown when the deposit amount is not one of the allowed values_
 
 ### NotFinishedPeriod
 
@@ -266,7 +408,9 @@ Emitted when an invalid deposit amount is provided
 error NotFinishedPeriod()
 ```
 
-Emitted when an attempt is made to consume allocations for the current period
+Error emitted when an attempt is made to consume allocations for the current period
+
+_Allocations can only be consumed for completed periods_
 
 ### periodIntervalZero
 
@@ -274,7 +418,9 @@ Emitted when an attempt is made to consume allocations for the current period
 error periodIntervalZero()
 ```
 
-Emitted when the period interval is zero
+Error emitted when the period interval is zero
+
+_Period interval must be greater than zero_
 
 ### ContributionRecorded
 
@@ -355,13 +501,15 @@ struct AllocationInfo {
 function initialize(struct AllocationLib.State state, uint256 periodInterval) internal
 ```
 
-Initializes the allocation state
+Initializes the allocation state with the given period interval
+
+_Sets up the start timestamp aligned to period boundaries_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
+| state | struct AllocationLib.State | The allocation state to initialize |
 | periodInterval | uint256 |  |
 
 ### recordContribution
@@ -370,15 +518,17 @@ Initializes the allocation state
 function recordContribution(struct AllocationLib.State state, address recipient, uint256 depositAmount) internal
 ```
 
-Records a user's contribution
+Records a user's contribution for the current period
+
+_Calculates contribution points based on deposit amount and updates state_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
-| recipient | address | The address of the recipient |
-| depositAmount | uint256 | The amount of the deposit |
+| state | struct AllocationLib.State | The allocation state to update |
+| recipient | address | The address of the recipient who made the contribution |
+| depositAmount | uint256 | The amount of the deposit in wei |
 
 ### getUserAllocation
 
@@ -386,21 +536,23 @@ Records a user's contribution
 function getUserAllocation(struct AllocationLib.State state, uint256 periodNumber, address user) internal view returns (uint256)
 ```
 
-Gets the user's allocation for a period
+Gets the user's token allocation for a specific period
+
+_Calculates the user's share of the period's total allocation based on their contribution_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
-| periodNumber | uint256 | The period number |
-| user | address | The user's address |
+| state | struct AllocationLib.State | The allocation state to query |
+| periodNumber | uint256 | The period number to get allocation for |
+| user | address | The user's address to get allocation for |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The user's allocation |
+| [0] | uint256 | The user's token allocation amount |
 
 ### consumeUserAllocation
 
@@ -408,21 +560,23 @@ Gets the user's allocation for a period
 function consumeUserAllocation(struct AllocationLib.State state, uint256 periodNumber, address user) internal returns (uint256)
 ```
 
-Consumes a user's allocation for a period
+Consumes a user's allocation for a completed period
+
+_Retrieves the user's allocation and resets their contribution to zero_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
-| periodNumber | uint256 | The period number |
-| user | address | The user's address |
+| state | struct AllocationLib.State | The allocation state to update |
+| periodNumber | uint256 | The period number to consume allocation for |
+| user | address | The user's address to consume allocation for |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The user's allocation |
+| [0] | uint256 | The user's token allocation amount |
 
 ### getAllocationPerPeriod
 
@@ -430,20 +584,22 @@ Consumes a user's allocation for a period
 function getAllocationPerPeriod(struct AllocationLib.State state, uint256 periodNumber) internal view returns (uint256)
 ```
 
-Gets the allocation per period
+Gets the total token allocation for a specific period
+
+_Calculates the allocation based on the reward schedule and period duration_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
-| periodNumber | uint256 | The period number |
+| state | struct AllocationLib.State | The allocation state to query |
+| periodNumber | uint256 | The period number to get allocation for |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The allocation per period |
+| [0] | uint256 | The total token allocation for the period |
 
 ### calculateContribution
 
@@ -451,19 +607,21 @@ Gets the allocation per period
 function calculateContribution(uint256 amount) internal pure returns (uint256)
 ```
 
-Calculates the contribution for a deposit amount
+Calculates the contribution points for a deposit amount
+
+_Maps specific deposit amounts to contribution point values_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| amount | uint256 | The deposit amount |
+| amount | uint256 | The deposit amount in wei |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The calculated contribution |
+| [0] | uint256 | The calculated contribution points |
 
 ### getCurrentPeriod
 
@@ -471,19 +629,21 @@ Calculates the contribution for a deposit amount
 function getCurrentPeriod(struct AllocationLib.State state) internal view returns (uint256)
 ```
 
-Gets the current period
+Gets the current period number based on the current timestamp
+
+_Calculates the number of periods elapsed since the start timestamp_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| state | struct AllocationLib.State | The allocation state |
+| state | struct AllocationLib.State | The allocation state to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The current period |
+| [0] | uint256 | The current period number |
 
 ### getAllocationInfo
 
@@ -532,7 +692,9 @@ Gets the allocation constants
 
 ## ChainedClaimLib
 
-Library for handling chained claims in a hash chain
+Library for handling chained claims in a hash chain for claim verification
+
+_Provides functionality to hash and verify chains of claims_
 
 ### ChainedClaim
 
@@ -561,6 +723,8 @@ function verifyClaimChain(struct ChainedClaimLib.ChainedClaim[] claims, bytes32 
 
 Verifies the integrity of a claim hash chain
 
+_Recalculates the hash chain and compares with the expected last hash_
+
 #### Parameters
 
 | Name | Type | Description |
@@ -576,9 +740,15 @@ Verifies the integrity of a claim hash chain
 
 ## ClaimProofPublicInputsLib
 
+Library for handling public inputs for claim proofs
+
+_Provides functionality to hash and verify claim proof public inputs_
+
 ### ClaimProofPublicInputs
 
-Represents the public inputs for a claim proof
+Represents the public inputs for a claim proof verification
+
+_Contains the last claim hash and the aggregator address_
 
 ```solidity
 struct ClaimProofPublicInputs {
@@ -593,7 +763,9 @@ struct ClaimProofPublicInputs {
 function getHash(struct ClaimProofPublicInputsLib.ClaimProofPublicInputs inputs) internal pure returns (bytes32)
 ```
 
-Computes the hash of the ClaimProofPublicInputs
+Computes the hash of the ClaimProofPublicInputs for verification
+
+_Used in the ZK proof verification process_
 
 #### Parameters
 
@@ -605,9 +777,13 @@ Computes the hash of the ClaimProofPublicInputs
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The resulting hash |
+| [0] | bytes32 | bytes32 The resulting hash used for verification |
 
 ## Byte32Lib
+
+Library for manipulating bytes32 values
+
+_Provides utility functions for working with bytes32 data types_
 
 ### split
 
@@ -615,7 +791,9 @@ Computes the hash of the ClaimProofPublicInputs
 function split(bytes32 input) internal pure returns (uint256[])
 ```
 
-Splits a bytes32 into an array of uint256, each representing 4 bytes
+Splits a bytes32 value into an array of 8 uint256 values
+
+_Each uint256 in the resulting array represents 4 bytes (32 bits) of the original input_
 
 #### Parameters
 
@@ -631,11 +809,15 @@ Splits a bytes32 into an array of uint256, each representing 4 bytes
 
 ## DepositLib
 
+Library for handling deposit operations and data structures
+
+_Provides utilities for working with deposits in the Intmax2 protocol_
+
 ### Deposit
 
-This struct is used to represent a deposit in the Deposit tree
+Represents a deposit in the Deposit tree
 
-_Represents a leaf in the Deposit tree_
+_This struct is used as a leaf in the Deposit Merkle tree_
 
 #### Parameters
 
@@ -660,6 +842,8 @@ function getHash(struct DepositLib.Deposit deposit) internal pure returns (bytes
 
 Calculates the hash of a Deposit struct
 
+_Uses keccak256 to hash the packed encoding of all deposit fields_
+
 #### Parameters
 
 | Name | Type | Description |
@@ -670,9 +854,13 @@ Calculates the hash of a Deposit struct
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The calculated hash of the Deposit |
+| [0] | bytes32 | bytes32 The calculated hash of the Deposit, used as a leaf in the Deposit tree |
 
 ## IPlonkVerifier
+
+Interface for verifying PLONK zero-knowledge proofs
+
+_This interface is implemented by contracts that verify PLONK proofs generated using the gnark library_
 
 ### Verify
 
@@ -680,29 +868,34 @@ Calculates the hash of a Deposit struct
 function Verify(bytes proof, uint256[] publicInputs) external view returns (bool success)
 ```
 
-Verify a Plonk proof.
-Reverts if the proof or the public inputs are malformed.
+Verify a PLONK zero-knowledge proof
+
+_Reverts if the proof or the public inputs are malformed_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| proof | bytes | serialised plonk proof (using gnark's MarshalSolidity) |
-| publicInputs | uint256[] | (must be reduced) |
+| proof | bytes | Serialized PLONK proof (using gnark's MarshalSolidity format) |
+| publicInputs | uint256[] | Array of public inputs to the proof (must be in reduced form) |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| success | bool | true if the proof passes false otherwise |
+| success | bool | True if the proof is valid, false otherwise |
 
 ## WithdrawalLib
 
+Library for handling withdrawal operations and data structures
+
+_Provides utilities for working with withdrawals in the Intmax2 protocol_
+
 ### Withdrawal
 
-This struct is used to represent a withdrawal operation
+Represents a withdrawal operation in the Intmax2 protocol
 
-_Represents the information for a withdrawal operation_
+_Contains all necessary information to process a withdrawal from L2 to L1_
 
 #### Parameters
 
@@ -726,6 +919,8 @@ function getHash(struct WithdrawalLib.Withdrawal withdrawal) internal pure retur
 
 Calculates the hash of a Withdrawal struct
 
+_Uses keccak256 to hash the packed encoding of all withdrawal fields_
+
 #### Parameters
 
 | Name | Type | Description |
@@ -736,48 +931,102 @@ Calculates the hash of a Withdrawal struct
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The calculated hash of the Withdrawal |
+| [0] | bytes32 | bytes32 The calculated hash of the Withdrawal, used for verification |
 
-## IContribution
+## Contribution
 
-### periodIntervalZero
+Contract for tracking user contributions across different time periods
 
-```solidity
-error periodIntervalZero()
-```
+_Implements the IContribution interface with upgradeable and access control functionality_
 
-Emitted when the period interval is zero
-
-### ContributionRecorded
+### CONTRIBUTOR
 
 ```solidity
-event ContributionRecorded(uint256 periodNumber, bytes32 tag, address user, uint256 amount)
+bytes32 CONTRIBUTOR
 ```
 
-Emitted when a contribution is recorded.
+Role identifier for contracts that can record contributions
+
+_Addresses with this role can call the recordContribution function_
+
+### startTimestamp
+
+```solidity
+uint256 startTimestamp
+```
+
+Start timestamp of the contribution period tracking
+
+_Used as the reference point for calculating period numbers_
+
+### periodInterval
+
+```solidity
+uint256 periodInterval
+```
+
+Duration of each contribution period in seconds
+
+_Used to calculate the current period number_
+
+### totalContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
+```
+
+Maps periods and tags to total contributions
+
+_Mapping structure: period => tag => total contribution amount_
+
+### userContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
+```
+
+Maps periods, tags, and users to their individual contributions
+
+_Mapping structure: period => tag => user address => contribution amount_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin, uint256 _periodInterval) external
+```
+
+Initializes the contract with an admin and period interval
+
+_Sets up the initial state of the contract and aligns the start timestamp_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| periodNumber | uint256 | The number of the period. |
-| tag | bytes32 | The tag associated with the contribution. |
-| user | address | The address of the user making the contribution. |
-| amount | uint256 | The amount of the contribution. |
+| admin | address | Address that will be granted the DEFAULT_ADMIN_ROLE |
+| _periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
 
 ### getCurrentPeriod
 
 ```solidity
-function getCurrentPeriod() external view returns (uint256)
+function getCurrentPeriod() public view returns (uint256)
 ```
 
-Gets the current period
+Calculates the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - startTimestamp) / periodInterval_
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The current period |
+| [0] | uint256 | The current period number |
 
 ### recordContribution
 
@@ -785,15 +1034,102 @@ Gets the current period
 function recordContribution(bytes32 tag, address user, uint256 amount) external
 ```
 
-Record a contribution for a specific tag and user.
+Records a contribution for a specific tag and user
+
+_Updates both total and user-specific contribution amounts for the current period_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tag | bytes32 | The tag associated with the contribution. |
-| user | address | The address of the user making the contribution. |
-| amount | uint256 | The amount of contribution to record. |
+| tag | bytes32 | The tag associated with the contribution (used for categorization) |
+| user | address | The address of the user making the contribution |
+| amount | uint256 | The amount of contribution to record |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## IContribution
+
+Interface for the Contribution contract that tracks user contributions across different periods
+
+_This interface defines the methods and events for recording and querying contributions_
+
+### periodIntervalZero
+
+```solidity
+error periodIntervalZero()
+```
+
+Error thrown when attempting to initialize with a zero period interval
+
+_This error is used to prevent invalid period configurations_
+
+### ContributionRecorded
+
+```solidity
+event ContributionRecorded(uint256 periodNumber, bytes32 tag, address user, uint256 amount)
+```
+
+Emitted when a contribution is recorded
+
+_This event is used to track all contributions for off-chain analysis_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| periodNumber | uint256 | The number of the period when the contribution was recorded |
+| tag | bytes32 | The tag associated with the contribution (used for categorization) |
+| user | address | The address of the user making the contribution |
+| amount | uint256 | The amount of the contribution |
+
+### getCurrentPeriod
+
+```solidity
+function getCurrentPeriod() external view returns (uint256)
+```
+
+Gets the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - start_timestamp) / period_interval_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The current period number |
+
+### recordContribution
+
+```solidity
+function recordContribution(bytes32 tag, address user, uint256 amount) external
+```
+
+Records a contribution for a specific tag and user
+
+_Can only be called by addresses with the CONTRIBUTOR role_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tag | bytes32 | The tag associated with the contribution (used for categorization) |
+| user | address | The address of the user making the contribution |
+| amount | uint256 | The amount of contribution to record |
 
 ### totalContributions
 
@@ -803,18 +1139,20 @@ function totalContributions(uint256 period, bytes32 tag) external view returns (
 
 Returns the total contribution for a specific tag in the specified period
 
+_Aggregates all user contributions for the given tag and period_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| period | uint256 | The period for which the contribution is being queried |
+| period | uint256 | The period number for which the contribution is being queried |
 | tag | bytes32 | The tag (as bytes32) for which the contribution is being queried |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The unweighted total contribution amount as a uint256 |
+| [0] | uint256 | The total contribution amount for the specified period and tag |
 
 ### userContributions
 
@@ -822,13 +1160,15 @@ Returns the total contribution for a specific tag in the specified period
 function userContributions(uint256 period, bytes32 tag, address user) external view returns (uint256)
 ```
 
-Returns the current contribution of a user for a specific tag in the specified period
+Returns the contribution of a specific user for a tag in the specified period
+
+_Retrieves individual user contribution data_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| period | uint256 | The period for which the contribution is being queried |
+| period | uint256 | The period number for which the contribution is being queried |
 | tag | bytes32 | The tag (as bytes32) for which the contribution is being queried |
 | user | address | The address of the user whose contribution is being queried |
 
@@ -836,9 +1176,12 @@ Returns the current contribution of a user for a specific tag in the specified p
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint256 | The unweighted contribution amount as a uint256 |
+| [0] | uint256 | The contribution amount for the specified user, period, and tag |
 
 ## ILiquidity
+
+Interface for the Liquidity contract that manages deposits and withdrawals of various token types
+between Layer 1 and Layer 2 in the Intmax2 protocol
 
 ### AddressZero
 
@@ -933,6 +1276,8 @@ error DepositHashAlreadyExists(bytes32 depositHash)
 
 Error thrown when the deposit hash already exists
 
+_Used to prevent duplicate deposits with the same parameters_
+
 ### DepositAmountExceedsLimit
 
 ```solidity
@@ -941,13 +1286,20 @@ error DepositAmountExceedsLimit(uint256 depositAmount, uint256 limit)
 
 Error thrown when the deposit amount exceeds the limit
 
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositAmount | uint256 | The amount that was attempted to be deposited |
+| limit | uint256 | The maximum allowed deposit amount |
+
 ### AmlValidationFailed
 
 ```solidity
 error AmlValidationFailed()
 ```
 
-Error thrown when aml Validation failed
+Error thrown when AML validation fails
 
 ### EligibilityValidationFailed
 
@@ -955,7 +1307,7 @@ Error thrown when aml Validation failed
 error EligibilityValidationFailed()
 ```
 
-Error thrown when eligibility Validation failed
+Error thrown when eligibility validation fails
 
 ### WithdrawalFeeRatioExceedsLimit
 
@@ -1042,7 +1394,7 @@ Event emitted when a direct withdrawal succeeds
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | withdrawalHash | bytes32 | The hash of the successful withdrawal |
-| recipient | address |  |
+| recipient | address | The address that received the withdrawal |
 
 ### DirectWithdrawalFailed
 
@@ -1095,15 +1447,15 @@ Event emitted when withdrawal fee is collected
 event WithdrawalFeeWithdrawn(address recipient, uint32 token, uint256 amount)
 ```
 
-Event emitted when withdrawal fee are withdrawn
+Event emitted when withdrawal fees are withdrawn
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipient | address | The address that claimed the fees |
+| recipient | address | The address that received the fees |
 | token | uint32 | The index of the token |
-| amount | uint256 | The amount of tokens claimed |
+| amount | uint256 | The amount of tokens withdrawn |
 
 ### PermitterSet
 
@@ -1133,7 +1485,7 @@ Event emitted when the withdrawal fee ratio is set
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenIndex | uint32 | The index of the token |
-| feeRatio | uint256 | The withdrawal fee ratio for the token |
+| feeRatio | uint256 | The withdrawal fee ratio for the token (in basis points) |
 
 ### pauseDeposits
 
@@ -1141,7 +1493,9 @@ Event emitted when the withdrawal fee ratio is set
 function pauseDeposits() external
 ```
 
-Pause deposits
+Pauses all deposit operations
+
+_Only callable by the admin role_
 
 ### unpauseDeposits
 
@@ -1149,7 +1503,9 @@ Pause deposits
 function unpauseDeposits() external
 ```
 
-Unpause deposits
+Unpauses all deposit operations
+
+_Only callable by the admin role_
 
 ### setPermitter
 
@@ -1157,7 +1513,9 @@ Unpause deposits
 function setPermitter(address _amlPermitter, address _eligibilityPermitter) external
 ```
 
-Sets the AML and eligibility permitter addresses
+Sets the AML and eligibility permitter contract addresses
+
+_Only callable by the admin role_
 
 #### Parameters
 
@@ -1172,14 +1530,16 @@ Sets the AML and eligibility permitter addresses
 function setWithdrawalFeeRatio(uint32 tokenIndex, uint256 feeRatio) external
 ```
 
-Sets the withdrawal fee ratio for a token
+Sets the withdrawal fee ratio for a specific token
+
+_Only callable by the admin role. Fee ratio is in basis points (1bp = 0.01%)_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenIndex | uint32 | The index of the token |
-| feeRatio | uint256 | The withdrawal fee ratio for the token |
+| tokenIndex | uint32 | The index of the token to set the fee ratio for |
+| feeRatio | uint256 | The fee ratio to set (in basis points, max 1500 = 15%) |
 
 ### withdrawCollectedFees
 
@@ -1187,14 +1547,16 @@ Sets the withdrawal fee ratio for a token
 function withdrawCollectedFees(address recipient, uint32[] tokenIndices) external
 ```
 
-Withdraw collected fees
+Withdraws collected fees for specified tokens to a recipient address
+
+_Only callable by the admin role. Skips tokens with zero fees_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipient | address | The address that will receive the fees |
-| tokenIndices | uint32[] | The indices of the tokens to withdraw fees from |
+| recipient | address | The address to receive the withdrawn fees |
+| tokenIndices | uint32[] | Array of token indices to withdraw fees for |
 
 ### depositNativeToken
 
@@ -1202,15 +1564,15 @@ Withdraw collected fees
 function depositNativeToken(bytes32 recipientSaltHash, bytes amlPermission, bytes eligibilityPermission) external payable
 ```
 
-Deposit native token
+Deposit native token (ETH) to Intmax
 
-_recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
+_The deposit amount is taken from msg.value, recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
+| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
 | amlPermission | bytes | The data to verify AML check |
 | eligibilityPermission | bytes | The data to verify eligibility check |
 
@@ -1220,7 +1582,7 @@ _recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a 
 function depositERC20(address tokenAddress, bytes32 recipientSaltHash, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit a specified amount of ERC20 token
+Deposit a specified amount of ERC20 token to Intmax
 
 _Requires prior approval for this contract to spend the tokens
 recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
@@ -1241,7 +1603,7 @@ recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a s
 function depositERC721(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit an ERC721 token
+Deposit an ERC721 token to Intmax
 
 _Requires prior approval for this contract to transfer the token_
 
@@ -1261,7 +1623,9 @@ _Requires prior approval for this contract to transfer the token_
 function depositERC1155(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit a specified amount of ERC1155 tokens
+Deposit a specified amount of ERC1155 tokens to Intmax
+
+_Requires prior approval for this contract to transfer the tokens_
 
 #### Parameters
 
@@ -1280,16 +1644,16 @@ Deposit a specified amount of ERC1155 tokens
 function relayDeposits(uint256 upToDepositId, uint256 gasLimit) external payable
 ```
 
-Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
+Relays deposits from Layer 1 to Intmax
 
-_upToDepositId specifies the last deposit id that have been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID._
+_Only callable by addresses with the RELAYER role. The msg.value is used to pay for the L2 gas_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| upToDepositId | uint256 | The upper limit of the Deposit ID that has been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID. |
-| gasLimit | uint256 | The gas limit for the l2 transaction. |
+| upToDepositId | uint256 | The upper limit of the Deposit ID that will be relayed |
+| gasLimit | uint256 | The gas limit for the L2 transaction |
 
 ### cancelDeposit
 
@@ -1297,16 +1661,16 @@ _upToDepositId specifies the last deposit id that have been relayed. It must be 
 function cancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit) external
 ```
 
-Method to cancel a deposit
+Cancels a deposit that hasn't been relayed yet
 
-_The deposit ID and its content should be included in the calldata_
+_Only the original sender can cancel their deposit, and only if it hasn't been relayed_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | depositId | uint256 | The ID of the deposit to cancel |
-| deposit | struct DepositLib.Deposit | The deposit data |
+| deposit | struct DepositLib.Deposit | The deposit data structure containing the original deposit details |
 
 ### processWithdrawals
 
@@ -1314,14 +1678,16 @@ _The deposit ID and its content should be included in the calldata_
 function processWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals, bytes32[] withdrawalHashes) external
 ```
 
-Process withdrawals, called by the scroll messenger
+Processes withdrawals from Layer 2 to Layer 1
+
+_Only callable by addresses with the WITHDRAWAL role through the L1ScrollMessenger_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to process |
-| withdrawalHashes | bytes32[] | Array of withdrawal hashes |
+| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of direct withdrawals to process immediately |
+| withdrawalHashes | bytes32[] | Array of withdrawal hashes to mark as claimable (for non-direct withdrawals) |
 
 ### getLastRelayedDepositId
 
@@ -1329,7 +1695,9 @@ Process withdrawals, called by the scroll messenger
 function getLastRelayedDepositId() external view returns (uint256)
 ```
 
-Get the ID of the last deposit relayed to L2
+Get the ID of the last deposit relayed to Layer 2
+
+_This ID represents the highest deposit that has been successfully relayed_
 
 #### Return Values
 
@@ -1343,7 +1711,9 @@ Get the ID of the last deposit relayed to L2
 function getLastDepositId() external view returns (uint256)
 ```
 
-Get the ID of the last deposit to L2
+Get the ID of the last deposit made to Layer 2
+
+_This ID represents the highest deposit that has been created, whether relayed or not_
 
 #### Return Values
 
@@ -1363,13 +1733,13 @@ Get deposit data for a given deposit ID
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| depositId | uint256 | The ID of the deposit to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData | The deposit data |
+| [0] | struct DepositQueueLib.DepositData | The deposit data structure containing sender and deposit hash |
 
 ### getDepositDataBatch
 
@@ -1377,19 +1747,19 @@ Get deposit data for a given deposit ID
 function getDepositDataBatch(uint256[] depositIds) external view returns (struct DepositQueueLib.DepositData[])
 ```
 
-Get deposit data list for a given deposit IDs
+Get deposit data for multiple deposit IDs in a single call
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositIds | uint256[] | The IDs of the deposit |
+| depositIds | uint256[] | Array of deposit IDs to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData[] | The deposit data list |
+| [0] | struct DepositQueueLib.DepositData[] | Array of deposit data structures corresponding to the requested IDs |
 
 ### getDepositDataHash
 
@@ -1397,19 +1767,19 @@ Get deposit data list for a given deposit IDs
 function getDepositDataHash(uint256 depositId) external view returns (bytes32)
 ```
 
-Get deposit data hash for a given deposit ID
+Get the deposit hash for a given deposit ID
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| depositId | uint256 | The ID of the deposit to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32 | The deposit data hash |
+| [0] | bytes32 | The hash of the deposit data |
 
 ### claimWithdrawals
 
@@ -1417,7 +1787,9 @@ Get deposit data hash for a given deposit ID
 function claimWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals) external
 ```
 
-Claim withdrawals for tokens that are not direct withdrawals
+Claim withdrawals for tokens that couldn't be processed through direct withdrawals
+
+_Used for ERC721, ERC1155, or failed direct withdrawals of native/ERC20 tokens_
 
 #### Parameters
 
@@ -1431,14 +1803,14 @@ Claim withdrawals for tokens that are not direct withdrawals
 function isDepositValid(uint256 depositId, bytes32 recipientSaltHash, uint32 tokenIndex, uint256 amount, bool isEligible, address sender) external view returns (bool)
 ```
 
-Check if the deposit is valid
+Check if a deposit is valid by comparing its parameters with stored data
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
-| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address (BLS public key) and a secret salt |
+| depositId | uint256 | The ID of the deposit to validate |
+| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
 | tokenIndex | uint32 | The index of the token being deposited |
 | amount | uint256 | The amount of tokens deposited |
 | isEligible | bool | Whether the deposit is eligible for mining rewards |
@@ -1448,7 +1820,7 @@ Check if the deposit is valid
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bool | True if the deposit is valid |
+| [0] | bool | True if the deposit is valid, false otherwise |
 
 ### onERC1155Received
 
@@ -1456,15 +1828,21 @@ Check if the deposit is valid
 function onERC1155Received(address, address, uint256, uint256, bytes) external pure returns (bytes4)
 ```
 
-ERC1155 token receiver function
+ERC1155 token receiver function required for this contract to receive ERC1155 tokens
+
+_Implements the IERC1155Receiver interface_
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes4 | bytes4 The function selector |
+| [0] | bytes4 | bytes4 The function selector to indicate support for ERC1155 token receiving |
 
 ## ITokenData
+
+Interface for managing token information and indices in the Intmax2 protocol
+
+_Provides functions to store, retrieve, and manage different token types (Native, ERC20, ERC721, ERC1155)_
 
 ### TokenAddressIsZero
 
@@ -1472,11 +1850,15 @@ ERC1155 token receiver function
 error TokenAddressIsZero()
 ```
 
-Error thrown when attempting to use a zero address for a token
+Error thrown when attempting to use a zero address for a non-native token
+
+_Native tokens use address(0), but other token types must have a valid contract address_
 
 ### TokenType
 
-Enum representing different token types
+Enum representing different token types supported by the protocol
+
+_Used to determine how to handle each token type during deposits and withdrawals_
 
 ```solidity
 enum TokenType {
@@ -1490,6 +1872,8 @@ enum TokenType {
 ### TokenInfo
 
 Struct containing information about a token
+
+_Used to store all necessary information to identify and handle a token_
 
 #### Parameters
 
@@ -1512,17 +1896,19 @@ function getTokenInfo(uint32 tokenIndex) external view returns (struct ITokenDat
 
 Retrieves token information for a given token index
 
+_Token indices are assigned sequentially as new tokens are added to the system_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenIndex | uint32 | The index of the token |
+| tokenIndex | uint32 | The index of the token to retrieve information for |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
+| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
 
 ### getTokenIndex
 
@@ -1532,20 +1918,22 @@ function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress
 
 Retrieves the token index for given token parameters
 
+_Used to look up a token's index based on its identifying information_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenType | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155) |
 | tokenAddress | address | The address of the token contract (zero address for native tokens) |
-| tokenId | uint256 | The ID of the token (used for ERC721 and ERC1155) |
+| tokenId | uint256 | The ID of the token (used for ERC721 and ERC1155, ignored for NATIVE and ERC20) |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bool | bool Indicating whether the token index was found |
-| [1] | uint32 | uint32 The index of the token if found |
+| [0] | bool | bool Indicating whether the token index was found (true) or not (false) |
+| [1] | uint32 | uint32 The index of the token if found, 0 if not found |
 
 ### getNativeTokenIndex
 
@@ -1553,13 +1941,15 @@ Retrieves the token index for given token parameters
 function getNativeTokenIndex() external view returns (uint32)
 ```
 
-Retrieves the index of the native token
+Retrieves the index of the native token (ETH)
+
+_The native token is always at index 0 in the system_
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | uint32 | uint32 The index of the native token |
+| [0] | uint32 | uint32 The index of the native token (always 0) |
 
 ## Liquidity
 
@@ -1623,7 +2013,9 @@ _If not set, we skip eligibility permission check_
 mapping(bytes32 => uint256) claimableWithdrawals
 ```
 
-Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
+Mapping of withdrawal hashes to their timestamp when they became claimable
+
+_A value of 0 means the withdrawal is not claimable_
 
 ### withdrawalFeeRatio
 
@@ -1633,7 +2025,7 @@ mapping(uint32 => uint256) withdrawalFeeRatio
 
 Withdrawal fee ratio for each token index
 
-_1bp = 0.01%_
+_1bp = 0.01%, so 1500 = 15%_
 
 ### collectedWithdrawalFees
 
@@ -1643,17 +2035,34 @@ mapping(uint32 => uint256) collectedWithdrawalFees
 
 Mapping of token index to the total amount of withdrawal fees collected
 
+_Used to track fees that can be withdrawn by the admin_
+
 ### onlyWithdrawalRole
 
 ```solidity
 modifier onlyWithdrawalRole()
 ```
 
+Modifier to restrict access to only the withdrawal role through the L1ScrollMessenger
+
+_Ensures the function is called via the L1ScrollMessenger and the cross-domain sender has the WITHDRAWAL role_
+
 ### canCancelDeposit
 
 ```solidity
 modifier canCancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit)
 ```
+
+Modifier to check if a deposit can be canceled
+
+_Verifies the caller is the original sender, the deposit hash matches, and the deposit hasn't been relayed_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositId | uint256 | The ID of the deposit to cancel |
+| deposit | struct DepositLib.Deposit | The deposit data structure |
 
 ### constructor
 
@@ -1688,7 +2097,9 @@ Initializes the contract with required addresses and parameters
 function setPermitter(address _amlPermitter, address _eligibilityPermitter) external
 ```
 
-Sets the AML and eligibility permitter addresses
+Sets the AML and eligibility permitter contract addresses
+
+_Only callable by the admin role_
 
 #### Parameters
 
@@ -1703,14 +2114,16 @@ Sets the AML and eligibility permitter addresses
 function setWithdrawalFeeRatio(uint32 tokenIndex, uint256 feeRatio) external
 ```
 
-Sets the withdrawal fee ratio for a token
+Sets the withdrawal fee ratio for a specific token
+
+_Only callable by the admin role. Fee ratio is in basis points (1bp = 0.01%)_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenIndex | uint32 | The index of the token |
-| feeRatio | uint256 | The withdrawal fee ratio for the token |
+| tokenIndex | uint32 | The index of the token to set the fee ratio for |
+| feeRatio | uint256 | The fee ratio to set (in basis points, max 1500 = 15%) |
 
 ### withdrawCollectedFees
 
@@ -1718,14 +2131,16 @@ Sets the withdrawal fee ratio for a token
 function withdrawCollectedFees(address recipient, uint32[] tokenIndices) external
 ```
 
-Withdraw collected fees
+Withdraws collected fees for specified tokens to a recipient address
+
+_Only callable by the admin role. Skips tokens with zero fees_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipient | address | The address that will receive the fees |
-| tokenIndices | uint32[] | The indices of the tokens to withdraw fees from |
+| recipient | address | The address to receive the withdrawn fees |
+| tokenIndices | uint32[] | Array of token indices to withdraw fees for |
 
 ### pauseDeposits
 
@@ -1733,7 +2148,9 @@ Withdraw collected fees
 function pauseDeposits() external
 ```
 
-Pause deposits
+Pauses all deposit operations
+
+_Only callable by the admin role_
 
 ### unpauseDeposits
 
@@ -1741,7 +2158,9 @@ Pause deposits
 function unpauseDeposits() external
 ```
 
-Unpause deposits
+Unpauses all deposit operations
+
+_Only callable by the admin role_
 
 ### depositNativeToken
 
@@ -1749,15 +2168,15 @@ Unpause deposits
 function depositNativeToken(bytes32 recipientSaltHash, bytes amlPermission, bytes eligibilityPermission) external payable
 ```
 
-Deposit native token
+Deposit native token (ETH) to Intmax
 
-_recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
+_The deposit amount is taken from msg.value, recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipientSaltHash | bytes32 | The hash of the recipient's address and a secret salt |
+| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
 | amlPermission | bytes | The data to verify AML check |
 | eligibilityPermission | bytes | The data to verify eligibility check |
 
@@ -1767,7 +2186,7 @@ _recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a 
 function depositERC20(address tokenAddress, bytes32 recipientSaltHash, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit a specified amount of ERC20 token
+Deposit a specified amount of ERC20 token to Intmax
 
 _Requires prior approval for this contract to spend the tokens
 recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
@@ -1788,7 +2207,7 @@ recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a s
 function depositERC721(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit an ERC721 token
+Deposit an ERC721 token to Intmax
 
 _Requires prior approval for this contract to transfer the token_
 
@@ -1808,7 +2227,9 @@ _Requires prior approval for this contract to transfer the token_
 function depositERC1155(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
 ```
 
-Deposit a specified amount of ERC1155 tokens
+Deposit a specified amount of ERC1155 tokens to Intmax
+
+_Requires prior approval for this contract to transfer the tokens_
 
 #### Parameters
 
@@ -1827,16 +2248,16 @@ Deposit a specified amount of ERC1155 tokens
 function relayDeposits(uint256 upToDepositId, uint256 gasLimit) external payable
 ```
 
-Trusted nodes submit the IDs of deposits that do not meet AML standards by this method
+Relays deposits from Layer 1 to Intmax
 
-_upToDepositId specifies the last deposit id that have been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID._
+_Only callable by addresses with the RELAYER role. The msg.value is used to pay for the L2 gas_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| upToDepositId | uint256 | The upper limit of the Deposit ID that has been relayed. It must be greater than lastRelayedDeposit and less than or equal to the latest Deposit ID. |
-| gasLimit | uint256 | The gas limit for the l2 transaction. |
+| upToDepositId | uint256 | The upper limit of the Deposit ID that will be relayed |
+| gasLimit | uint256 | The gas limit for the L2 transaction |
 
 ### claimWithdrawals
 
@@ -1844,7 +2265,9 @@ _upToDepositId specifies the last deposit id that have been relayed. It must be 
 function claimWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals) external
 ```
 
-Claim withdrawals for tokens that are not direct withdrawals
+Claim withdrawals for tokens that couldn't be processed through direct withdrawals
+
+_Used for ERC721, ERC1155, or failed direct withdrawals of native/ERC20 tokens_
 
 #### Parameters
 
@@ -1858,16 +2281,16 @@ Claim withdrawals for tokens that are not direct withdrawals
 function cancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit) external
 ```
 
-Method to cancel a deposit
+Cancels a deposit that hasn't been relayed yet
 
-_The deposit ID and its content should be included in the calldata_
+_Only the original sender can cancel their deposit, and only if it hasn't been relayed_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | depositId | uint256 | The ID of the deposit to cancel |
-| deposit | struct DepositLib.Deposit | The deposit data |
+| deposit | struct DepositLib.Deposit | The deposit data structure containing the original deposit details |
 
 ### processWithdrawals
 
@@ -1875,14 +2298,16 @@ _The deposit ID and its content should be included in the calldata_
 function processWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals, bytes32[] withdrawalHashes) external
 ```
 
-Process withdrawals, called by the scroll messenger
+Processes both direct withdrawals and claimable withdrawals
+
+_Only callable by addresses with the WITHDRAWAL role through the L1ScrollMessenger_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to process |
-| withdrawalHashes | bytes32[] | Array of withdrawal hashes |
+| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of direct withdrawals to process |
+| withdrawalHashes | bytes32[] | Array of withdrawal hashes to mark as claimable |
 
 ### _processDirectWithdrawal
 
@@ -1890,19 +2315,31 @@ Process withdrawals, called by the scroll messenger
 function _processDirectWithdrawal(struct WithdrawalLib.Withdrawal withdrawal_) internal
 ```
 
+Processes a single direct withdrawal
+
+_Attempts to send tokens directly to the recipient, collects fees, and handles failures_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawal_ | struct WithdrawalLib.Withdrawal | The withdrawal to process |
+
 ### onERC1155Received
 
 ```solidity
 function onERC1155Received(address, address, uint256, uint256, bytes) external pure returns (bytes4)
 ```
 
-ERC1155 token receiver function
+ERC1155 token receiver function required for this contract to receive ERC1155 tokens
+
+_Implements the IERC1155Receiver interface_
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes4 | bytes4 The function selector |
+| [0] | bytes4 | bytes4 The function selector to indicate support for ERC1155 token receiving |
 
 ### isDepositValid
 
@@ -1910,14 +2347,14 @@ ERC1155 token receiver function
 function isDepositValid(uint256 depositId, bytes32 recipientSaltHash, uint32 tokenIndex, uint256 amount, bool isEligible, address sender) external view returns (bool)
 ```
 
-Check if the deposit is valid
+Check if a deposit is valid by comparing its parameters with stored data
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
-| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address (BLS public key) and a secret salt |
+| depositId | uint256 | The ID of the deposit to validate |
+| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
 | tokenIndex | uint32 | The index of the token being deposited |
 | amount | uint256 | The amount of tokens deposited |
 | isEligible | bool | Whether the deposit is eligible for mining rewards |
@@ -1927,7 +2364,7 @@ Check if the deposit is valid
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bool | True if the deposit is valid |
+| [0] | bool | True if the deposit is valid, false otherwise |
 
 ### getDepositData
 
@@ -1941,13 +2378,13 @@ Get deposit data for a given deposit ID
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| depositId | uint256 | The ID of the deposit to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData | The deposit data |
+| [0] | struct DepositQueueLib.DepositData | The deposit data structure containing sender and deposit hash |
 
 ### getDepositDataBatch
 
@@ -1955,19 +2392,19 @@ Get deposit data for a given deposit ID
 function getDepositDataBatch(uint256[] depositIds) external view returns (struct DepositQueueLib.DepositData[])
 ```
 
-Get deposit data list for a given deposit IDs
+Get deposit data for multiple deposit IDs in a single call
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositIds | uint256[] | The IDs of the deposit |
+| depositIds | uint256[] | Array of deposit IDs to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct DepositQueueLib.DepositData[] | The deposit data list |
+| [0] | struct DepositQueueLib.DepositData[] | Array of deposit data structures corresponding to the requested IDs |
 
 ### getDepositDataHash
 
@@ -1975,19 +2412,19 @@ Get deposit data list for a given deposit IDs
 function getDepositDataHash(uint256 depositId) external view returns (bytes32)
 ```
 
-Get deposit data hash for a given deposit ID
+Get the deposit hash for a given deposit ID
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the deposit |
+| depositId | uint256 | The ID of the deposit to query |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32 | The deposit data hash |
+| [0] | bytes32 | The hash of the deposit data |
 
 ### getLastRelayedDepositId
 
@@ -1995,7 +2432,9 @@ Get deposit data hash for a given deposit ID
 function getLastRelayedDepositId() public view returns (uint256)
 ```
 
-Get the ID of the last deposit relayed to L2
+Get the ID of the last deposit relayed to Layer 2
+
+_This ID represents the highest deposit that has been successfully relayed_
 
 #### Return Values
 
@@ -2009,7 +2448,9 @@ Get the ID of the last deposit relayed to L2
 function getLastDepositId() external view returns (uint256)
 ```
 
-Get the ID of the last deposit to L2
+Get the ID of the last deposit made to Layer 2
+
+_This ID represents the highest deposit that has been created, whether relayed or not_
 
 #### Return Values
 
@@ -2020,10 +2461,25 @@ Get the ID of the last deposit to L2
 ### _authorizeUpgrade
 
 ```solidity
-function _authorizeUpgrade(address) internal
+function _authorizeUpgrade(address newImplementation) internal
 ```
 
+Authorizes an upgrade to the implementation
+
+_Only callable by the admin role_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | The address of the new implementation |
+
 ## TokenData
+
+Abstract contract for managing token information and indices in the Intmax2 protocol
+
+_Implements the ITokenData interface and provides storage and functionality for tracking
+different token types (Native, ERC20, ERC721, ERC1155)_
 
 ### __TokenData_init
 
@@ -2031,33 +2487,25 @@ function _authorizeUpgrade(address) internal
 function __TokenData_init(address[] initialERC20Tokens) internal
 ```
 
+Initializes the TokenData contract with native token and initial ERC20 tokens
+
+_Called during contract initialization to set up the token indices_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| initialERC20Tokens | address[] | Array of ERC20 token addresses to initialize with |
+
 ### _getOrCreateTokenIndex
 
 ```solidity
 function _getOrCreateTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) internal returns (uint32)
 ```
 
-### getNativeTokenIndex
+Gets the token index for a token, creating a new index if it doesn't exist
 
-```solidity
-function getNativeTokenIndex() public pure returns (uint32)
-```
-
-Retrieves the index of the native token
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | uint32 The index of the native token |
-
-### getTokenIndex
-
-```solidity
-function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) public view returns (bool, uint32)
-```
-
-Retrieves the token index for given token parameters
+_Used during deposit operations to ensure all tokens have an index_
 
 #### Parameters
 
@@ -2071,8 +2519,48 @@ Retrieves the token index for given token parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bool | bool Indicating whether the token index was found |
-| [1] | uint32 | uint32 The index of the token if found |
+| [0] | uint32 | uint32 The index of the token (either existing or newly created) |
+
+### getNativeTokenIndex
+
+```solidity
+function getNativeTokenIndex() public pure returns (uint32)
+```
+
+Retrieves the index of the native token (ETH)
+
+_The native token is always at index 0 in the system_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint32 | uint32 The index of the native token (always 0) |
+
+### getTokenIndex
+
+```solidity
+function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) public view returns (bool, uint32)
+```
+
+Retrieves the token index for given token parameters
+
+_Checks the appropriate mapping based on token type_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenType | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155) |
+| tokenAddress | address | The address of the token contract (zero address for native tokens) |
+| tokenId | uint256 | The ID of the token (used for ERC721 and ERC1155) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | bool Indicating whether the token index was found (true) or not (false) |
+| [1] | uint32 | uint32 The index of the token if found, 0 if not found |
 
 ### getTokenInfo
 
@@ -2082,25 +2570,36 @@ function getTokenInfo(uint32 tokenIndex) public view returns (struct ITokenData.
 
 Retrieves token information for a given token index
 
+_Returns the TokenInfo struct from the tokenInfoList array_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenIndex | uint32 | The index of the token |
+| tokenIndex | uint32 | The index of the token to retrieve information for |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's information |
+| [0] | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
 
 ## DepositLimit
+
+A library for managing deposit limits for different tokens over time
+
+_Implements a time-based deposit limit system that increases limits for specific tokens
+as time passes from the deployment date_
 
 ### ETH_INDEX
 
 ```solidity
 uint8 ETH_INDEX
 ```
+
+Token index constants for supported tokens
+
+_These indices must match the indices used in the TokenData contract_
 
 ### WBTC_INDEX
 
@@ -2119,6 +2618,10 @@ uint8 USDC_INDEX
 ```solidity
 uint16 PERIOD_1
 ```
+
+Time period constants in days from deployment
+
+_Used to determine which deposit limit applies based on elapsed time_
 
 ### PERIOD_2
 
@@ -2143,6 +2646,10 @@ uint16 PERIOD_4
 ```solidity
 uint256 ETH_LIMIT_0
 ```
+
+ETH deposit limits for different time periods
+
+_Values in wei (1 ether = 10^18 wei)_
 
 ### ETH_LIMIT_1
 
@@ -2174,6 +2681,10 @@ uint256 ETH_LIMIT_4
 uint256 WBTC_LIMIT_0
 ```
 
+WBTC deposit limits for different time periods
+
+_Values in satoshi (1 BTC = 10^8 satoshi)_
+
 ### WBTC_LIMIT_1
 
 ```solidity
@@ -2203,6 +2714,10 @@ uint256 WBTC_LIMIT_4
 ```solidity
 uint256 USDC_LIMIT_0
 ```
+
+USDC deposit limits for different time periods
+
+_Values in USDC atomic units (1 USDC = 10^6 units)_
 
 ### USDC_LIMIT_1
 
@@ -2234,24 +2749,29 @@ uint256 USDC_LIMIT_4
 function getDepositLimit(uint32 tokenIndex, uint256 deploymentTime) internal view returns (uint256 limit)
 ```
 
-Returns the deposit limit for a token at a given deployment time
+Returns the current deposit limit for a token based on time elapsed since deployment
+
+_For tokens other than ETH, WBTC, and USDC, returns the maximum possible uint256 value_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenIndex | uint32 | The index of the token |
-| deploymentTime | uint256 | The timestamp of the deployment |
+| tokenIndex | uint32 | The index of the token to get the deposit limit for |
+| deploymentTime | uint256 | The timestamp when the contract was deployed (used as the starting point) |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| limit | uint256 | The deposit limit for the token |
+| limit | uint256 | The current deposit limit for the specified token |
 
 ## DepositQueueLib
 
-A library for managing a queue of pending deposits
+A library for managing a queue of pending deposits in the Liquidity contract
+
+_Implements a queue data structure with enqueue, dequeue, and delete operations
+to track deposits that are waiting to be relayed to Layer 2_
 
 ### OutOfRange
 
@@ -2259,15 +2779,15 @@ A library for managing a queue of pending deposits
 error OutOfRange(uint256 upToDepositId, uint256 firstDepositId, uint256 lastDepositId)
 ```
 
-Error thrown when trying to deposits outside the queue range
+Error thrown when trying to relay deposits outside the valid queue range
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| upToDepositId | uint256 | The requested deposit ID |
-| firstDepositId | uint256 | The first deposit ID in the queue |
-| lastDepositId | uint256 | The last deposit ID in the queue |
+| upToDepositId | uint256 | The requested deposit ID that is out of range |
+| firstDepositId | uint256 | The first valid deposit ID in the queue |
+| lastDepositId | uint256 | The last valid deposit ID in the queue |
 
 ### DepositQueue
 
@@ -2289,7 +2809,7 @@ struct DepositQueue {
 
 Represents data for a single deposit
 
-_Includes deposit hash, sender address_
+_Stores minimal information needed to track and validate deposits_
 
 #### Parameters
 
@@ -2311,13 +2831,13 @@ function initialize(struct DepositQueueLib.DepositQueue depositQueue) internal
 
 Initializes the deposit queue
 
-_Pushes a dummy element to make the queue 1-indexed_
+_Pushes a dummy element to make the queue 1-indexed for easier tracking_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
+| depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct to initialize |
 
 ### enqueue
 
@@ -2327,19 +2847,21 @@ function enqueue(struct DepositQueueLib.DepositQueue depositQueue, bytes32 depos
 
 Adds a new deposit to the queue
 
+_The deposit ID is the index in the depositData array_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
-| depositHash | bytes32 | The hash of the deposit |
+| depositHash | bytes32 | The hash of the deposit data |
 | sender | address | The address of the depositor |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositId | uint256 | The ID of the newly added deposit |
+| depositId | uint256 | The ID of the newly added deposit (used for tracking and cancellation) |
 
 ### deleteDeposit
 
@@ -2347,7 +2869,9 @@ Adds a new deposit to the queue
 function deleteDeposit(struct DepositQueueLib.DepositQueue depositQueue, uint256 depositId) internal returns (struct DepositQueueLib.DepositData depositData)
 ```
 
-Deletes a deposit from the queue
+Deletes a deposit from the queue (used for cancellation)
+
+_Doesn't actually remove the element from the array, just clears its data_
 
 #### Parameters
 
@@ -2360,7 +2884,7 @@ Deletes a deposit from the queue
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| depositData | struct DepositQueueLib.DepositData | The data of the deleted deposit |
+| depositData | struct DepositQueueLib.DepositData | The data of the deleted deposit (returned for event emission) |
 
 ### batchDequeue
 
@@ -2368,24 +2892,30 @@ Deletes a deposit from the queue
 function batchDequeue(struct DepositQueueLib.DepositQueue depositQueue, uint256 upToDepositId) internal returns (bytes32[])
 ```
 
-relayed deposits in the queue
+Processes deposits in the queue for relay to Layer 2
 
-_Collects deposit hashes from front to upToDepositId_
+_Collects valid deposit hashes from front to upToDepositId and advances the queue
+Skips deposits that have been deleted (sender address is zero)_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | depositQueue | struct DepositQueueLib.DepositQueue | The storage reference to the DepositQueue struct |
-| upToDepositId | uint256 | The upper bound deposit ID |
+| upToDepositId | uint256 | The upper bound deposit ID to process |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bytes32[] | An array of deposit hashes |
+| [0] | bytes32[] | An array of deposit hashes to be relayed to Layer 2 |
 
 ## ERC20CallOptionalLib
+
+A library for safely handling ERC20 token transfers that may not conform to the ERC20 standard
+
+_Some ERC20 tokens don't revert on failure or don't return a boolean value as specified in the standard.
+This library handles these non-standard implementations safely._
 
 ### callOptionalReturnBool
 
@@ -2393,16 +2923,32 @@ _Collects deposit hashes from front to upToDepositId_
 function callOptionalReturnBool(contract IERC20 token, bytes data) internal returns (bool)
 ```
 
-_Referring to _callOptionalReturnBool of SafeERC20.sol_
+Makes a low-level call to an ERC20 token contract and safely handles various return value scenarios
+
+_Inspired by OpenZeppelin's SafeERC20 _callOptionalReturnBool function
+Handles three cases:
+ 1. Token returns true/false as per ERC20 spec
+ 2. Token returns nothing (empty return data)
+ 3. Token doesn't revert but returns non-boolean data_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| token | contract IERC20 | The token targeted by the call. |
-| data | bytes | The call data (encoded using abi.encode or one of its variants). |
+| token | contract IERC20 | The ERC20 token contract to call |
+| data | bytes | The call data (typically a transfer or transferFrom function call) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | bool True if the call was successful, false otherwise |
 
 ## IPermitter
+
+Interface for permission validation contracts that authorize user actions
+
+_This interface defines the method for validating if a user has permission to execute a specific action_
 
 ### permit
 
@@ -2412,1192 +2958,38 @@ function permit(address user, uint256 value, bytes encodedData, bytes permission
 
 Validates if a user has the right to execute a specified action
 
+_This function is called to check permissions before executing protected operations_
+
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | user | address | The address of the user attempting the action |
-| value | uint256 | The msg.value of the transaction |
-| encodedData | bytes | The encoded data of the action that user wants to execute |
-| permission | bytes | The permission data that proves user authorization |
+| value | uint256 | The msg.value of the transaction being authorized |
+| encodedData | bytes | The encoded function call data of the action that user wants to execute |
+| permission | bytes | The permission data that proves user authorization (format depends on implementation) |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| authorized | bool | Returns true if the user is authorized, false otherwise |
-
-## IRollup
-
-Interface for the Rollup contract
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-address is zero address
-
-### OnlyScrollMessenger
-
-```solidity
-error OnlyScrollMessenger()
-```
-
-Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
-
-### OnlyLiquidity
-
-```solidity
-error OnlyLiquidity()
-```
-
-Error thrown when the xDomainMessageSender in ScrollMessenger is not the liquidity contract
-
-### TooManySenderPublicKeys
-
-```solidity
-error TooManySenderPublicKeys()
-```
-
-Error thrown when the number of public keys exceeds 128
-
-### TooManyAccountIds
-
-```solidity
-error TooManyAccountIds()
-```
-
-Error thrown when the number of account IDs exceeds 128
-
-### SenderAccountIdsInvalidLength
-
-```solidity
-error SenderAccountIdsInvalidLength()
-```
-
-Error thrown when the length of account IDs bytes is not a multiple of 5
-
-### PairingCheckFailed
-
-```solidity
-error PairingCheckFailed()
-```
-
-Error thrown when the posted block fails the pairing test
-
-### BlockNumberOutOfRange
-
-```solidity
-error BlockNumberOutOfRange()
-```
-
-Error thrown when the specified block number is greater than the latest block number
-
-### InsufficientPenaltyFee
-
-```solidity
-error InsufficientPenaltyFee()
-```
-
-Error thrown when the fee for the rate limiter is insufficient
-
-### Expired
-
-```solidity
-error Expired()
-```
-
-Error thrown when the expiry timestamp is in the past
-
-### InvalidNonce
-
-```solidity
-error InvalidNonce()
-```
-
-Error thrown when the given nonce is less than the current nonce
-
-### DepositsProcessed
-
-```solidity
-event DepositsProcessed(uint256 lastProcessedDepositId, bytes32 depositTreeRoot)
-```
-
-Event emitted when deposits bridged from the liquidity contract are processed
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
-| depositTreeRoot | bytes32 | The root of the deposit tree after processing |
-
-### DepositLeafInserted
-
-```solidity
-event DepositLeafInserted(uint32 depositIndex, bytes32 depositHash)
-```
-
-Event emitted when a deposit is inserted into the deposit tree
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositIndex | uint32 | The index of the deposit |
-| depositHash | bytes32 | The hash of the deposit |
-
-### BlockPosted
-
-```solidity
-event BlockPosted(bytes32 prevBlockHash, address blockBuilder, uint64 timestamp, uint256 blockNumber, bytes32 depositTreeRoot, bytes32 signatureHash)
-```
-
-Event emitted when a new block is posted
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| prevBlockHash | bytes32 | The hash of the previous block |
-| blockBuilder | address | The address of the block builder |
-| timestamp | uint64 | The timestamp of the posted block |
-| blockNumber | uint256 | The number of the posted block |
-| depositTreeRoot | bytes32 | The root of the deposit tree |
-| signatureHash | bytes32 | The hash of the signature |
-
-### BlockPostData
-
-An internal struct to store the data of block to avoid stack too deep error
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct BlockPostData {
-  bool isRegistrationBlock;
-  bytes32 txTreeRoot;
-  uint64 expiry;
-  address builderAddress;
-  uint32 builderNonce;
-  bytes16 senderFlags;
-  bytes32[2] aggregatedPublicKey;
-  bytes32[4] aggregatedSignature;
-  bytes32[4] messagePoint;
-}
-```
-
-### postRegistrationBlock
-
-```solidity
-function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
-```
-
-Posts a registration block (for all senders' first transactions, specified by public keys)
-
-_msg.value must be greater than or equal to the penalty fee of the rate limiter_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| expiry | uint64 | The expiry timestamp of the tx tree root. Zero means no expiry. |
-| builderNonce | uint32 | The registration block nonce of the block builder |
-| senderFlags | bytes16 | Flags indicating whether senders' signatures are included in the aggregated signature |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| senderPublicKeys | uint256[] | The public keys of the senders |
-
-### postNonRegistrationBlock
-
-```solidity
-function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
-```
-
-Posts a non-registration block (for all senders' subsequent transactions, specified by account IDs)
-
-_msg.value must be greater than or equal to the penalty fee of the rate limiter_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| expiry | uint64 | The expiry timestamp of the tx tree root. Zero means no expiry. |
-| builderNonce | uint32 | The non registration block nonce of the block builder |
-| senderFlags | bytes16 | Sender flags |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| publicKeysHash | bytes32 | The hash of the public keys |
-| senderAccountIds | bytes | The account IDs arranged in a byte sequence |
-
-### withdrawPenaltyFee
-
-```solidity
-function withdrawPenaltyFee(address to) external
-```
-
-Withdraws the penalty fee from the Rollup contract
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| to | address | The address to which the penalty fee is transferred |
-
-### processDeposits
-
-```solidity
-function processDeposits(uint256 lastProcessedDepositId, bytes32[] depositHashes) external
-```
-
-Update the deposit tree branch and root
-
-_Only Liquidity contract can call this function via Scroll Messenger_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
-| depositHashes | bytes32[] | The hashes of the deposits |
-
-### getLatestBlockNumber
-
-```solidity
-function getLatestBlockNumber() external view returns (uint32)
-```
-
-Get the block number of the latest posted block
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The latest block number |
-
-### getPenalty
-
-```solidity
-function getPenalty() external view returns (uint256)
-```
-
-Get current penalty fee for rate limiter
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The penalty fee for next block |
-
-### getBlockHash
-
-```solidity
-function getBlockHash(uint32 blockNumber) external view returns (bytes32)
-```
-
-Get the block hash for a specific block number
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockNumber | uint32 | The block number to query |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the specified block |
-
-## IWithdrawal
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-address is zero address
-
-### WithdrawalChainVerificationFailed
-
-```solidity
-error WithdrawalChainVerificationFailed()
-```
-
-Error thrown when the verification of the withdrawal proof's public input hash chain fails
-
-### WithdrawalAggregatorMismatch
-
-```solidity
-error WithdrawalAggregatorMismatch()
-```
-
-Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
-
-### BlockHashNotExists
-
-```solidity
-error BlockHashNotExists(bytes32 blockHash)
-```
-
-Error thrown when the block hash in the withdrawal proof's public input doesn't exist
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHash | bytes32 | The non-existent block hash |
-
-### WithdrawalProofVerificationFailed
-
-```solidity
-error WithdrawalProofVerificationFailed()
-```
-
-Error thrown when the ZKP verification of the withdrawal proof fails
-
-### TokenAlreadyExist
-
-```solidity
-error TokenAlreadyExist(uint256 tokenIndex)
-```
-
-Error thrown when attempting to add a token to direct withdrawal tokens that already exists
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndex | uint256 | The index of the token that already exists |
-
-### TokenNotExist
-
-```solidity
-error TokenNotExist(uint256 tokenIndex)
-```
-
-Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndex | uint256 | The index of the non-existent token |
-
-### ClaimableWithdrawalQueued
-
-```solidity
-event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a claimable withdrawal is queued
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawalHash | bytes32 | The hash of the withdrawal |
-| recipient | address | The address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The withdrawal details |
-
-### DirectWithdrawalQueued
-
-```solidity
-event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a direct withdrawal is queued
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawalHash | bytes32 | The hash of the withdrawal |
-| recipient | address | The address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The withdrawal details |
-
-### DirectWithdrawalTokenIndicesAdded
-
-```solidity
-event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
-```
-
-Emitted when direct withdrawal token indices are added
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices that were added |
-
-### DirectWithdrawalTokenIndicesRemoved
-
-```solidity
-event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
-```
-
-Emitted when direct withdrawal token indices are removed
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices that were removed |
-
-### submitWithdrawalProof
-
-```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
-```
-
-Submit withdrawal proof from intmax2
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | List of chained withdrawals |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof |
-| proof | bytes | The proof data |
-
-### getDirectWithdrawalTokenIndices
-
-```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
-```
-
-Get the token indices for direct withdrawals
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices |
-
-### addDirectWithdrawalTokenIndices
-
-```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to add |
-
-### removeDirectWithdrawalTokenIndices
-
-```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Remove token indices from the list of direct withdrawal token indices
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to remove |
-
-## Withdrawal
-
-### directWithdrawalTokenIndices
-
-```solidity
-struct EnumerableSet.UintSet directWithdrawalTokenIndices
-```
-
-direct withdrawal token indices
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
-```
-
-### submitWithdrawalProof
-
-```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
-```
-
-Submit withdrawal proof from intmax2
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | List of chained withdrawals |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof |
-| proof | bytes | The proof data |
-
-### getDirectWithdrawalTokenIndices
-
-```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
-```
-
-Get the token indices for direct withdrawals
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices |
-
-### addDirectWithdrawalTokenIndices
-
-```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to add |
-
-### removeDirectWithdrawalTokenIndices
-
-```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Remove token indices from the list of direct withdrawal token indices
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to remove |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address) internal
-```
-
-## ChainedWithdrawalLib
-
-Library for handling chained withdrawals in a hash chain
-
-### ChainedWithdrawal
-
-Represents a withdrawal linked in a hash chain, used in withdrawal proof public inputs
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct ChainedWithdrawal {
-  address recipient;
-  uint32 tokenIndex;
-  uint256 amount;
-  bytes32 nullifier;
-  bytes32 blockHash;
-  uint32 blockNumber;
-}
-```
-
-### verifyWithdrawalChain
-
-```solidity
-function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
-```
-
-Verifies the integrity of a withdrawal hash chain
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify |
-| lastWithdrawalHash | bytes32 | The expected hash of the last withdrawal in the chain |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool True if the chain is valid, false otherwise |
-
-## WithdrawalProofPublicInputsLib
-
-### WithdrawalProofPublicInputs
-
-Represents the public inputs for a withdrawal proof
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct WithdrawalProofPublicInputs {
-  bytes32 lastWithdrawalHash;
-  address withdrawalAggregator;
-}
-```
-
-### getHash
-
-```solidity
-function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
-```
-
-Computes the hash of the WithdrawalProofPublicInputs
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs to be hashed |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The resulting hash |
-
-## Rollup
-
-### lastProcessedDepositId
-
-```solidity
-uint256 lastProcessedDepositId
-```
-
-The ID of the last processed deposit
-
-### blockHashes
-
-```solidity
-bytes32[] blockHashes
-```
-
-block hashes
-
-### builderRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderRegistrationNonce
-```
-
-block builder's nonce for registration block
-
-### builderNonRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderNonRegistrationNonce
-```
-
-block builder's nonce for non-registration block
-
-### depositTreeRoot
-
-```solidity
-bytes32 depositTreeRoot
-```
-
-deposit tree root
-
-### depositIndex
-
-```solidity
-uint32 depositIndex
-```
-
-deposit index
-
-### onlyLiquidityContract
-
-```solidity
-modifier onlyLiquidityContract()
-```
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution) external
-```
-
-### postRegistrationBlock
-
-```solidity
-function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
-```
-
-Posts a registration block (for all senders' first transactions, specified by public keys)
-
-_msg.value must be greater than or equal to the penalty fee of the rate limiter_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| expiry | uint64 | The expiry timestamp of the tx tree root. Zero means no expiry. |
-| builderNonce | uint32 | The registration block nonce of the block builder |
-| senderFlags | bytes16 | Flags indicating whether senders' signatures are included in the aggregated signature |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| senderPublicKeys | uint256[] | The public keys of the senders |
-
-### postNonRegistrationBlock
-
-```solidity
-function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
-```
-
-Posts a non-registration block (for all senders' subsequent transactions, specified by account IDs)
-
-_msg.value must be greater than or equal to the penalty fee of the rate limiter_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| txTreeRoot | bytes32 | The root of the transaction tree |
-| expiry | uint64 | The expiry timestamp of the tx tree root. Zero means no expiry. |
-| builderNonce | uint32 | The non registration block nonce of the block builder |
-| senderFlags | bytes16 | Sender flags |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key |
-| aggregatedSignature | bytes32[4] | The aggregated signature |
-| messagePoint | bytes32[4] | The hash of the tx tree root to G2 |
-| publicKeysHash | bytes32 | The hash of the public keys |
-| senderAccountIds | bytes | The account IDs arranged in a byte sequence |
-
-### processDeposits
-
-```solidity
-function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
-```
-
-### withdrawPenaltyFee
-
-```solidity
-function withdrawPenaltyFee(address to) external
-```
-
-Withdraws the penalty fee from the Rollup contract
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| to | address | The address to which the penalty fee is transferred |
-
-### getLatestBlockNumber
-
-```solidity
-function getLatestBlockNumber() external view returns (uint32)
-```
-
-Get the block number of the latest posted block
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The latest block number |
-
-### getBlockHash
-
-```solidity
-function getBlockHash(uint32 blockNumber) external view returns (bytes32)
-```
-
-Get the block hash for a specific block number
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockNumber | uint32 | The block number to query |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the specified block |
-
-### getPenalty
-
-```solidity
-function getPenalty() external view returns (uint256)
-```
-
-Get current penalty fee for rate limiter
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The penalty fee for next block |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address) internal
-```
-
-## BlockHashLib
-
-### pushGenesisBlockHash
-
-```solidity
-function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
-```
-
-Pushes the genesis block hash to the block hashes array
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-| initialDepositTreeRoot | bytes32 | The initial deposit tree root for the genesis block |
-
-### getBlockNumber
-
-```solidity
-function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
-```
-
-Gets the current block number based on the number of block hashes
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The memory array of block hashes |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint32 | The current block number |
-
-### getPrevHash
-
-```solidity
-function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
-```
-
-Gets the hash of the previous block
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The memory array of block hashes |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The hash of the previous block |
-
-### pushBlockHash
-
-```solidity
-function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
-```
-
-Pushes a new block hash to the block hashes array
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-| depositTreeRoot | bytes32 | The deposit tree root for the new block |
-| signatureHash | bytes32 | The signature hash for the new block |
-| timestamp | uint64 |  |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHash | bytes32 | The newly calculated and pushed block hash |
-
-## DepositTreeLib
-
-Library for managing a sparse Merkle tree for deposits
-
-_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol_
-
-### MerkleTreeFull
-
-```solidity
-error MerkleTreeFull()
-```
-
-Error thrown when the Merkle tree is full
-
-### _DEPOSIT_CONTRACT_TREE_DEPTH
-
-```solidity
-uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
-```
-
-_Depth of the Merkle tree_
-
-### DepositTree
-
-Structure representing the deposit tree
-
-```solidity
-struct DepositTree {
-  bytes32[32] _branch;
-  uint256 depositCount;
-  bytes32 defaultHash;
-}
-```
-
-### _MAX_DEPOSIT_COUNT
-
-```solidity
-uint256 _MAX_DEPOSIT_COUNT
-```
-
-_Maximum number of deposits (ensures depositCount fits into 32 bits)_
-
-### initialize
-
-```solidity
-function initialize(struct DepositTreeLib.DepositTree depositTree) internal
-```
-
-Initializes the deposit tree
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-### getRoot
-
-```solidity
-function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
-```
-
-Computes and returns the Merkle root
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | The computed Merkle root |
-
-### deposit
-
-```solidity
-function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
-```
-
-Adds a new leaf to the Merkle tree
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-| leafHash | bytes32 | The hash of the new leaf to be added |
-
-### getBranch
-
-```solidity
-function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
-```
-
-Retrieves the current branch of the Merkle tree
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32[32] | The current branch of the Merkle tree |
-
-## PairingLib
-
-### PairingOpCodeFailed
-
-```solidity
-error PairingOpCodeFailed()
-```
-
-Error thrown when the pairing operation fails
-
-### NEG_G1_X
-
-```solidity
-uint256 NEG_G1_X
-```
-
-_X-coordinate of the negated generator point G1_
-
-### NEG_G1_Y
-
-```solidity
-uint256 NEG_G1_Y
-```
-
-_Y-coordinate of the negated generator point G1_
-
-### pairing
-
-```solidity
-function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
-```
-
-Performs an elliptic curve pairing operation
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements) |
-| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements) |
-| messagePoint | bytes32[4] | The message point (4 32-byte elements) |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool True if the pairing is valid, false otherwise |
-
-## RateLimiterLib
-
-A library for implementing a rate limiting mechanism with exponential moving average (EMA)
-
-### RateLimitState
-
-Struct to store the state of the rate limiter
-
-```solidity
-struct RateLimitState {
-  uint256 lastCallTime;
-  UD60x18 emaInterval;
-}
-```
-
-### TARGET_INTERVAL
-
-```solidity
-uint256 TARGET_INTERVAL
-```
-
-### ALPHA
-
-```solidity
-uint256 ALPHA
-```
-
-### K
-
-```solidity
-uint256 K
-```
-
-### update
-
-```solidity
-function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
-```
-
-Updates the rate limiter state and calculates the penalty.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter. |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The calculated penalty. |
-
-### getPenalty
-
-```solidity
-function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
-```
-
-Computes the penalty that would be applied by update, without changing state.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter. |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The calculated penalty. |
+| authorized | bool | Returns true if the user is authorized to perform the action, false otherwise |
 
 ## PredicatePermitter
 
+Implementation of IPermitter that uses Predicate Protocol for permission validation
+
+_Leverages Predicate Protocol's policy-based authorization system to validate user permissions_
+
 ### AddressZero
 
 ```solidity
 error AddressZero()
 ```
 
-address is zero address
+Error thrown when an address parameter is the zero address
+
+_Used in initialize function to validate admin and predicateManager addresses_
 
 ### PolicyIDEmpty
 
@@ -3605,7 +2997,9 @@ address is zero address
 error PolicyIDEmpty()
 ```
 
-policy id is empty
+Error thrown when the policy ID string is empty
+
+_Used in initialize function to validate the policyID parameter_
 
 ### PolicySet
 
@@ -3613,7 +3007,15 @@ policy id is empty
 event PolicySet(string policyID)
 ```
 
-Emitted when the policy is set
+Emitted when the Predicate policy ID is set or updated
+
+_Triggered in initialize and setPolicy functions_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| policyID | string | The new policy ID that was set |
 
 ### PredicateManagerSet
 
@@ -3621,7 +3023,15 @@ Emitted when the policy is set
 event PredicateManagerSet(address predicateManager)
 ```
 
-Emitted when the predicate manager is set
+Emitted when the Predicate manager address is set or updated
+
+_Triggered in initialize and setPredicateManager functions_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| predicateManager | address | The new Predicate manager address |
 
 ### constructor
 
@@ -3635,28 +3045,42 @@ constructor() public
 function initialize(address _admin, address _predicateManager, string policyID) external
 ```
 
+Initializes the PredicatePermitter contract
+
+_Sets up the initial state with admin, Predicate manager, and policy ID_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address that will be granted ownership of the contract |
+| _predicateManager | address | Address of the Predicate Protocol manager contract |
+| policyID | string | The policy ID string used for permission validation |
+
 ### permit
 
 ```solidity
 function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool)
 ```
 
-Validates if a user has the right to execute a specified action
+Validates if a user has permission to execute a specified action
+
+_Decodes the permission data as a PredicateMessage and uses Predicate Protocol for validation_
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | user | address | The address of the user attempting the action |
-| value | uint256 | The msg.value of the transaction |
-| encodedData | bytes | The encoded data of the action that user wants to execute |
-| permission | bytes | The permission data that proves user authorization |
+| value | uint256 | The msg.value of the transaction being authorized |
+| encodedData | bytes | The encoded function call data of the action |
+| permission | bytes | The permission data containing a PredicateMessage |
 
 #### Return Values
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| [0] | bool |  |
+| [0] | bool | Boolean indicating whether the user is authorized |
 
 ### setPolicy
 
@@ -3693,8 +3117,1419 @@ _Only the owner can call this function_
 ### _authorizeUpgrade
 
 ```solidity
-function _authorizeUpgrade(address) internal
+function _authorizeUpgrade(address newImplementation) internal
 ```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## IRollup
+
+Interface for the Intmax2 L2 rollup contract
+
+_Defines the external functions, events, and errors for the Rollup contract_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when a required address parameter is the zero address
+
+_Used in initialize function to validate address parameters_
+
+### OnlyScrollMessenger
+
+```solidity
+error OnlyScrollMessenger()
+```
+
+Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
+
+_Used to enforce cross-chain message security_
+
+### OnlyLiquidity
+
+```solidity
+error OnlyLiquidity()
+```
+
+Error thrown when the xDomainMessageSender in ScrollMessenger is not the liquidity contract
+
+_Used to ensure only the authorized Liquidity contract can send cross-chain messages_
+
+### TooManySenderPublicKeys
+
+```solidity
+error TooManySenderPublicKeys()
+```
+
+Error thrown when the number of public keys exceeds 128
+
+_Used to limit the size of registration blocks_
+
+### TooManyAccountIds
+
+```solidity
+error TooManyAccountIds()
+```
+
+Error thrown when the number of account IDs exceeds 128
+
+_Used to limit the size of non-registration blocks_
+
+### SenderAccountIdsInvalidLength
+
+```solidity
+error SenderAccountIdsInvalidLength()
+```
+
+Error thrown when the length of account IDs bytes is not a multiple of 5
+
+_Each account ID must be exactly 5 bytes_
+
+### PairingCheckFailed
+
+```solidity
+error PairingCheckFailed()
+```
+
+Error thrown when the posted block fails the pairing test
+
+_Indicates an invalid signature or incorrect message point_
+
+### BlockNumberOutOfRange
+
+```solidity
+error BlockNumberOutOfRange()
+```
+
+Error thrown when the specified block number is greater than the latest block number
+
+_Used in getBlockHash to prevent accessing non-existent blocks_
+
+### InsufficientPenaltyFee
+
+```solidity
+error InsufficientPenaltyFee()
+```
+
+Error thrown when the fee for the rate limiter is insufficient
+
+_The msg.value must cover the penalty calculated by the rate limiter_
+
+### Expired
+
+```solidity
+error Expired()
+```
+
+Error thrown when the expiry timestamp is in the past
+
+_Block expiry timestamps must be in the future or zero (no expiry)_
+
+### InvalidNonce
+
+```solidity
+error InvalidNonce()
+```
+
+Error thrown when the given nonce is less than the current nonce
+
+_Nonces must be monotonically increasing to prevent replay attacks_
+
+### DepositsProcessed
+
+```solidity
+event DepositsProcessed(uint256 lastProcessedDepositId, bytes32 depositTreeRoot)
+```
+
+Event emitted when deposits bridged from the liquidity contract are processed
+
+_Triggered when the processDeposits function is called by the Liquidity contract_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
+| depositTreeRoot | bytes32 | The new root of the deposit tree after processing |
+
+### DepositLeafInserted
+
+```solidity
+event DepositLeafInserted(uint32 depositIndex, bytes32 depositHash)
+```
+
+Event emitted when a deposit is inserted into the deposit tree
+
+_Emitted for each deposit processed in the processDeposits function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositIndex | uint32 | The index of the deposit in the deposit tree |
+| depositHash | bytes32 | The hash of the deposit data |
+
+### BlockPosted
+
+```solidity
+event BlockPosted(bytes32 prevBlockHash, address blockBuilder, uint64 timestamp, uint256 blockNumber, bytes32 depositTreeRoot, bytes32 signatureHash)
+```
+
+Event emitted when a new block is posted to the rollup chain
+
+_Contains all essential information about the newly posted block_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| prevBlockHash | bytes32 | The hash of the previous block in the chain |
+| blockBuilder | address | The address of the block builder who submitted the block |
+| timestamp | uint64 | The timestamp when the block was posted |
+| blockNumber | uint256 | The sequential number of the posted block |
+| depositTreeRoot | bytes32 | The root of the deposit tree at the time of block posting |
+| signatureHash | bytes32 | The hash of the block signature data |
+
+### BlockPostData
+
+Struct to store block data to avoid stack too deep errors
+
+_Used in the internal _postBlock function to organize block parameters_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct BlockPostData {
+  bool isRegistrationBlock;
+  bytes32 txTreeRoot;
+  uint64 expiry;
+  address builderAddress;
+  uint32 builderNonce;
+  bytes16 senderFlags;
+  bytes32[2] aggregatedPublicKey;
+  bytes32[4] aggregatedSignature;
+  bytes32[4] messagePoint;
+}
+```
+
+### postRegistrationBlock
+
+```solidity
+function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
+```
+
+Posts a registration block for senders' first transactions
+
+_Registration blocks include the public keys of new senders_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| txTreeRoot | bytes32 | The root of the transaction Merkle tree |
+| expiry | uint64 | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce | uint32 | The registration block nonce of the block builder |
+| senderFlags | bytes16 | Flags indicating which senders' signatures are included |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders |
+| messagePoint | bytes32[4] | The hash of the tx tree root mapped to G2 curve point |
+| senderPublicKeys | uint256[] | Array of public keys for new senders (max 128) |
+
+### postNonRegistrationBlock
+
+```solidity
+function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
+```
+
+Posts a non-registration block for senders' subsequent transactions
+
+_Non-registration blocks use account IDs instead of full public keys_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| txTreeRoot | bytes32 | The root of the transaction Merkle tree |
+| expiry | uint64 | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce | uint32 | The non-registration block nonce of the block builder |
+| senderFlags | bytes16 | Flags indicating which senders' signatures are included |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders |
+| messagePoint | bytes32[4] | The hash of the tx tree root mapped to G2 curve point |
+| publicKeysHash | bytes32 | The hash of the public keys used in this block |
+| senderAccountIds | bytes | Byte array of account IDs (5 bytes per account) |
+
+### withdrawPenaltyFee
+
+```solidity
+function withdrawPenaltyFee(address to) external
+```
+
+Withdraws accumulated penalty fees from the Rollup contract
+
+_Only the contract owner can call this function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| to | address | The address to which the penalty fees will be transferred |
+
+### processDeposits
+
+```solidity
+function processDeposits(uint256 lastProcessedDepositId, bytes32[] depositHashes) external
+```
+
+Processes deposits from the Liquidity contract
+
+_Can only be called by the Liquidity contract via Scroll Messenger_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| lastProcessedDepositId | uint256 | The ID of the last processed deposit |
+| depositHashes | bytes32[] | Array of hashes for the deposits to be processed |
+
+### getLatestBlockNumber
+
+```solidity
+function getLatestBlockNumber() external view returns (uint32)
+```
+
+Gets the block number of the latest posted block
+
+_Returns the highest block number in the rollup chain_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint32 | The latest block number (zero-based) |
+
+### getPenalty
+
+```solidity
+function getPenalty() external view returns (uint256)
+```
+
+Gets the current penalty fee required by the rate limiter
+
+_Calculated based on the exponential moving average of block intervals_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The penalty fee in wei required for the next block submission |
+
+### getBlockHash
+
+```solidity
+function getBlockHash(uint32 blockNumber) external view returns (bytes32)
+```
+
+Gets the block hash for a specific block number
+
+_Reverts if the block number is out of range_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockNumber | uint32 | The block number to query |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | The hash of the specified block |
+
+## Rollup
+
+Implementation of the Intmax2 L2 rollup contract
+
+_Manages block submission, deposit processing, and maintains the state of the rollup chain_
+
+### lastProcessedDepositId
+
+```solidity
+uint256 lastProcessedDepositId
+```
+
+The ID of the last processed deposit from the Liquidity contract
+
+_Used to track which deposits have been included in the deposit tree_
+
+### blockHashes
+
+```solidity
+bytes32[] blockHashes
+```
+
+Array of block hashes in the rollup chain
+
+_Index 0 contains the genesis block hash_
+
+### builderRegistrationNonce
+
+```solidity
+mapping(address => uint32) builderRegistrationNonce
+```
+
+Mapping of block builder addresses to their current nonce for registration blocks
+
+_Used to prevent replay attacks and ensure block ordering_
+
+### builderNonRegistrationNonce
+
+```solidity
+mapping(address => uint32) builderNonRegistrationNonce
+```
+
+Mapping of block builder addresses to their current nonce for non-registration blocks
+
+_Used to prevent replay attacks and ensure block ordering_
+
+### depositTreeRoot
+
+```solidity
+bytes32 depositTreeRoot
+```
+
+Current root of the deposit Merkle tree
+
+_Updated whenever new deposits are processed_
+
+### depositIndex
+
+```solidity
+uint32 depositIndex
+```
+
+Current index for the next deposit in the deposit tree
+
+_Incremented for each processed deposit_
+
+### onlyLiquidityContract
+
+```solidity
+modifier onlyLiquidityContract()
+```
+
+Modifier to restrict function access to the Liquidity contract via ScrollMessenger
+
+_Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution) external
+```
+
+Initializes the Rollup contract
+
+_Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address that will be granted ownership of the contract |
+| _scrollMessenger | address | Address of the L2 ScrollMessenger contract |
+| _liquidity | address | Address of the Liquidity contract on L1 |
+| _contribution | address | Address of the Contribution contract |
+
+### postRegistrationBlock
+
+```solidity
+function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
+```
+
+Posts a registration block for senders' first transactions
+
+_Registration blocks include the public keys of new senders_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| txTreeRoot | bytes32 | The root of the transaction Merkle tree |
+| expiry | uint64 | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce | uint32 | The registration block nonce of the block builder |
+| senderFlags | bytes16 | Flags indicating which senders' signatures are included |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders |
+| messagePoint | bytes32[4] | The hash of the tx tree root mapped to G2 curve point |
+| senderPublicKeys | uint256[] | Array of public keys for new senders (max 128) |
+
+### postNonRegistrationBlock
+
+```solidity
+function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
+```
+
+Posts a non-registration block for senders' subsequent transactions
+
+_Non-registration blocks use account IDs instead of full public keys_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| txTreeRoot | bytes32 | The root of the transaction Merkle tree |
+| expiry | uint64 | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce | uint32 | The non-registration block nonce of the block builder |
+| senderFlags | bytes16 | Flags indicating which senders' signatures are included |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders |
+| messagePoint | bytes32[4] | The hash of the tx tree root mapped to G2 curve point |
+| publicKeysHash | bytes32 | The hash of the public keys used in this block |
+| senderAccountIds | bytes | Byte array of account IDs (5 bytes per account) |
+
+### processDeposits
+
+```solidity
+function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
+```
+
+### withdrawPenaltyFee
+
+```solidity
+function withdrawPenaltyFee(address to) external
+```
+
+Withdraws accumulated penalty fees from the Rollup contract
+
+_Only the contract owner can call this function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| to | address | The address to which the penalty fees will be transferred |
+
+### getLatestBlockNumber
+
+```solidity
+function getLatestBlockNumber() external view returns (uint32)
+```
+
+Gets the block number of the latest posted block
+
+_Returns the highest block number in the rollup chain_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint32 | The latest block number (zero-based) |
+
+### getBlockHash
+
+```solidity
+function getBlockHash(uint32 blockNumber) external view returns (bytes32)
+```
+
+Gets the block hash for a specific block number
+
+_Reverts if the block number is out of range_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockNumber | uint32 | The block number to query |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | The hash of the specified block |
+
+### getPenalty
+
+```solidity
+function getPenalty() external view returns (uint256)
+```
+
+Gets the current penalty fee required by the rate limiter
+
+_Calculated based on the exponential moving average of block intervals_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The penalty fee in wei required for the next block submission |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## BlockHashLib
+
+Library for managing block hashes in the Intmax2 rollup chain
+
+_Provides utilities for calculating, storing, and retrieving block hashes_
+
+### pushGenesisBlockHash
+
+```solidity
+function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
+```
+
+Pushes the genesis block hash to the block hashes array
+
+_Creates the first block hash with special parameters for the genesis block_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+| initialDepositTreeRoot | bytes32 | The initial deposit tree root for the genesis block |
+
+### getBlockNumber
+
+```solidity
+function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
+```
+
+Gets the current block number based on the number of block hashes
+
+_The block number is equal to the length of the blockHashes array_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint32 | The current block number (length of the blockHashes array) |
+
+### getPrevHash
+
+```solidity
+function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
+```
+
+Gets the hash of the previous block
+
+_Returns the last element in the blockHashes array_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | The hash of the previous block |
+
+### pushBlockHash
+
+```solidity
+function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
+```
+
+Pushes a new block hash to the block hashes array
+
+_Calculates the block hash based on inputs and appends it to the array_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+| depositTreeRoot | bytes32 | The deposit tree root for the new block |
+| signatureHash | bytes32 | The signature hash for the new block |
+| timestamp | uint64 | The timestamp of the new block |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHash | bytes32 | The newly calculated and pushed block hash |
+
+## DepositTreeLib
+
+Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
+
+_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
+Implements an incremental Merkle tree for efficiently tracking deposits_
+
+### MerkleTreeFull
+
+```solidity
+error MerkleTreeFull()
+```
+
+Error thrown when the Merkle tree is full
+
+_Thrown when attempting to add a deposit to a tree that has reached its maximum capacity_
+
+### _DEPOSIT_CONTRACT_TREE_DEPTH
+
+```solidity
+uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
+```
+
+Depth of the Merkle tree
+
+_The tree has a maximum of 2^32 - 1 leaves_
+
+### DepositTree
+
+Structure representing the deposit tree
+
+_Contains the branch nodes, deposit count, and default hash for empty nodes_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct DepositTree {
+  bytes32[32] _branch;
+  uint256 depositCount;
+  bytes32 defaultHash;
+}
+```
+
+### _MAX_DEPOSIT_COUNT
+
+```solidity
+uint256 _MAX_DEPOSIT_COUNT
+```
+
+Maximum number of deposits allowed in the tree
+
+_Ensures depositCount fits into 32 bits (2^32 - 1)_
+
+### initialize
+
+```solidity
+function initialize(struct DepositTreeLib.DepositTree depositTree) internal
+```
+
+Initializes the deposit tree with default values
+
+_Sets up the default hash using an empty Deposit struct_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+### getRoot
+
+```solidity
+function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
+```
+
+Computes and returns the current Merkle root
+
+_Calculates the root by combining branch nodes with zero hashes_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | The computed Merkle root hash |
+
+### deposit
+
+```solidity
+function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
+```
+
+Adds a new leaf to the Merkle tree
+
+_Updates the appropriate branch node and increments the deposit count_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+| leafHash | bytes32 | The hash of the new deposit leaf to be added |
+
+### getBranch
+
+```solidity
+function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
+```
+
+Retrieves the current branch nodes of the Merkle tree
+
+_Used for generating Merkle proofs or debugging_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32[32] | Array of branch node hashes at each height of the tree |
+
+## PairingLib
+
+Library for elliptic curve pairing operations used in signature verification
+
+_Provides utilities for verifying BLS signatures using the precompiled pairing contract_
+
+### PairingOpCodeFailed
+
+```solidity
+error PairingOpCodeFailed()
+```
+
+Error thrown when the elliptic curve pairing operation fails
+
+_This can happen if the precompiled contract call fails or returns an invalid result_
+
+### NEG_G1_X
+
+```solidity
+uint256 NEG_G1_X
+```
+
+X-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### NEG_G1_Y
+
+```solidity
+uint256 NEG_G1_Y
+```
+
+Y-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### pairing
+
+```solidity
+function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
+```
+
+Performs an elliptic curve pairing operation to verify a BLS signature
+
+_Uses the precompiled contract at address 8 to perform the pairing check_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements representing a G1 point) |
+| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements representing a G2 point) |
+| messagePoint | bytes32[4] | The message point (4 32-byte elements representing a G2 point) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | bool True if the signature is valid (pairing check passes), false otherwise |
+
+## RateLimiterLib
+
+A library for implementing a rate limiting mechanism with exponential moving average (EMA)
+
+_Uses fixed-point arithmetic to calculate penalties for rapid block submissions_
+
+### RateLimitState
+
+Struct to store the state of the rate limiter
+
+_Tracks the last call time and the exponential moving average of intervals_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct RateLimitState {
+  uint256 lastCallTime;
+  UD60x18 emaInterval;
+}
+```
+
+### TARGET_INTERVAL
+
+```solidity
+uint256 TARGET_INTERVAL
+```
+
+Constants for the rate limiter (using fixed-point representation)
+
+_These values control the behavior of the rate limiting mechanism_
+
+### ALPHA
+
+```solidity
+uint256 ALPHA
+```
+
+### K
+
+```solidity
+uint256 K
+```
+
+### update
+
+```solidity
+function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
+```
+
+Updates the rate limiter state and calculates the penalty
+
+_Updates lastCallTime and emaInterval, then returns the penalty_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The calculated penalty fee in wei |
+
+### getPenalty
+
+```solidity
+function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
+```
+
+Computes the penalty that would be applied by update, without changing state
+
+_Useful for checking the penalty before actually updating the state_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The calculated penalty fee in wei |
+
+## IWithdrawal
+
+Interface for the Withdrawal contract that processes withdrawals from L2 to L1
+
+_Defines the functions, events, and errors for handling withdrawal proofs and token management_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when a required address parameter is the zero address
+
+_Used in initialize function to validate address parameters_
+
+### WithdrawalChainVerificationFailed
+
+```solidity
+error WithdrawalChainVerificationFailed()
+```
+
+Error thrown when the verification of the withdrawal proof's public input hash chain fails
+
+_Indicates that the chain of withdrawal hashes doesn't match the expected final hash_
+
+### WithdrawalAggregatorMismatch
+
+```solidity
+error WithdrawalAggregatorMismatch()
+```
+
+Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
+
+_Ensures that only the designated aggregator can submit the proof_
+
+### BlockHashNotExists
+
+```solidity
+error BlockHashNotExists(bytes32 blockHash)
+```
+
+Error thrown when the block hash in the withdrawal proof's public input doesn't exist
+
+_Ensures that withdrawals reference valid blocks in the rollup chain_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHash | bytes32 | The non-existent block hash that caused the error |
+
+### WithdrawalProofVerificationFailed
+
+```solidity
+error WithdrawalProofVerificationFailed()
+```
+
+Error thrown when the zero-knowledge proof verification fails
+
+_Indicates an invalid or malformed withdrawal proof_
+
+### TokenAlreadyExist
+
+```solidity
+error TokenAlreadyExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to add a token to direct withdrawal tokens that already exists
+
+_Prevents duplicate entries in the direct withdrawal token list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndex | uint256 | The index of the token that already exists in the direct withdrawal list |
+
+### TokenNotExist
+
+```solidity
+error TokenNotExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
+
+_Ensures that only tokens in the direct withdrawal list can be removed_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndex | uint256 | The index of the non-existent token in the direct withdrawal list |
+
+### ClaimableWithdrawalQueued
+
+```solidity
+event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a claimable withdrawal is queued
+
+_Triggered for withdrawals of tokens not in the direct withdrawal list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
+| recipient | address | The L1 address of the recipient |
+| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
+
+### DirectWithdrawalQueued
+
+```solidity
+event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a direct withdrawal is queued
+
+_Triggered for withdrawals of tokens in the direct withdrawal list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
+| recipient | address | The L1 address of the recipient |
+| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
+
+### DirectWithdrawalTokenIndicesAdded
+
+```solidity
+event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
+```
+
+Emitted when token indices are added to the direct withdrawal list
+
+_Triggered by the addDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | Array of token indices that were added to the direct withdrawal list |
+
+### DirectWithdrawalTokenIndicesRemoved
+
+```solidity
+event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
+```
+
+Emitted when token indices are removed from the direct withdrawal list
+
+_Triggered by the removeDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | Array of token indices that were removed from the direct withdrawal list |
+
+### submitWithdrawalProof
+
+```solidity
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+```
+
+Submit and verify a withdrawal proof from Intmax2 L2
+
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof | bytes | The zero-knowledge proof data |
+
+### getDirectWithdrawalTokenIndices
+
+```solidity
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+```
+
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256[] | An array of token indices that can be withdrawn directly |
+
+### addDirectWithdrawalTokenIndices
+
+```solidity
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+
+### removeDirectWithdrawalTokenIndices
+
+```solidity
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Remove token indices from the list of direct withdrawal token indices
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+
+## Withdrawal
+
+Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
+
+_Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
+
+### directWithdrawalTokenIndices
+
+```solidity
+struct EnumerableSet.UintSet directWithdrawalTokenIndices
+```
+
+Set of token indices that can be withdrawn directly
+
+_Tokens not in this set will be processed as claimable withdrawals_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
+```
+
+Initializes the Withdrawal contract
+
+_Sets up the initial state with required contract references and token indices_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address that will be granted ownership of the contract |
+| _scrollMessenger | address | Address of the L2 ScrollMessenger contract |
+| _withdrawalVerifier | address | Address of the PLONK verifier for withdrawal proofs |
+| _liquidity | address | Address of the Liquidity contract on L1 |
+| _rollup | address | Address of the Rollup contract |
+| _contribution | address | Address of the Contribution contract |
+| _directWithdrawalTokenIndices | uint256[] | Initial list of token indices for direct withdrawals |
+
+### submitWithdrawalProof
+
+```solidity
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+```
+
+Submit and verify a withdrawal proof from Intmax2 L2
+
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof | bytes | The zero-knowledge proof data |
+
+### getDirectWithdrawalTokenIndices
+
+```solidity
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+```
+
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256[] | An array of token indices that can be withdrawn directly |
+
+### addDirectWithdrawalTokenIndices
+
+```solidity
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+
+### removeDirectWithdrawalTokenIndices
+
+```solidity
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Remove token indices from the list of direct withdrawal token indices
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## ChainedWithdrawalLib
+
+Library for handling chained withdrawals in a hash chain
+
+_Provides utilities for creating and verifying a chain of withdrawal hashes
+used in zero-knowledge proof verification_
+
+### ChainedWithdrawal
+
+Represents a withdrawal linked in a hash chain
+
+_Contains all necessary information for processing a withdrawal and verifying its inclusion in a block_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct ChainedWithdrawal {
+  address recipient;
+  uint32 tokenIndex;
+  uint256 amount;
+  bytes32 nullifier;
+  bytes32 blockHash;
+  uint32 blockNumber;
+}
+```
+
+### verifyWithdrawalChain
+
+```solidity
+function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
+```
+
+Verifies the integrity of a withdrawal hash chain
+
+_Computes the hash chain from the provided withdrawals and compares it to the expected final hash_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify |
+| lastWithdrawalHash | bytes32 | The expected hash of the last withdrawal in the chain (from proof public inputs) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | bool True if the computed hash chain matches the expected final hash, false otherwise |
+
+## WithdrawalProofPublicInputsLib
+
+Library for handling public inputs of withdrawal zero-knowledge proofs
+
+_Provides utilities for working with the public inputs that are part of withdrawal proof verification_
+
+### WithdrawalProofPublicInputs
+
+Represents the public inputs for a withdrawal zero-knowledge proof
+
+_Contains the final hash of the withdrawal chain and the aggregator address_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct WithdrawalProofPublicInputs {
+  bytes32 lastWithdrawalHash;
+  address withdrawalAggregator;
+}
+```
+
+### getHash
+
+```solidity
+function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
+```
+
+Computes the hash of the WithdrawalProofPublicInputs
+
+_This hash is used as input to the zero-knowledge proof verification_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs struct to be hashed |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
 
 ## ClaimPlonkVerifier
 
@@ -3743,172 +4578,4 @@ Reverts if the proof or the public inputs are malformed.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | success | bool | true if the proof passes false otherwise |
-
-## Contribution
-
-### CONTRIBUTOR
-
-```solidity
-bytes32 CONTRIBUTOR
-```
-
-Role identifier for contracts that can record contributions
-
-### startTimestamp
-
-```solidity
-uint256 startTimestamp
-```
-
-start timestamp of the contribution period
-
-### periodInterval
-
-```solidity
-uint256 periodInterval
-```
-
-period interval
-
-### totalContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
-```
-
-Maps periods and tags to total contributions
-
-_period => tag => total contribution amount_
-
-### userContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
-```
-
-Maps periods, tags, and users to their individual contributions
-
-_period => tag => user address => contribution amount_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin, uint256 _periodInterval) external
-```
-
-### getCurrentPeriod
-
-```solidity
-function getCurrentPeriod() public view returns (uint256)
-```
-
-Gets the current period
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The current period |
-
-### recordContribution
-
-```solidity
-function recordContribution(bytes32 tag, address user, uint256 amount) external
-```
-
-Record a contribution for a specific tag and user.
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag associated with the contribution. |
-| user | address | The address of the user making the contribution. |
-| amount | uint256 | The amount of contribution to record. |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
-{upgradeToAndCall}.
-
-Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
-
-```solidity
-function _authorizeUpgrade(address) internal onlyOwner {}
-```_
-
-## BlockBuilderRegistry
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin) external
-```
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Emits a heartbeat for the block builder
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL of the block builder |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address) internal
-```
-
-## IBlockBuilderRegistry
-
-### BlockBuilderHeartbeat
-
-```solidity
-event BlockBuilderHeartbeat(address blockBuilder, string url)
-```
-
-Event emitted when a block builder is online
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockBuilder | address | The address of the updated block builder |
-| url | string | The URL of the block builder |
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Emits a heartbeat for the block builder
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL of the block builder |
 

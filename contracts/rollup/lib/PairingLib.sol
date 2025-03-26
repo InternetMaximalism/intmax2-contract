@@ -1,21 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+/**
+ * @title PairingLib
+ * @notice Library for elliptic curve pairing operations used in signature verification
+ * @dev Provides utilities for verifying BLS signatures using the precompiled pairing contract
+ */
 library PairingLib {
-	/// @notice Error thrown when the pairing operation fails
+	/**
+	 * @notice Error thrown when the elliptic curve pairing operation fails
+	 * @dev This can happen if the precompiled contract call fails or returns an invalid result
+	 */
 	error PairingOpCodeFailed();
 
-	/// @dev X-coordinate of the negated generator point G1
+	/**
+	 * @notice X-coordinate of the negated generator point G1
+	 * @dev Used in the pairing check to verify signatures
+	 */
 	uint256 internal constant NEG_G1_X = 1;
-	/// @dev Y-coordinate of the negated generator point G1
+	/**
+	 * @notice Y-coordinate of the negated generator point G1
+	 * @dev Used in the pairing check to verify signatures
+	 */
 	uint256 internal constant NEG_G1_Y =
 		21888242871839275222246405745257275088696311157297823662689037894645226208581;
 
-	/// @notice Performs an elliptic curve pairing operation
-	/// @param aggregatedPublicKey The aggregated public key (2 32-byte elements)
-	/// @param aggregatedSignature The aggregated signature (4 32-byte elements)
-	/// @param messagePoint The message point (4 32-byte elements)
-	/// @return bool True if the pairing is valid, false otherwise
+	/**
+	 * @notice Performs an elliptic curve pairing operation to verify a BLS signature
+	 * @dev Uses the precompiled contract at address 8 to perform the pairing check
+	 * @param aggregatedPublicKey The aggregated public key (2 32-byte elements representing a G1 point)
+	 * @param aggregatedSignature The aggregated signature (4 32-byte elements representing a G2 point)
+	 * @param messagePoint The message point (4 32-byte elements representing a G2 point)
+	 * @return bool True if the signature is valid (pairing check passes), false otherwise
+	 */
 	function pairing(
 		bytes32[2] calldata aggregatedPublicKey,
 		bytes32[4] calldata aggregatedSignature,

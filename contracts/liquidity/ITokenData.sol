@@ -17,7 +17,7 @@ interface ITokenData {
 	 */
 	enum TokenType {
 		NATIVE, // ETH or native chain currency
-		ERC20,  // Fungible tokens following the ERC20 standard
+		ERC20, // Fungible tokens following the ERC20 standard
 		ERC721, // Non-fungible tokens following the ERC721 standard
 		ERC1155 // Semi-fungible tokens following the ERC1155 standard
 	}

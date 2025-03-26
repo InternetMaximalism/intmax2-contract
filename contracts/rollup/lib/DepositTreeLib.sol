@@ -3,29 +3,50 @@ pragma solidity 0.8.27;
 
 import {DepositLib} from "../../common/DepositLib.sol";
 
-/// @title DepositTreeLib
-/// @notice Library for managing a sparse Merkle tree for deposits
-/// @dev Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
+/**
+ * @title DepositTreeLib
+ * @notice Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
+ * @dev Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
+ * Implements an incremental Merkle tree for efficiently tracking deposits
+ */
 library DepositTreeLib {
-	/// @notice Error thrown when the Merkle tree is full
+	/**
+	 * @notice Error thrown when the Merkle tree is full
+	 * @dev Thrown when attempting to add a deposit to a tree that has reached its maximum capacity
+	 */
 	error MerkleTreeFull();
 
-	/// @dev Depth of the Merkle tree
+	/**
+	 * @notice Depth of the Merkle tree
+	 * @dev The tree has a maximum of 2^32 - 1 leaves
+	 */
 	uint256 internal constant _DEPOSIT_CONTRACT_TREE_DEPTH = 32;
 
-	/// @notice Structure representing the deposit tree
+	/**
+	 * @notice Structure representing the deposit tree
+	 * @dev Contains the branch nodes, deposit count, and default hash for empty nodes
+	 * @param _branch Array of branch nodes at each height of the tree
+	 * @param depositCount Total number of deposits added to the tree
+	 * @param defaultHash Hash value used for empty nodes
+	 */
 	struct DepositTree {
 		bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] _branch;
 		uint256 depositCount;
 		bytes32 defaultHash;
 	}
 
-	/// @dev Maximum number of deposits (ensures depositCount fits into 32 bits)
+	/**
+	 * @notice Maximum number of deposits allowed in the tree
+	 * @dev Ensures depositCount fits into 32 bits (2^32 - 1)
+	 */
 	uint256 internal constant _MAX_DEPOSIT_COUNT =
 		2 ** _DEPOSIT_CONTRACT_TREE_DEPTH - 1;
 
-	/// @notice Initializes the deposit tree
-	/// @param depositTree The storage reference to the DepositTree struct
+	/**
+	 * @notice Initializes the deposit tree with default values
+	 * @dev Sets up the default hash using an empty Deposit struct
+	 * @param depositTree The storage reference to the DepositTree struct
+	 */
 	function initialize(DepositTree storage depositTree) internal {
 		depositTree.defaultHash = DepositLib.getHash(
 			DepositLib.Deposit(
@@ -38,9 +59,12 @@ library DepositTreeLib {
 		);
 	}
 
-	/// @notice Computes and returns the Merkle root
-	/// @param depositTree The memory reference to the DepositTree struct
-	/// @return The computed Merkle root
+	/**
+	 * @notice Computes and returns the current Merkle root
+	 * @dev Calculates the root by combining branch nodes with zero hashes
+	 * @param depositTree The memory reference to the DepositTree struct
+	 * @return The computed Merkle root hash
+	 */
 	function getRoot(
 		DepositTree memory depositTree
 	) internal pure returns (bytes32) {
@@ -67,9 +91,12 @@ library DepositTreeLib {
 		return node;
 	}
 
-	/// @notice Adds a new leaf to the Merkle tree
-	/// @param depositTree The storage reference to the DepositTree struct
-	/// @param leafHash The hash of the new leaf to be added
+	/**
+	 * @notice Adds a new leaf to the Merkle tree
+	 * @dev Updates the appropriate branch node and increments the deposit count
+	 * @param depositTree The storage reference to the DepositTree struct
+	 * @param leafHash The hash of the new deposit leaf to be added
+	 */
 	function deposit(
 		DepositTree storage depositTree,
 		bytes32 leafHash
@@ -102,9 +129,12 @@ library DepositTreeLib {
 		assert(false);
 	}
 
-	/// @notice Retrieves the current branch of the Merkle tree
-	/// @param depositTree The storage reference to the DepositTree struct
-	/// @return The current branch of the Merkle tree
+	/**
+	 * @notice Retrieves the current branch nodes of the Merkle tree
+	 * @dev Used for generating Merkle proofs or debugging
+	 * @param depositTree The storage reference to the DepositTree struct
+	 * @return Array of branch node hashes at each height of the tree
+	 */
 	function getBranch(
 		DepositTree storage depositTree
 	) internal view returns (bytes32[_DEPOSIT_CONTRACT_TREE_DEPTH] memory) {

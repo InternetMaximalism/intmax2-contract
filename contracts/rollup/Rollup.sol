@@ -13,49 +13,97 @@ import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
 import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
 
+/**
+ * @title Rollup
+ * @notice Implementation of the Intmax2 L2 rollup contract
+ * @dev Manages block submission, deposit processing, and maintains the state of the rollup chain
+ */
 contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
 	using RateLimiterLib for RateLimiterLib.RateLimitState;
 
-	/// @notice The number of senders in a block
+	/**
+	 * @notice The maximum number of senders in a block
+	 * @dev Used to limit the size of blocks and for padding sender arrays
+	 */
 	uint256 private constant NUM_SENDERS_IN_BLOCK = 128;
-	/// @notice The number of bytes required to represent the account IDs of all senders in a block
+	/**
+	 * @notice The number of bytes required to represent the account IDs of all senders in a block
+	 * @dev Each account ID uses 5 bytes, so 128 senders require 640 bytes
+	 */
 	uint256 private constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
 
-	/// @notice liquidity contract address
+	/**
+	 * @notice Address of the Liquidity contract on L1
+	 * @dev Used to verify cross-chain messages from the Liquidity contract
+	 */
 	address private liquidity;
 
-	/// @notice The ID of the last processed deposit
+	/**
+	 * @notice The ID of the last processed deposit from the Liquidity contract
+	 * @dev Used to track which deposits have been included in the deposit tree
+	 */
 	uint256 public lastProcessedDepositId;
 
-	/// @notice block hashes
+	/**
+	 * @notice Array of block hashes in the rollup chain
+	 * @dev Index 0 contains the genesis block hash
+	 */
 	bytes32[] public blockHashes;
 
-	/// @notice block builder's nonce for registration block
+	/**
+	 * @notice Mapping of block builder addresses to their current nonce for registration blocks
+	 * @dev Used to prevent replay attacks and ensure block ordering
+	 */
 	mapping(address => uint32) public builderRegistrationNonce;
 
-	/// @notice block builder's nonce for non-registration block
+	/**
+	 * @notice Mapping of block builder addresses to their current nonce for non-registration blocks
+	 * @dev Used to prevent replay attacks and ensure block ordering
+	 */
 	mapping(address => uint32) public builderNonRegistrationNonce;
 
-	/// @notice L2 ScrollMessenger contract
+	/**
+	 * @notice Reference to the L2 ScrollMessenger contract
+	 * @dev Used for cross-chain communication with L1
+	 */
 	IL2ScrollMessenger private l2ScrollMessenger;
 
-	/// @notice contribution contract
+	/**
+	 * @notice Reference to the Contribution contract
+	 * @dev Used to record block builder contributions
+	 */
 	IContribution private contribution;
 
-	/// @notice deposit tree
+	/**
+	 * @notice Sparse Merkle tree for tracking deposits
+	 * @dev Maintains a cryptographic commitment to all processed deposits
+	 */
 	DepositTreeLib.DepositTree private depositTree;
 
-	/// @notice rate limiter state
+	/**
+	 * @notice State for the rate limiter that controls block submission frequency
+	 * @dev Uses exponential moving average to calculate penalties for rapid submissions
+	 */
 	RateLimiterLib.RateLimitState private rateLimitState;
 
-	/// @notice deposit tree root
+	/**
+	 * @notice Current root of the deposit Merkle tree
+	 * @dev Updated whenever new deposits are processed
+	 */
 	bytes32 public depositTreeRoot;
 
-	/// @notice deposit index
+	/**
+	 * @notice Current index for the next deposit in the deposit tree
+	 * @dev Incremented for each processed deposit
+	 */
 	uint32 public depositIndex;
 
+	/**
+	 * @notice Modifier to restrict function access to the Liquidity contract via ScrollMessenger
+	 * @dev Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract
+	 */
 	modifier onlyLiquidityContract() {
 		IL2ScrollMessenger l2ScrollMessengerCached = l2ScrollMessenger;
 		if (_msgSender() != address(l2ScrollMessengerCached)) {
@@ -72,6 +120,14 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		_disableInitializers();
 	}
 
+	/**
+	 * @notice Initializes the Rollup contract
+	 * @dev Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts
+	 * @param _admin Address that will be granted ownership of the contract
+	 * @param _scrollMessenger Address of the L2 ScrollMessenger contract
+	 * @param _liquidity Address of the Liquidity contract on L1
+	 * @param _contribution Address of the Contribution contract
+	 */
 	function initialize(
 		address _admin,
 		address _scrollMessenger,
@@ -215,6 +271,16 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		emit DepositsProcessed(_lastProcessedDepositId, newDepositTreeRoot);
 	}
 
+	/**
+	 * @notice Internal function to post a new block to the rollup chain
+	 * @dev Verifies the block data, updates state, and emits events
+	 * @param blockPostData Struct containing block data
+	 * @param publicKeysHash Hash of the sender public keys
+	 * @param accountIdsHash Hash of the sender account IDs
+	 * @param aggregatedPublicKey The aggregated public key for signature verification
+	 * @param aggregatedSignature The aggregated signature to verify
+	 * @param messagePoint The message point for pairing check
+	 */
 	function _postBlock(
 		BlockPostData memory blockPostData,
 		bytes32 publicKeysHash,
@@ -296,6 +362,10 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
+	/**
+	 * @notice Collects the penalty fee for rate limiting
+	 * @dev Updates the rate limiter state, verifies sufficient fee, and refunds excess
+	 */
 	function collectPenaltyFee() private {
 		uint256 penalty = rateLimitState.update();
 		if (penalty > msg.value) {
@@ -327,5 +397,12 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		return rateLimitState.getPenalty();
 	}
 
-	function _authorizeUpgrade(address) internal override onlyOwner {}
+	/**
+	 * @notice Authorizes an upgrade to a new implementation
+	 * @dev Can only be called by the contract owner
+	 * @param newImplementation Address of the new implementation contract
+	 */
+	function _authorizeUpgrade(
+		address newImplementation
+	) internal override onlyOwner {}
 }

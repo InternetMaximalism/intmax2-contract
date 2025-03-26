@@ -8,13 +8,16 @@ library AllocationLib {
 	uint256 public constant NUM_PHASES = 7;
 	uint256 public constant PHASE0_PERIOD = 16;
 
-	/// @notice Emitted when an invalid deposit amount is provided
+	/// @notice Error emitted when an invalid deposit amount is provided
+	/// @dev Thrown when the deposit amount is not one of the allowed values
 	error InvalidDepositAmount();
 
-	/// @notice Emitted when an attempt is made to consume allocations for the current period
+	/// @notice Error emitted when an attempt is made to consume allocations for the current period
+	/// @dev Allocations can only be consumed for completed periods
 	error NotFinishedPeriod();
 
-	/// @notice Emitted when the period interval is zero
+	/// @notice Error emitted when the period interval is zero
+	/// @dev Period interval must be greater than zero
 	error periodIntervalZero();
 
 	/// @notice Emitted when a contribution is recorded
@@ -69,8 +72,9 @@ library AllocationLib {
 		uint256 userAllocation;
 	}
 
-	/// @notice Initializes the allocation state
-	/// @param state The allocation state
+	/// @notice Initializes the allocation state with the given period interval
+	/// @dev Sets up the start timestamp aligned to period boundaries
+	/// @param state The allocation state to initialize
 	function initialize(State storage state, uint256 periodInterval) internal {
 		if (periodInterval == 0) {
 			revert periodIntervalZero();
@@ -87,10 +91,11 @@ library AllocationLib {
 		}
 	}
 
-	/// @notice Records a user's contribution
-	/// @param state The allocation state
-	/// @param recipient The address of the recipient
-	/// @param depositAmount The amount of the deposit
+	/// @notice Records a user's contribution for the current period
+	/// @dev Calculates contribution points based on deposit amount and updates state
+	/// @param state The allocation state to update
+	/// @param recipient The address of the recipient who made the contribution
+	/// @param depositAmount The amount of the deposit in wei
 	function recordContribution(
 		State storage state,
 		address recipient,
@@ -108,11 +113,12 @@ library AllocationLib {
 		);
 	}
 
-	/// @notice Gets the user's allocation for a period
-	/// @param state The allocation state
-	/// @param periodNumber The period number
-	/// @param user The user's address
-	/// @return The user's allocation
+	/// @notice Gets the user's token allocation for a specific period
+	/// @dev Calculates the user's share of the period's total allocation based on their contribution
+	/// @param state The allocation state to query
+	/// @param periodNumber The period number to get allocation for
+	/// @param user The user's address to get allocation for
+	/// @return The user's token allocation amount
 	function getUserAllocation(
 		State storage state,
 		uint256 periodNumber,
@@ -127,11 +133,12 @@ library AllocationLib {
 			state.totalContributions[periodNumber];
 	}
 
-	/// @notice Consumes a user's allocation for a period
-	/// @param state The allocation state
-	/// @param periodNumber The period number
-	/// @param user The user's address
-	/// @return The user's allocation
+	/// @notice Consumes a user's allocation for a completed period
+	/// @dev Retrieves the user's allocation and resets their contribution to zero
+	/// @param state The allocation state to update
+	/// @param periodNumber The period number to consume allocation for
+	/// @param user The user's address to consume allocation for
+	/// @return The user's token allocation amount
 	function consumeUserAllocation(
 		State storage state,
 		uint256 periodNumber,
@@ -145,10 +152,11 @@ library AllocationLib {
 		return userAllocation;
 	}
 
-	/// @notice Gets the allocation per period
-	/// @param state The allocation state
-	/// @param periodNumber The period number
-	/// @return The allocation per period
+	/// @notice Gets the total token allocation for a specific period
+	/// @dev Calculates the allocation based on the reward schedule and period duration
+	/// @param state The allocation state to query
+	/// @param periodNumber The period number to get allocation for
+	/// @return The total token allocation for the period
 	function getAllocationPerPeriod(
 		State storage state,
 		uint256 periodNumber
@@ -188,9 +196,10 @@ library AllocationLib {
 		return 0;
 	}
 
-	/// @notice Calculates the contribution for a deposit amount
-	/// @param amount The deposit amount
-	/// @return The calculated contribution
+	/// @notice Calculates the contribution points for a deposit amount
+	/// @dev Maps specific deposit amounts to contribution point values
+	/// @param amount The deposit amount in wei
+	/// @return The calculated contribution points
 	function calculateContribution(
 		uint256 amount
 	) internal pure returns (uint256) {
@@ -207,9 +216,10 @@ library AllocationLib {
 		}
 	}
 
-	/// @notice Gets the current period
-	/// @param state The allocation state
-	/// @return The current period
+	/// @notice Gets the current period number based on the current timestamp
+	/// @dev Calculates the number of periods elapsed since the start timestamp
+	/// @param state The allocation state to query
+	/// @return The current period number
 	function getCurrentPeriod(
 		State storage state
 	) internal view returns (uint256) {
