@@ -13,6 +13,9 @@ const defaultRateLimitK = fixedPointOne / 1000n // 0.001
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	ADMIN_PRIVATE_KEY: str({
+		default: '',
+	}),
 	SLEEP_TIME: num({
 		default: 10,
 	}),
@@ -97,11 +100,7 @@ async function main() {
 		await tx.wait()
 		console.log('Rollup initialized')
 		await sleep(env.SLEEP_TIME)
-		if (env.GRANT_ROLE) {
-			await l2Contribution.grantRole(contributorRole, rollup)
-			console.log('Role granted')
-			await sleep(env.SLEEP_TIME)
-		}
+
 	}
 	if ((await withdrawal.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -118,11 +117,6 @@ async function main() {
 		await tx.wait()
 		console.log('Withdrawal initialized')
 		await sleep(env.SLEEP_TIME)
-		if (env.GRANT_ROLE) {
-			await l2Contribution.grantRole(contributorRole, withdrawal)
-			console.log('Role granted')
-			await sleep(env.SLEEP_TIME)
-		}
 	}
 	if ((await claim.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -139,11 +133,6 @@ async function main() {
 		await tx.wait()
 		console.log('Claim initialized')
 		await sleep(env.SLEEP_TIME)
-		if (env.GRANT_ROLE) {
-			await l2Contribution.grantRole(contributorRole, claim)
-			console.log('Role granted')
-			await sleep(env.SLEEP_TIME)
-		}
 	}
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -151,6 +140,30 @@ async function main() {
 		const tx = await registry.initialize(admin)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
+	}
+
+	if (env.GRANT_ROLE) {
+		console.log('Granting role to l2Contribution')
+		if (env.ADMIN_PRIVATE_KEY === '') {
+			throw new Error('ADMIN_PRIVATE_KEY is required')
+		}
+		const admin = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+		if (! await l2Contribution.hasRole(contributorRole, rollup)) {
+			await l2Contribution.connect(admin).grantRole(contributorRole, rollup)
+			console.log('for rollup')
+		}
+		if (! await l2Contribution.hasRole(contributorRole, withdrawal)) {
+			await l2Contribution.connect(admin).grantRole(contributorRole, withdrawal)
+			console.log('for withdrawal')
+		}
+		if (! await l2Contribution.hasRole(contributorRole, claim)) {
+			await l2Contribution.connect(admin).grantRole(contributorRole, claim)
+			console.log('for claim')
+		}
+		if (! await l2Contribution.hasRole(contributorRole, registry)) {
+			await l2Contribution.connect(admin).grantRole(contributorRole, registry)
+			console.log('for registry')
+		}
 	}
 }
 

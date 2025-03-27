@@ -7,6 +7,9 @@ import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	ADMIN_PRIVATE_KEY: str({
+		default: '',
+	}),
 	RELAYER_ADDRESS: str(),
 	PERIOD_INTERVAL: num({
 		default: 60 * 60, // 1 hour
@@ -83,6 +86,8 @@ async function main() {
 		if (!deployedL2Contracts.claim) {
 			throw new Error('claim address is not set')
 		}
+
+		deployedContracts = await readDeployedContracts()
 		if (!deployedContracts.l1Contribution) {
 			throw new Error('l1Contribution address is not set')
 		}
@@ -113,27 +118,34 @@ async function main() {
 				kind: 'uups',
 			},
 		)
-
-		if (env.GRANT_ROLE) {
-			if (!deployedContracts.l1Contribution) {
-				throw new Error('l1Contribution address is not set')
-			}
-			const l1Contribution = await ethers.getContractAt(
-				'Contribution',
-				deployedContracts.l1Contribution,
-			)
-			await l1Contribution.grantRole(
-				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-				liquidity,
-			)
-			console.log('granted role')
-		}
-
-		deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({
 			liquidity: await liquidity.getAddress(),
 			...deployedContracts,
 		})
+	}
+
+	if (env.GRANT_ROLE) {
+		console.log('Granting role to l2Contribution')
+		if (env.ADMIN_PRIVATE_KEY === '') {
+			throw new Error('ADMIN_PRIVATE_KEY is required')
+		}
+		const admin = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+		const deployedContracts = await readDeployedContracts()
+		if (!deployedContracts.l1Contribution || !deployedContracts.liquidity) {
+			throw new Error('l1Contribution and liquidity contracts should be deployed')
+		}
+		const l1Contribution = await ethers.getContractAt(
+			'Contribution',
+			deployedContracts.l1Contribution,
+		)
+		const role = ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR'])
+		if (! await l1Contribution.hasRole(role, deployedContracts.liquidity)) {
+			await l1Contribution.connect(admin).grantRole(
+				role,
+				deployedContracts.liquidity,
+			)
+			console.log('granted role')
+		}
 	}
 }
 

@@ -1,7 +1,13 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
+import { cleanEnv, str } from 'envalid'
+
+const env = cleanEnv(process.env, {
+	RELAYER_PRIVATE_KEY: str(),
+})
 
 async function main() {
+	const relayer = new ethers.Wallet(env.RELAYER_PRIVATE_KEY, ethers.provider)
 	const deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.liquidity) {
 		throw new Error('liquidity contracts should be deployed')
@@ -16,9 +22,6 @@ async function main() {
 	console.log('lastDepositId:', lastDepositId)
 	const numDepositsToRelay = lastDepositId - lastRelayedDepositId
 	console.log('number of deposits to relay:', numDepositsToRelay)
-
-	const relayer = (await ethers.getSigners())[1]
-	console.log('relayer address:', relayer.address)
 
 	// The estimated gas limit is about 220k + 20k * numDeposits.
 	const buffer = 100_000n
