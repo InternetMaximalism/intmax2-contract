@@ -1,12 +1,19 @@
 # INTMAX2 Contract
 
-## For developer
+## Installation
 
-## Generate contract docs from NatSpecs
+```sh
+# Clone the repository
+git clone https://github.com/your-org/intmax2-contract.git
+cd intmax2-contract
 
-## Environment Variables
+# Install dependencies
+npm install
+```
 
-Create a `.env` file with the following:
+## Environment Setup
+
+Create a `.env` file in the root directory with the following variables:
 
 ### Required Variables
 - `DEPLOYER_PRIVATE_KEY`: Deployer's private key for contract deployment
@@ -32,98 +39,162 @@ Create a `.env` file with the following:
 - `RATELIMIT_ALPHA`: Alpha parameter for rate limiting (default: `10^18 / 3` - 1/3 in fixed point)
 - `RATELIMIT_K`: K parameter for rate limiting (default: `10^18 / 1000` - 0.001 in fixed point)
 
+You can use the provided `.env.example` file as a template.
+
 ## Deployment
 
-The deployment process consists of 3 stages. Please execute the following scripts in sequence.
+The deployment process consists of 3 sequential stages. Each stage must be completed before proceeding to the next.
+
+### Network Configuration
+
+Set the appropriate network variables before running the deployment scripts:
 
 For localhost environment:
-
-```
+```sh
 L1_NETWORK=localhost
 L2_NETWORK=localhost
 ```
 
 For testnet environment:
-
-```
+```sh
 L1_NETWORK=sepolia
 L2_NETWORK=scrollSepolia
 ```
 
 For mainnet environment:
-
-```
+```sh
 L1_NETWORK=mainnet
 L2_NETWORK=scroll
 ```
 
-Please specify the appropriate network values as shown above.
+### Deployment Steps
+
+Execute the following scripts in sequence:
 
 ```sh
+# Step 1: Deploy contracts to L2
 npx hardhat run ./scripts/deploy/1_deployToL2.ts --network $L2_NETWORK
+
+# Step 2: Deploy contracts to L1
 npx hardhat run ./scripts/deploy/2_deployToL1.ts --network $L1_NETWORK
+
+# Step 3: Initialize L2 contracts
 npx hardhat run ./scripts/deploy/3_initializeOnL2.ts --network $L2_NETWORK
 ```
 
-## How run scripts
+## Testing and Operational Scripts
 
-#### 1. Deposit Eth and cancel deposit
+The following scripts can be used to test and operate the INTMAX2 protocol:
 
-**User** deposits Eth to the contract and cancels the deposit.
+### Deposit and Withdrawal Operations
+
+#### 1. Deposit ETH and Cancel Deposit
+
+Users can deposit ETH to the contract and cancel the deposit if needed:
 
 ```sh
+npx hardhat run scripts/test/depositEth.ts --network $L1_NETWORK
 npx hardhat run scripts/test/depositAndCancelEth.ts --network $L1_NETWORK
 ```
 
-#### 2. Deposit ERC20 and cancel deposit
+#### 2. Deposit ERC20 and Cancel Deposit
 
-**User** deposits Eth to the contract and cancels the deposit.
+Users can deposit ERC20 tokens to the contract and cancel the deposit if needed:
 
 ```sh
-npx hardhat run scripts/test/depositAndCancelERC20.ts --network $L1_NETWORK
+npx hardhat run scripts/test/depositAndCancelErc20.ts --network $L1_NETWORK
 ```
 
-#### 3. Relay deposits to L2
+#### 3. Relay Deposits to L2
 
-The **relayer** relays the already analyzed deposits to L2.
-Before running this script, you need to run the analyzeDeposit script.
+The relayer transfers analyzed deposits from L1 to L2:
 
 ```sh
 npx hardhat run scripts/test/relayDeposits.ts --network $L1_NETWORK
 ```
 
-#### 4. Post block
+#### 4. Post Block
 
-**Block builders** post blocks to the contract.
+Block builders post blocks to the contract:
 
 ```sh
 npx hardhat run scripts/test/postBlock.ts --network $L2_NETWORK
 ```
 
-#### 5. Withdrawal on L2
+#### 5. Submit Withdrawal Proof on L2
 
-User wants to withdraw assets from Intmax2. The **withdrawal aggregator** aggregates the user's balance proof and generates a withdrawal proof. Then, the **withdrawal aggregator** submits the withdrawal proof to the withdrawal contract by running the following script.
-
-```sh
-npx hardhat run scripts/test/withdrawalL2.ts --network scrollSepolia
-```
-
-#### 6. Relay withdrawals to L1
-
-**Withdrawal aggregator** relays user's withdrawal on L2 to L1.
+When a user wants to withdraw assets from INTMAX2, the withdrawal aggregator submits the withdrawal proof:
 
 ```sh
-npx hardhat run scripts/test/relayWithdrawals.ts --network scrollSepolia
+npx hardhat run scripts/test/submitWithdrawalProof.ts --network $L2_NETWORK
 ```
 
-### lint
+#### 6. Relay Withdrawals to L1
+
+The withdrawal aggregator relays user withdrawals from L2 to L1:
+
+```sh
+npx hardhat run scripts/test/relayClaims.ts --network $L2_NETWORK
+```
+
+### Claim Operations
+
+#### Submit Claim Proof
+
+```sh
+npx hardhat run scripts/test/submitClaimProof.ts --network $L2_NETWORK
+```
+
+### Utility Scripts
+
+#### Get Token Information
+
+```sh
+npx hardhat run scripts/test/getTokenInfo.ts --network $L2_NETWORK
+```
+
+## Development
+
+### Linting
 
 ```sh
 npm run lint
 ```
 
-### generate docs
+### Testing
 
 ```sh
-npx run docgen
+# Run all tests
+npm test
+
+# Run specific test file
+npx hardhat test test/path/to/test-file.test.ts
 ```
+
+### Documentation
+
+Generate documentation from NatSpec comments in the contracts:
+
+```sh
+npx hardhat docgen
+```
+
+## Project Structure
+
+- `contracts/`: Smart contract source code
+  - `block-builder-registry/`: Block builder registration and management
+  - `claim/`: Claim processing and verification
+  - `common/`: Shared libraries and utilities
+  - `contribution/`: Contribution management
+  - `liquidity/`: Liquidity pool management
+  - `permitter/`: Permission management
+  - `rollup/`: Rollup functionality
+  - `withdrawal/`: Withdrawal processing
+  - `verifiers/`: Proof verification contracts
+  - `test/`: Test contracts
+- `scripts/`: Deployment and operational scripts
+- `test/`: Test files
+- `utils/`: Utility functions
+- `test_data/`: Test data files
+- `test_data_generator/`: Tools for generating test data
+
