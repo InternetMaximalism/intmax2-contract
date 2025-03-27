@@ -132,18 +132,19 @@ async function main() {
 		}
 		const deployedContracts = await readDeployedContracts()
 		if (!deployedContracts.l1Contribution || !deployedContracts.liquidity) {
-			throw new Error('l1Contribution and liquidity contracts should be deployed')
+			throw new Error(
+				'l1Contribution and liquidity contracts should be deployed',
+			)
 		}
 		const l1Contribution = await ethers.getContractAt(
 			'Contribution',
 			deployedContracts.l1Contribution,
 		)
 		const role = ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR'])
-		if (! await l1Contribution.hasRole(role, deployedContracts.liquidity)) {
-			await l1Contribution.connect(admin).grantRole(
-				role,
-				deployedContracts.liquidity,
-			)
+		if (!(await l1Contribution.hasRole(role, deployedContracts.liquidity))) {
+			await l1Contribution
+				.connect(admin)
+				.grantRole(role, deployedContracts.liquidity)
 			console.log('granted role')
 		}
 	}

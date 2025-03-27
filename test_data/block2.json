@@ -1,45 +1,39 @@
 {
-  "block": {
-    "prevBlockHash": "0xb54754f4972732a17d8ec7d147cd5262db7de3f655ac381a46305a00f12ba3a5",
-    "depositTreeRoot": "0x9b8a14ee4c3d5e0ad67b0f3a7a2923af6c7c83fd0f5b90e00c54aeb6f57a2efe",
-    "signatureHash": "0xf10a069c9ef4f74ac8c73672407b35411b01eac8d73c406efb325beac81ee515",
-    "timestamp": 1743075615,
-    "blockNumber": 2
-  },
-  "signature": {
-    "blockSignPayload": {
-      "isRegistrationBlock": false,
-      "txTreeRoot": "0xf213975af738a12e44d20fcc446997d5835083b02c47e5bdec48383bdded1759",
-      "expiry": 0,
-      "blockBuilderAddress": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-      "blockBuilderNonce": 0
-    },
-    "senderFlag": "0x80000000000000000000000000000000",
-    "pubkeyHash": "0x30ea5e1349721e35b8e99cbc90ee872ae2fb9dd8423b4903ad79a5f3f3b6b1fd",
-    "accountIdHash": "0x8a4558f98d41a6d81973f2a82a09e7489a5b0fdc25b6f602349ef12949d8f656",
-    "aggPubkey": [
-      "0x015981401771caa7de72c4056d3d00a63cca866d678671992ff24319df8a3388",
-      "0x1abaf031f3f9b8d3af2d972439cc220595aa48c97abf537cbfa721b7e12c23af"
-    ],
-    "aggSignature": [
-      "0x222f462406bb80436de296631e5ac887c7006e212ef734164af2727273c5ee45",
-      "0x2d78db1816e645b9587880237bcf7dc33793485318c68644f26463c2bc9c47f8",
-      "0x1627a756d0e3998250324e6bb0c91143d18e090c6aad5ab9d2ddc4675779d255",
-      "0x1432dc27d9834d8737282d54ed9df4714d6af6e0a58d8bb90868b108d7fb5af6"
-    ],
-    "messagePoint": [
-      "0x064320b39db70cc38613630acd9a3e9e8125c7a66ca90b525a40ed83d9ad6695",
-      "0x28d2bc912744342d0efa7f8fde39170acf2dc300160b039bfe4151c9549a02f2",
-      "0x02c236cadd68c15820ecdba2e4178ce503e3aa6ba0d034bd314c942dabaaaddd",
-      "0x2339cde272b13a1cba4fb08aaba121e92905f9ce4c09e1e32df8e64f59da8052"
-    ]
-  },
-  "pubkeys": null,
-  "accountIds": [
-    0,
-    0,
-    0,
-    0,
-    2
-  ]
+	"block": {
+		"prevBlockHash": "0xb54754f4972732a17d8ec7d147cd5262db7de3f655ac381a46305a00f12ba3a5",
+		"depositTreeRoot": "0x9b8a14ee4c3d5e0ad67b0f3a7a2923af6c7c83fd0f5b90e00c54aeb6f57a2efe",
+		"signatureHash": "0xf10a069c9ef4f74ac8c73672407b35411b01eac8d73c406efb325beac81ee515",
+		"timestamp": 1743075615,
+		"blockNumber": 2
+	},
+	"signature": {
+		"blockSignPayload": {
+			"isRegistrationBlock": false,
+			"txTreeRoot": "0xf213975af738a12e44d20fcc446997d5835083b02c47e5bdec48383bdded1759",
+			"expiry": 0,
+			"blockBuilderAddress": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+			"blockBuilderNonce": 0
+		},
+		"senderFlag": "0x80000000000000000000000000000000",
+		"pubkeyHash": "0x30ea5e1349721e35b8e99cbc90ee872ae2fb9dd8423b4903ad79a5f3f3b6b1fd",
+		"accountIdHash": "0x8a4558f98d41a6d81973f2a82a09e7489a5b0fdc25b6f602349ef12949d8f656",
+		"aggPubkey": [
+			"0x015981401771caa7de72c4056d3d00a63cca866d678671992ff24319df8a3388",
+			"0x1abaf031f3f9b8d3af2d972439cc220595aa48c97abf537cbfa721b7e12c23af"
+		],
+		"aggSignature": [
+			"0x222f462406bb80436de296631e5ac887c7006e212ef734164af2727273c5ee45",
+			"0x2d78db1816e645b9587880237bcf7dc33793485318c68644f26463c2bc9c47f8",
+			"0x1627a756d0e3998250324e6bb0c91143d18e090c6aad5ab9d2ddc4675779d255",
+			"0x1432dc27d9834d8737282d54ed9df4714d6af6e0a58d8bb90868b108d7fb5af6"
+		],
+		"messagePoint": [
+			"0x064320b39db70cc38613630acd9a3e9e8125c7a66ca90b525a40ed83d9ad6695",
+			"0x28d2bc912744342d0efa7f8fde39170acf2dc300160b039bfe4151c9549a02f2",
+			"0x02c236cadd68c15820ecdba2e4178ce503e3aa6ba0d034bd314c942dabaaaddd",
+			"0x2339cde272b13a1cba4fb08aaba121e92905f9ce4c09e1e32df8e64f59da8052"
+		]
+	},
+	"pubkeys": null,
+	"accountIds": [0, 0, 0, 0, 2]
 }

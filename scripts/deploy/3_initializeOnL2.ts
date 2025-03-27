@@ -1,4 +1,4 @@
-import { ethers, } from 'hardhat'
+import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
@@ -93,7 +93,6 @@ async function main() {
 		await tx.wait()
 		console.log('Rollup initialized')
 		await sleep(env.SLEEP_TIME)
-
 	}
 	if ((await withdrawal.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -130,7 +129,7 @@ async function main() {
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing BlockBuilderRegistry')
-		const tx = await registry.initialize(env.ADMIN_ADDRESS,)
+		const tx = await registry.initialize(env.ADMIN_ADDRESS)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
 	}
@@ -144,19 +143,19 @@ async function main() {
 		if (admin.address !== env.ADMIN_ADDRESS) {
 			throw new Error('ADMIN_ADDRESS and ADMIN_PRIVATE_KEY do not match')
 		}
-		if (! await l2Contribution.hasRole(contributorRole, rollup)) {
+		if (!(await l2Contribution.hasRole(contributorRole, rollup))) {
 			await l2Contribution.connect(admin).grantRole(contributorRole, rollup)
 			console.log('for rollup')
 		}
-		if (! await l2Contribution.hasRole(contributorRole, withdrawal)) {
+		if (!(await l2Contribution.hasRole(contributorRole, withdrawal))) {
 			await l2Contribution.connect(admin).grantRole(contributorRole, withdrawal)
 			console.log('for withdrawal')
 		}
-		if (! await l2Contribution.hasRole(contributorRole, claim)) {
+		if (!(await l2Contribution.hasRole(contributorRole, claim))) {
 			await l2Contribution.connect(admin).grantRole(contributorRole, claim)
 			console.log('for claim')
 		}
-		if (! await l2Contribution.hasRole(contributorRole, registry)) {
+		if (!(await l2Contribution.hasRole(contributorRole, registry))) {
 			await l2Contribution.connect(admin).grantRole(contributorRole, registry)
 			console.log('for registry')
 		}
