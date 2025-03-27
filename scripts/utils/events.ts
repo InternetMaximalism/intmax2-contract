@@ -1,4 +1,3 @@
-import { ethers } from 'hardhat'
 import { Liquidity } from '../../typechain-types'
 import {
 	DepositedEvent,
