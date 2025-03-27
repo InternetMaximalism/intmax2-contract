@@ -12,6 +12,8 @@ Create a `.env` file with the following:
 - `DEPLOYER_PRIVATE_KEY`: Deployer's private key for contract deployment
 - `ADMIN_ADDRESS`: Admin's address for contract initialization and management
 - `RELAYER_ADDRESS`: Relayer's address for the Liquidity contract
+- `CONTRIBUTION_PERIOD_INTERVAL`: Contribution period interval in seconds
+- `CLAIM_PERIOD_INTERVAL`: Claim period interval in seconds
 
 ### API Keys
 - `ALCHEMY_KEY`: Key for Alchemy API access
@@ -24,13 +26,11 @@ Create a `.env` file with the following:
 - `GRANT_ROLE`: Set to `true` to grant roles during deployment (default: `false`)
 - `DEPLOY_MOCK_MESSENGER`: Set to `true` to deploy mock messenger contracts for testing (default: `false`)
 - `SLEEP_TIME`: Sleep time in seconds between deployments (default: `30`)
-- `PERIOD_INTERVAL`: Period interval in seconds for contracts (default: `3600` - 1 hour)
 
 ### Rate Limiting Parameters (for Rollup contract)
-- `RATELIMIT_THRESHOLD_INTERVAL`: Target interval for rate limiting (default: `30` seconds in fixed point)
-- `RATELIMIT_ALPHA`: Alpha parameter for rate limiting (default: `1/3` in fixed point)
-- `RATELIMIT_K`: K parameter for rate limiting (default: `0.001` in fixed point)
-
+- `RATELIMIT_THRESHOLD_INTERVAL`: Target interval for rate limiting (default: `10^18 * 30` - 30 seconds in fixed point)
+- `RATELIMIT_ALPHA`: Alpha parameter for rate limiting (default: `10^18 / 3` - 1/3 in fixed point)
+- `RATELIMIT_K`: K parameter for rate limiting (default: `10^18 / 1000` - 0.001 in fixed point)
 
 ## Deployment
 

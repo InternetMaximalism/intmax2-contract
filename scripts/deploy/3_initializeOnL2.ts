@@ -18,7 +18,7 @@ const env = cleanEnv(process.env, {
 		default: '',
 	}),
 	SLEEP_TIME: num({
-		default: 10,
+		default: 30,
 	}),
 	RATELIMIT_THRESHOLD_INTERVAL: str({
 		default: defaultRateLimitTargetInterval.toString(),
