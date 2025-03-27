@@ -3,7 +3,7 @@ import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { getL1MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
-import { cleanEnv, num, str } from 'envalid'
+import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
@@ -13,6 +13,9 @@ const env = cleanEnv(process.env, {
 	}),
 	SLEEP_TIME: num({
 		default: 30,
+	}),
+	GRANT_ROLE: bool({
+		default: true,
 	}),
 })
 
@@ -111,19 +114,20 @@ async function main() {
 			},
 		)
 
-		// grant roles
-		if (!deployedContracts.l1Contribution) {
-			throw new Error('l1Contribution address is not set')
+		if (env.GRANT_ROLE) {
+			if (!deployedContracts.l1Contribution) {
+				throw new Error('l1Contribution address is not set')
+			}
+			const l1Contribution = await ethers.getContractAt(
+				'Contribution',
+				deployedContracts.l1Contribution,
+			)
+			await l1Contribution.grantRole(
+				ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
+				liquidity,
+			)
+			console.log('granted role')
 		}
-		const l1Contribution = await ethers.getContractAt(
-			'Contribution',
-			deployedContracts.l1Contribution,
-		)
-		await l1Contribution.grantRole(
-			ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR']),
-			liquidity,
-		)
-		console.log('granted role')
 
 		deployedContracts = await readDeployedContracts()
 		await writeDeployedContracts({

@@ -3,7 +3,7 @@ import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
-import { cleanEnv, num, str } from 'envalid'
+import { bool, cleanEnv, num, str } from 'envalid'
 
 // default values for late limiter
 const fixedPointOne = 10n ** 18n
@@ -27,6 +27,9 @@ const env = cleanEnv(process.env, {
 	}),
 	RATELIMIT_K: str({
 		default: defaultRateLimitK.toString(),
+	}),
+	GRANT_ROLE: bool({
+		default: true,
 	}),
 })
 
@@ -94,8 +97,10 @@ async function main() {
 		await tx.wait()
 		console.log('Rollup initialized')
 		await sleep(env.SLEEP_TIME)
-		await l2Contribution.grantRole(contributorRole, rollup)
-		await sleep(env.SLEEP_TIME)
+		if (env.GRANT_ROLE) {
+			await l2Contribution.grantRole(contributorRole, rollup)
+			await sleep(env.SLEEP_TIME)
+		}
 	}
 	if ((await withdrawal.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -112,8 +117,10 @@ async function main() {
 		await tx.wait()
 		console.log('Withdrawal initialized')
 		await sleep(env.SLEEP_TIME)
-		await l2Contribution.grantRole(contributorRole, withdrawal)
-		await sleep(env.SLEEP_TIME)
+		if (env.GRANT_ROLE) {
+			await l2Contribution.grantRole(contributorRole, withdrawal)
+			await sleep(env.SLEEP_TIME)
+		}
 	}
 	if ((await claim.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
@@ -130,8 +137,10 @@ async function main() {
 		await tx.wait()
 		console.log('Claim initialized')
 		await sleep(env.SLEEP_TIME)
-		await l2Contribution.grantRole(contributorRole, claim)
-		await sleep(env.SLEEP_TIME)
+		if (env.GRANT_ROLE) {
+			await l2Contribution.grantRole(contributorRole, claim)
+			await sleep(env.SLEEP_TIME)
+		}
 	}
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
