@@ -20,16 +20,15 @@ const env = cleanEnv(process.env, {
 	GRANT_ROLE: bool({
 		default: false,
 	}),
+	DEPLOY_MOCK_MESSENGER: bool({
+		default: true,
+	}),
 })
 
 async function main() {
-	let admin = env.ADMIN_ADDRESS
-	if (network.name === 'localhost') {
-		admin = (await ethers.getSigners())[0].address
-	}
-
 	let deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.mockL1ScrollMessenger) {
+
+	if (env.DEPLOY_MOCK_MESSENGER && !deployedContracts.mockL1ScrollMessenger) {
 		console.log('deploying mockL1ScrollMessenger')
 		const MockL1ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL1ScrollMessenger',
@@ -60,7 +59,7 @@ async function main() {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const l1Contribution = await upgrades.deployProxy(
 			contributionFactory,
-			[admin, env.PERIOD_INTERVAL],
+			[env.ADMIN_ADDRESS, env.PERIOD_INTERVAL],
 			{
 				kind: 'uups',
 			},
@@ -105,7 +104,7 @@ async function main() {
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
 			[
-				admin,
+				env.ADMIN_ADDRESS,
 				await getL1MessengerAddress(),
 				deployedL2Contracts.rollup,
 				deployedL2Contracts.withdrawal,
@@ -129,7 +128,10 @@ async function main() {
 		if (env.ADMIN_PRIVATE_KEY === '') {
 			throw new Error('ADMIN_PRIVATE_KEY is required')
 		}
-		const admin = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+		let admin = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+		if (admin.address !== env.ADMIN_ADDRESS) {
+			throw new Error('ADMIN_ADDRESS and ADMIN_PRIVATE_KEY do not match')
+		}
 		const deployedContracts = await readDeployedContracts()
 		if (!deployedContracts.l1Contribution || !deployedContracts.liquidity) {
 			throw new Error('l1Contribution and liquidity contracts should be deployed')
@@ -149,8 +151,6 @@ async function main() {
 	}
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1

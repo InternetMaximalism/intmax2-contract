@@ -37,11 +37,6 @@ const env = cleanEnv(process.env, {
 })
 
 async function main() {
-	let admin = env.ADMIN_ADDRESS
-	if (network.name === 'localhost') {
-		admin = (await ethers.getSigners())[0].address
-	}
-
 	const deployedL2Contracts = await readDeployedContracts()
 	if (
 		!deployedL2Contracts.rollup ||
@@ -89,7 +84,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing Rollup')
 		const tx = await rollup.initialize(
-			admin,
+			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.l2Contribution,
@@ -106,7 +101,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing Withdrawal')
 		const tx = await withdrawal.initialize(
-			admin,
+			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
 			deployedL2Contracts.withdrawalPlonkVerifier,
 			deployedL1Contracts.liquidity,
@@ -122,7 +117,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing Claim')
 		const tx = await claim.initialize(
-			admin,
+			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
 			deployedL2Contracts.claimPlonkVerifier,
 			deployedL1Contracts.liquidity,
@@ -137,7 +132,7 @@ async function main() {
 	if ((await registry.owner()) === ethers.ZeroAddress) {
 		await sleep(env.SLEEP_TIME)
 		console.log('Initializing BlockBuilderRegistry')
-		const tx = await registry.initialize(admin)
+		const tx = await registry.initialize(env.ADMIN_ADDRESS,)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
 	}
@@ -148,6 +143,9 @@ async function main() {
 			throw new Error('ADMIN_PRIVATE_KEY is required')
 		}
 		const admin = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+		if (admin.address !== env.ADMIN_ADDRESS) {
+			throw new Error('ADMIN_ADDRESS and ADMIN_PRIVATE_KEY do not match')
+		}
 		if (! await l2Contribution.hasRole(contributorRole, rollup)) {
 			await l2Contribution.connect(admin).grantRole(contributorRole, rollup)
 			console.log('for rollup')
@@ -167,8 +165,6 @@ async function main() {
 	}
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1

@@ -1,7 +1,7 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { sleep } from '../../utils/sleep'
-import { cleanEnv, num, str } from 'envalid'
+import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
@@ -11,14 +11,12 @@ const env = cleanEnv(process.env, {
 	SLEEP_TIME: num({
 		default: 30,
 	}),
+	DEPLOY_MOCK_MESSENGER: bool({
+		default: false,
+	}),
 })
 
 async function main() {
-	let admin = env.ADMIN_ADDRESS
-	if (network.name === 'localhost') {
-		admin = (await ethers.getSigners())[0].address
-	}
-
 	const deployedContracts = await readDeployedContracts()
 
 	if (!deployedContracts.rollup) {
@@ -96,7 +94,7 @@ async function main() {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const l2Contribution = await upgrades.deployProxy(
 			contributionFactory,
-			[admin, env.PERIOD_INTERVAL],
+			[env.ADMIN_ADDRESS, env.PERIOD_INTERVAL],
 			{
 				kind: 'uups',
 			},
@@ -147,7 +145,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 	}
 
-	if (!deployedContracts.mockL2ScrollMessenger) {
+	if (env.DEPLOY_MOCK_MESSENGER && !deployedContracts.mockL2ScrollMessenger) {
 		console.log('deploying mockL2ScrollMessenger')
 		const MockL2ScrollMessenger_ = await ethers.getContractFactory(
 			'MockL2ScrollMessenger',
@@ -161,8 +159,6 @@ async function main() {
 	}
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
 	console.error(error)
 	process.exitCode = 1
