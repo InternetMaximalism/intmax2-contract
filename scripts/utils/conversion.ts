@@ -35,25 +35,7 @@ export function combine64BitChunksToBigInt(chunks: bigint[]): bigint {
 }
 
 export function splitSaltTo64BitChunks(salt: string): bigint[] {
-	return splitBigIntTo64BitChunks(BigInt(addHexPrefix(salt)))
-}
-
-export function uint8ArrayToHexString(uint8Array: Uint8Array): string {
-	return [...uint8Array]
-		.map((byte) => byte.toString(16).padStart(2, '0'))
-		.join('')
-}
-
-export function removeHexPrefix(hexString: string): string {
-	if (hexString.startsWith('0x')) {
-		return hexString.slice(2)
-	}
-	return hexString
-}
-
-export function addHexPrefix(hexString: string): string {
-	if (!hexString.startsWith('0x')) {
-		return '0x' + hexString
-	}
-	return hexString
+	// Add hex prefix if not present
+	const hexSalt = salt.startsWith('0x') ? salt : '0x' + salt
+	return splitBigIntTo64BitChunks(BigInt(hexSalt))
 }
