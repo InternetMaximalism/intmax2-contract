@@ -411,8 +411,8 @@ contract Liquidity is
 			depositHashes
 		);
 		l1ScrollMessenger.sendMessage{value: msg.value}(
-			rollup, 
-			0, 
+			rollup,
+			0,
 			message,
 			gasLimit,
 			_msgSender()

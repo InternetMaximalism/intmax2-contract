@@ -1,104 +1,5 @@
 # Solidity API
 
-## BlockBuilderRegistry
-
-Registry for block builders to signal their availability in the Intmax2 protocol
-
-_Implements the IBlockBuilderRegistry interface with upgradeable and ownership functionality_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin) external
-```
-
-Initializes the contract with an admin address
-
-_Sets up the initial owner and initializes the upgradeable functionality_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| admin | address | The address that will have admin/owner privileges |
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Allows a block builder to emit a heartbeat signaling they are online
-
-_Emits a BlockBuilderHeartbeat event with the sender's address and provided URL_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL endpoint where the block builder can be reached |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to the implementation
-
-_Only callable by the owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| newImplementation | address | The address of the new implementation (unused but required by UUPS pattern) |
-
-## IBlockBuilderRegistry
-
-Interface for registering and tracking block builders in the Intmax2 protocol
-
-_Block builders emit heartbeats to signal their availability and provide their URL_
-
-### BlockBuilderHeartbeat
-
-```solidity
-event BlockBuilderHeartbeat(address blockBuilder, string url)
-```
-
-Event emitted when a block builder signals they are online
-
-_Used to track active block builders and their endpoints_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockBuilder | address | The address of the block builder emitting the heartbeat |
-| url | string | The URL endpoint where the block builder can be reached |
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Allows a block builder to emit a heartbeat signaling they are online
-
-_The sender's address is automatically recorded as the block builder address_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| url | string | The URL endpoint where the block builder can be reached |
-
 ## Claim
 
 ### constructor
@@ -933,133 +834,6 @@ _Uses keccak256 to hash the packed encoding of all withdrawal fields_
 | ---- | ---- | ----------- |
 | [0] | bytes32 | bytes32 The calculated hash of the Withdrawal, used for verification |
 
-## Contribution
-
-Contract for tracking user contributions across different time periods
-
-### CONTRIBUTOR
-
-```solidity
-bytes32 CONTRIBUTOR
-```
-
-Role identifier for contracts that can record contributions
-
-_Addresses with this role can call the recordContribution function_
-
-### startTimestamp
-
-```solidity
-uint256 startTimestamp
-```
-
-Start timestamp of the contribution period tracking
-
-_Used as the reference point for calculating period numbers_
-
-### periodInterval
-
-```solidity
-uint256 periodInterval
-```
-
-Duration of each contribution period in seconds
-
-_Used to calculate the current period number_
-
-### totalContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
-```
-
-Maps periods and tags to total contributions
-
-_Mapping structure: period => tag => total contribution amount_
-
-### userContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
-```
-
-Maps periods, tags, and users to their individual contributions
-
-_Mapping structure: period => tag => user address => contribution amount_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin, uint256 _periodInterval) external
-```
-
-Initializes the contract with an admin and period interval
-
-_Sets up the initial state of the contract and aligns the start timestamp_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| admin | address | Address that will be granted the DEFAULT_ADMIN_ROLE |
-| _periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
-
-### getCurrentPeriod
-
-```solidity
-function getCurrentPeriod() public view returns (uint256)
-```
-
-Calculates the current period number based on the current timestamp
-
-_Calculated as (current_timestamp - startTimestamp) / periodInterval_
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256 | The current period number |
-
-### recordContribution
-
-```solidity
-function recordContribution(bytes32 tag, address user, uint256 amount) external
-```
-
-Records a contribution for a specific tag and user
-
-_Updates both total and user-specific contribution amounts for the current period_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tag | bytes32 | The tag associated with the contribution (used for categorization) |
-| user | address | The address of the user making the contribution |
-| amount | uint256 | The amount of contribution to record |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| newImplementation | address | Address of the new implementation contract |
-
 ## IContribution
 
 Interface for the Contribution contract that tracks user contributions across different periods
@@ -1443,15 +1217,15 @@ Event emitted when withdrawal fee is collected
 event WithdrawalFeeWithdrawn(address recipient, uint32 token, uint256 amount)
 ```
 
-Event emitted when withdrawal fees are withdrawn
+Event emitted when withdrawal fee are withdrawn
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| recipient | address | The address that received the fees |
+| recipient | address | The address that claimed the fees |
 | token | uint32 | The index of the token |
-| amount | uint256 | The amount of tokens withdrawn |
+| amount | uint256 | The amount of tokens claimed |
 
 ### PermitterSet
 
@@ -1982,6 +1756,26 @@ uint256 deploymentTime
 ```
 
 Deployment time which is used to calculate the deposit limit
+
+### amlPermitter
+
+```solidity
+contract IPermitter amlPermitter
+```
+
+Address of the AML Permitter contract
+
+_If not set, we skip AML check_
+
+### eligibilityPermitter
+
+```solidity
+contract IPermitter eligibilityPermitter
+```
+
+Address of the Circulation Permitter contract
+
+_If not set, we skip eligibility permission check_
 
 ### claimableWithdrawals
 
@@ -2951,161 +2745,6 @@ _This function is called to check permissions before executing protected operati
 | ---- | ---- | ----------- |
 | authorized | bool | Returns true if the user is authorized to perform the action, false otherwise |
 
-## PredicatePermitter
-
-Implementation of IPermitter that uses Predicate Protocol for permission validation
-
-_Leverages Predicate Protocol's policy-based authorization system to validate user permissions_
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-Error thrown when an address parameter is the zero address
-
-_Used in initialize function to validate admin and predicateManager addresses_
-
-### PolicyIDEmpty
-
-```solidity
-error PolicyIDEmpty()
-```
-
-Error thrown when the policy ID string is empty
-
-_Used in initialize function to validate the policyID parameter_
-
-### PolicySet
-
-```solidity
-event PolicySet(string policyID)
-```
-
-Emitted when the Predicate policy ID is set or updated
-
-_Triggered in initialize and setPolicy functions_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| policyID | string | The new policy ID that was set |
-
-### PredicateManagerSet
-
-```solidity
-event PredicateManagerSet(address predicateManager)
-```
-
-Emitted when the Predicate manager address is set or updated
-
-_Triggered in initialize and setPredicateManager functions_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| predicateManager | address | The new Predicate manager address |
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _predicateManager, string policyID) external
-```
-
-Initializes the PredicatePermitter contract
-
-_Sets up the initial state with admin, Predicate manager, and policy ID_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _admin | address | Address that will be granted ownership of the contract |
-| _predicateManager | address | Address of the Predicate Protocol manager contract |
-| policyID | string | The policy ID string used for permission validation |
-
-### permit
-
-```solidity
-function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool)
-```
-
-Validates if a user has permission to execute a specified action
-
-_Decodes the permission data as a PredicateMessage and uses Predicate Protocol for validation_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| user | address | The address of the user attempting the action |
-| value | uint256 | The msg.value of the transaction being authorized |
-| encodedData | bytes | The encoded function call data of the action |
-| permission | bytes | The permission data containing a PredicateMessage |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | Boolean indicating whether the user is authorized |
-
-### setPolicy
-
-```solidity
-function setPolicy(string policyID) external
-```
-
-Set the policy ID of Predicate
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| policyID | string | The policy ID to set |
-
-### setPredicateManager
-
-```solidity
-function setPredicateManager(address serviceManager) external
-```
-
-Set the Predicate Manager
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| serviceManager | address | The Predicate Manager address to set |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| newImplementation | address | Address of the new implementation contract |
-
 ## IRollup
 
 Interface for the Intmax2 L2 rollup contract
@@ -3435,6 +3074,853 @@ _Reverts if the block number is out of range_
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | [0] | bytes32 | The hash of the specified block |
+
+## IWithdrawal
+
+Interface for the Withdrawal contract that processes withdrawals from L2 to L1
+
+_Defines the functions, events, and errors for handling withdrawal proofs and token management_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when a required address parameter is the zero address
+
+_Used in initialize function to validate address parameters_
+
+### WithdrawalChainVerificationFailed
+
+```solidity
+error WithdrawalChainVerificationFailed()
+```
+
+Error thrown when the verification of the withdrawal proof's public input hash chain fails
+
+_Indicates that the chain of withdrawal hashes doesn't match the expected final hash_
+
+### WithdrawalAggregatorMismatch
+
+```solidity
+error WithdrawalAggregatorMismatch()
+```
+
+Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
+
+_Ensures that only the designated aggregator can submit the proof_
+
+### BlockHashNotExists
+
+```solidity
+error BlockHashNotExists(bytes32 blockHash)
+```
+
+Error thrown when the block hash in the withdrawal proof's public input doesn't exist
+
+_Ensures that withdrawals reference valid blocks in the rollup chain_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockHash | bytes32 | The non-existent block hash that caused the error |
+
+### WithdrawalProofVerificationFailed
+
+```solidity
+error WithdrawalProofVerificationFailed()
+```
+
+Error thrown when the zero-knowledge proof verification fails
+
+_Indicates an invalid or malformed withdrawal proof_
+
+### TokenAlreadyExist
+
+```solidity
+error TokenAlreadyExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to add a token to direct withdrawal tokens that already exists
+
+_Prevents duplicate entries in the direct withdrawal token list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndex | uint256 | The index of the token that already exists in the direct withdrawal list |
+
+### TokenNotExist
+
+```solidity
+error TokenNotExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
+
+_Ensures that only tokens in the direct withdrawal list can be removed_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndex | uint256 | The index of the non-existent token in the direct withdrawal list |
+
+### ClaimableWithdrawalQueued
+
+```solidity
+event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a claimable withdrawal is queued
+
+_Triggered for withdrawals of tokens not in the direct withdrawal list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
+| recipient | address | The L1 address of the recipient |
+| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
+
+### DirectWithdrawalQueued
+
+```solidity
+event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a direct withdrawal is queued
+
+_Triggered for withdrawals of tokens in the direct withdrawal list_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
+| recipient | address | The L1 address of the recipient |
+| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
+
+### DirectWithdrawalTokenIndicesAdded
+
+```solidity
+event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
+```
+
+Emitted when token indices are added to the direct withdrawal list
+
+_Triggered by the addDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | Array of token indices that were added to the direct withdrawal list |
+
+### DirectWithdrawalTokenIndicesRemoved
+
+```solidity
+event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
+```
+
+Emitted when token indices are removed from the direct withdrawal list
+
+_Triggered by the removeDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | Array of token indices that were removed from the direct withdrawal list |
+
+### submitWithdrawalProof
+
+```solidity
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+```
+
+Submit and verify a withdrawal proof from Intmax2 L2
+
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof | bytes | The zero-knowledge proof data |
+
+### getDirectWithdrawalTokenIndices
+
+```solidity
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+```
+
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256[] | An array of token indices that can be withdrawn directly |
+
+### addDirectWithdrawalTokenIndices
+
+```solidity
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+
+### removeDirectWithdrawalTokenIndices
+
+```solidity
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Remove token indices from the list of direct withdrawal token indices
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+
+## Withdrawal
+
+Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
+
+_Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
+
+### nullifiers
+
+```solidity
+mapping(bytes32 => bool) nullifiers
+```
+
+Mapping of nullifiers to their used status
+
+_Prevents double-spending of withdrawals_
+
+### directWithdrawalTokenIndices
+
+```solidity
+struct EnumerableSet.UintSet directWithdrawalTokenIndices
+```
+
+Set of token indices that can be withdrawn directly
+
+_Tokens not in this set will be processed as claimable withdrawals_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
+```
+
+Initializes the Withdrawal contract
+
+_Sets up the initial state with required contract references and token indices_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address that will be granted ownership of the contract |
+| _scrollMessenger | address | Address of the L2 ScrollMessenger contract |
+| _withdrawalVerifier | address | Address of the PLONK verifier for withdrawal proofs |
+| _liquidity | address | Address of the Liquidity contract on L1 |
+| _rollup | address | Address of the Rollup contract |
+| _contribution | address | Address of the Contribution contract |
+| _directWithdrawalTokenIndices | uint256[] | Initial list of token indices for direct withdrawals |
+
+### submitWithdrawalProof
+
+```solidity
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+```
+
+Submit and verify a withdrawal proof from Intmax2 L2
+
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof | bytes | The zero-knowledge proof data |
+
+### getDirectWithdrawalTokenIndices
+
+```solidity
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+```
+
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256[] | An array of token indices that can be withdrawn directly |
+
+### addDirectWithdrawalTokenIndices
+
+```solidity
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+
+### removeDirectWithdrawalTokenIndices
+
+```solidity
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+```
+
+Remove token indices from the list of direct withdrawal token indices
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## ChainedWithdrawalLib
+
+Library for handling chained withdrawals in a hash chain
+
+_Provides utilities for creating and verifying a chain of withdrawal hashes
+used in zero-knowledge proof verification_
+
+### ChainedWithdrawal
+
+Represents a withdrawal linked in a hash chain
+
+_Contains all necessary information for processing a withdrawal and verifying its inclusion in a block_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct ChainedWithdrawal {
+  address recipient;
+  uint32 tokenIndex;
+  uint256 amount;
+  bytes32 nullifier;
+  bytes32 blockHash;
+  uint32 blockNumber;
+}
+```
+
+### verifyWithdrawalChain
+
+```solidity
+function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
+```
+
+Verifies the integrity of a withdrawal hash chain
+
+_Computes the hash chain from the provided withdrawals and compares it to the expected final hash_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify |
+| lastWithdrawalHash | bytes32 | The expected hash of the last withdrawal in the chain (from proof public inputs) |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | bool True if the computed hash chain matches the expected final hash, false otherwise |
+
+## WithdrawalProofPublicInputsLib
+
+Library for handling public inputs of withdrawal zero-knowledge proofs
+
+_Provides utilities for working with the public inputs that are part of withdrawal proof verification_
+
+### WithdrawalProofPublicInputs
+
+Represents the public inputs for a withdrawal zero-knowledge proof
+
+_Contains the final hash of the withdrawal chain and the aggregator address_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct WithdrawalProofPublicInputs {
+  bytes32 lastWithdrawalHash;
+  address withdrawalAggregator;
+}
+```
+
+### getHash
+
+```solidity
+function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
+```
+
+Computes the hash of the WithdrawalProofPublicInputs
+
+_This hash is used as input to the zero-knowledge proof verification_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs struct to be hashed |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
+
+## BlockBuilderRegistry
+
+Registry for block builders to signal their availability in the Intmax2 protocol
+
+_Implements the IBlockBuilderRegistry interface with upgradeable and ownership functionality_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin) external
+```
+
+Initializes the contract with an admin address
+
+_Sets up the initial owner and initializes the upgradeable functionality_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| admin | address | The address that will have admin/owner privileges |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_Emits a BlockBuilderHeartbeat event with the sender's address and provided URL_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| url | string | The URL endpoint where the block builder can be reached |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to the implementation
+
+_Only callable by the owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | The address of the new implementation (unused but required by UUPS pattern) |
+
+## IBlockBuilderRegistry
+
+Interface for registering and tracking block builders in the Intmax2 protocol
+
+_Block builders emit heartbeats to signal their availability and provide their URL_
+
+### BlockBuilderHeartbeat
+
+```solidity
+event BlockBuilderHeartbeat(address blockBuilder, string url)
+```
+
+Event emitted when a block builder signals they are online
+
+_Used to track active block builders and their endpoints_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| blockBuilder | address | The address of the block builder emitting the heartbeat |
+| url | string | The URL endpoint where the block builder can be reached |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_The sender's address is automatically recorded as the block builder address_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| url | string | The URL endpoint where the block builder can be reached |
+
+## Contribution
+
+Contract for tracking user contributions across different time periods
+
+### CONTRIBUTOR
+
+```solidity
+bytes32 CONTRIBUTOR
+```
+
+Role identifier for contracts that can record contributions
+
+_Addresses with this role can call the recordContribution function_
+
+### startTimestamp
+
+```solidity
+uint256 startTimestamp
+```
+
+Start timestamp of the contribution period tracking
+
+_Used as the reference point for calculating period numbers_
+
+### periodInterval
+
+```solidity
+uint256 periodInterval
+```
+
+Duration of each contribution period in seconds
+
+_Used to calculate the current period number_
+
+### totalContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
+```
+
+Maps periods and tags to total contributions
+
+_Mapping structure: period => tag => total contribution amount_
+
+### userContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
+```
+
+Maps periods, tags, and users to their individual contributions
+
+_Mapping structure: period => tag => user address => contribution amount_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin, uint256 _periodInterval) external
+```
+
+Initializes the contract with an admin and period interval
+
+_Sets up the initial state of the contract and aligns the start timestamp_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| admin | address | Address that will be granted the DEFAULT_ADMIN_ROLE |
+| _periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
+
+### getCurrentPeriod
+
+```solidity
+function getCurrentPeriod() public view returns (uint256)
+```
+
+Calculates the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - startTimestamp) / periodInterval_
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | uint256 | The current period number |
+
+### recordContribution
+
+```solidity
+function recordContribution(bytes32 tag, address user, uint256 amount) external
+```
+
+Records a contribution for a specific tag and user
+
+_Updates both total and user-specific contribution amounts for the current period_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tag | bytes32 | The tag associated with the contribution (used for categorization) |
+| user | address | The address of the user making the contribution |
+| amount | uint256 | The amount of contribution to record |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
+
+## PredicatePermitter
+
+Implementation of IPermitter that uses Predicate Protocol for permission validation
+
+_Leverages Predicate Protocol's policy-based authorization system to validate user permissions_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when an address parameter is the zero address
+
+_Used in initialize function to validate admin and predicateManager addresses_
+
+### PolicyIDEmpty
+
+```solidity
+error PolicyIDEmpty()
+```
+
+Error thrown when the policy ID string is empty
+
+_Used in initialize function to validate the policyID parameter_
+
+### PolicySet
+
+```solidity
+event PolicySet(string policyID)
+```
+
+Emitted when the Predicate policy ID is set or updated
+
+_Triggered in initialize and setPolicy functions_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| policyID | string | The new policy ID that was set |
+
+### PredicateManagerSet
+
+```solidity
+event PredicateManagerSet(address predicateManager)
+```
+
+Emitted when the Predicate manager address is set or updated
+
+_Triggered in initialize and setPredicateManager functions_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| predicateManager | address | The new Predicate manager address |
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _predicateManager, string policyID) external
+```
+
+Initializes the PredicatePermitter contract
+
+_Sets up the initial state with admin, Predicate manager, and policy ID_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| _admin | address | Address that will be granted ownership of the contract |
+| _predicateManager | address | Address of the Predicate Protocol manager contract |
+| policyID | string | The policy ID string used for permission validation |
+
+### permit
+
+```solidity
+function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool)
+```
+
+Validates if a user has permission to execute a specified action
+
+_Decodes the permission data as a PredicateMessage and uses Predicate Protocol for validation_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| user | address | The address of the user attempting the action |
+| value | uint256 | The msg.value of the transaction being authorized |
+| encodedData | bytes | The encoded function call data of the action |
+| permission | bytes | The permission data containing a PredicateMessage |
+
+#### Return Values
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| [0] | bool | Boolean indicating whether the user is authorized |
+
+### setPolicy
+
+```solidity
+function setPolicy(string policyID) external
+```
+
+Set the policy ID of Predicate
+
+_Only the owner can call this function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| policyID | string | The policy ID to set |
+
+### setPredicateManager
+
+```solidity
+function setPredicateManager(address serviceManager) external
+```
+
+Set the Predicate Manager
+
+_Only the owner can call this function_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| serviceManager | address | The Predicate Manager address to set |
+
+### _authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| newImplementation | address | Address of the new implementation contract |
 
 ## Rollup
 
@@ -4098,470 +4584,4 @@ Reverts if the proof or the public inputs are malformed.
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | success | bool | true if the proof passes false otherwise |
-
-## IWithdrawal
-
-Interface for the Withdrawal contract that processes withdrawals from L2 to L1
-
-_Defines the functions, events, and errors for handling withdrawal proofs and token management_
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-Error thrown when a required address parameter is the zero address
-
-_Used in initialize function to validate address parameters_
-
-### WithdrawalChainVerificationFailed
-
-```solidity
-error WithdrawalChainVerificationFailed()
-```
-
-Error thrown when the verification of the withdrawal proof's public input hash chain fails
-
-_Indicates that the chain of withdrawal hashes doesn't match the expected final hash_
-
-### WithdrawalAggregatorMismatch
-
-```solidity
-error WithdrawalAggregatorMismatch()
-```
-
-Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
-
-_Ensures that only the designated aggregator can submit the proof_
-
-### BlockHashNotExists
-
-```solidity
-error BlockHashNotExists(bytes32 blockHash)
-```
-
-Error thrown when the block hash in the withdrawal proof's public input doesn't exist
-
-_Ensures that withdrawals reference valid blocks in the rollup chain_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blockHash | bytes32 | The non-existent block hash that caused the error |
-
-### WithdrawalProofVerificationFailed
-
-```solidity
-error WithdrawalProofVerificationFailed()
-```
-
-Error thrown when the zero-knowledge proof verification fails
-
-_Indicates an invalid or malformed withdrawal proof_
-
-### TokenAlreadyExist
-
-```solidity
-error TokenAlreadyExist(uint256 tokenIndex)
-```
-
-Error thrown when attempting to add a token to direct withdrawal tokens that already exists
-
-_Prevents duplicate entries in the direct withdrawal token list_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndex | uint256 | The index of the token that already exists in the direct withdrawal list |
-
-### TokenNotExist
-
-```solidity
-error TokenNotExist(uint256 tokenIndex)
-```
-
-Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
-
-_Ensures that only tokens in the direct withdrawal list can be removed_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndex | uint256 | The index of the non-existent token in the direct withdrawal list |
-
-### ClaimableWithdrawalQueued
-
-```solidity
-event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a claimable withdrawal is queued
-
-_Triggered for withdrawals of tokens not in the direct withdrawal list_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
-| recipient | address | The L1 address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
-
-### DirectWithdrawalQueued
-
-```solidity
-event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a direct withdrawal is queued
-
-_Triggered for withdrawals of tokens in the direct withdrawal list_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawalHash | bytes32 | The hash of the withdrawal, used as an identifier |
-| recipient | address | The L1 address of the recipient |
-| withdrawal | struct WithdrawalLib.Withdrawal | The complete withdrawal details |
-
-### DirectWithdrawalTokenIndicesAdded
-
-```solidity
-event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
-```
-
-Emitted when token indices are added to the direct withdrawal list
-
-_Triggered by the addDirectWithdrawalTokenIndices function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | Array of token indices that were added to the direct withdrawal list |
-
-### DirectWithdrawalTokenIndicesRemoved
-
-```solidity
-event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
-```
-
-Emitted when token indices are removed from the direct withdrawal list
-
-_Triggered by the removeDirectWithdrawalTokenIndices function_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | Array of token indices that were removed from the direct withdrawal list |
-
-### submitWithdrawalProof
-
-```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
-```
-
-Submit and verify a withdrawal proof from Intmax2 L2
-
-_Processes the withdrawals and relays them to the Liquidity contract on L1_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
-| proof | bytes | The zero-knowledge proof data |
-
-### getDirectWithdrawalTokenIndices
-
-```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
-```
-
-Get the list of token indices that can be withdrawn directly
-
-_Returns the current set of direct withdrawal token indices_
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices that can be withdrawn directly |
-
-### addDirectWithdrawalTokenIndices
-
-```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
-
-### removeDirectWithdrawalTokenIndices
-
-```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Remove token indices from the list of direct withdrawal token indices
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
-
-## Withdrawal
-
-Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
-
-_Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
-
-### nullifiers
-
-```solidity
-mapping(bytes32 => bool) nullifiers
-```
-
-Mapping of nullifiers to their used status
-
-_Prevents double-spending of withdrawals_
-
-### directWithdrawalTokenIndices
-
-```solidity
-struct EnumerableSet.UintSet directWithdrawalTokenIndices
-```
-
-Set of token indices that can be withdrawn directly
-
-_Tokens not in this set will be processed as claimable withdrawals_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
-```
-
-Initializes the Withdrawal contract
-
-_Sets up the initial state with required contract references and token indices_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _admin | address | Address that will be granted ownership of the contract |
-| _scrollMessenger | address | Address of the L2 ScrollMessenger contract |
-| _withdrawalVerifier | address | Address of the PLONK verifier for withdrawal proofs |
-| _liquidity | address | Address of the Liquidity contract on L1 |
-| _rollup | address | Address of the Rollup contract |
-| _contribution | address | Address of the Contribution contract |
-| _directWithdrawalTokenIndices | uint256[] | Initial list of token indices for direct withdrawals |
-
-### submitWithdrawalProof
-
-```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
-```
-
-Submit and verify a withdrawal proof from Intmax2 L2
-
-_Processes the withdrawals and relays them to the Liquidity contract on L1_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of chained withdrawals to process |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
-| proof | bytes | The zero-knowledge proof data |
-
-### getDirectWithdrawalTokenIndices
-
-```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
-```
-
-Get the list of token indices that can be withdrawn directly
-
-_Returns the current set of direct withdrawal token indices_
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | uint256[] | An array of token indices that can be withdrawn directly |
-
-### addDirectWithdrawalTokenIndices
-
-```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
-
-### removeDirectWithdrawalTokenIndices
-
-```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Remove token indices from the list of direct withdrawal token indices
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
-
-### _authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| newImplementation | address | Address of the new implementation contract |
-
-## ChainedWithdrawalLib
-
-Library for handling chained withdrawals in a hash chain
-
-_Provides utilities for creating and verifying a chain of withdrawal hashes
-used in zero-knowledge proof verification_
-
-### ChainedWithdrawal
-
-Represents a withdrawal linked in a hash chain
-
-_Contains all necessary information for processing a withdrawal and verifying its inclusion in a block_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct ChainedWithdrawal {
-  address recipient;
-  uint32 tokenIndex;
-  uint256 amount;
-  bytes32 nullifier;
-  bytes32 blockHash;
-  uint32 blockNumber;
-}
-```
-
-### verifyWithdrawalChain
-
-```solidity
-function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
-```
-
-Verifies the integrity of a withdrawal hash chain
-
-_Computes the hash chain from the provided withdrawals and compares it to the expected final hash_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| withdrawals | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify |
-| lastWithdrawalHash | bytes32 | The expected hash of the last withdrawal in the chain (from proof public inputs) |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bool | bool True if the computed hash chain matches the expected final hash, false otherwise |
-
-## WithdrawalProofPublicInputsLib
-
-Library for handling public inputs of withdrawal zero-knowledge proofs
-
-_Provides utilities for working with the public inputs that are part of withdrawal proof verification_
-
-### WithdrawalProofPublicInputs
-
-Represents the public inputs for a withdrawal zero-knowledge proof
-
-_Contains the final hash of the withdrawal chain and the aggregator address_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct WithdrawalProofPublicInputs {
-  bytes32 lastWithdrawalHash;
-  address withdrawalAggregator;
-}
-```
-
-### getHash
-
-```solidity
-function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
-```
-
-Computes the hash of the WithdrawalProofPublicInputs
-
-_This hash is used as input to the zero-knowledge proof verification_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs struct to be hashed |
-
-#### Return Values
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| [0] | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
 

@@ -124,10 +124,10 @@ interface ILiquidity {
 	/// @param amount The amount of tokens collected
 	event WithdrawalFeeCollected(uint32 indexed token, uint256 amount);
 
-	/// @notice Event emitted when withdrawal fees are withdrawn
-	/// @param recipient The address that received the fees
+	/// @notice Event emitted when withdrawal fee are withdrawn
+	/// @param recipient The address that claimed the fees
 	/// @param token The index of the token
-	/// @param amount The amount of tokens withdrawn
+	/// @param amount The amount of tokens claimed
 	event WithdrawalFeeWithdrawn(
 		address indexed recipient,
 		uint32 indexed token,
