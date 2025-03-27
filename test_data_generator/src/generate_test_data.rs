@@ -29,9 +29,11 @@ use intmax2_zkp::{
 use rand::{rngs::StdRng, Rng as _, SeedableRng};
 use serde::{Deserialize, Serialize};
 
-// Save test data for contract
 #[test]
 fn generate_test_data() {
+    let hardhat_default_address =
+        Address::from_hex("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").unwrap();
+
     let mut rng = StdRng::seed_from_u64(0);
 
     let mut account_tree = AccountTree::initialize();
@@ -53,6 +55,9 @@ fn generate_test_data() {
         &mut block_tree,
         &deposit_tree,
         true,
+        0,
+        hardhat_default_address,
+        0,
         &[tx_request.clone()],
         chrono::Utc::now().timestamp() as u64,
     )
@@ -67,6 +72,9 @@ fn generate_test_data() {
         &mut block_tree,
         &deposit_tree,
         false,
+        0,
+        hardhat_default_address,
+        0,
         &[tx_request.clone()],
         chrono::Utc::now().timestamp() as u64,
     )
@@ -81,6 +89,9 @@ fn generate_test_data() {
         &mut block_tree,
         &deposit_tree,
         false,
+        0,
+        hardhat_default_address,
+        0,
         &[],
         chrono::Utc::now().timestamp() as u64,
     )
