@@ -5,7 +5,7 @@ import 'dotenv/config'
 import { cleanEnv, str } from 'envalid'
 import 'solidity-docgen'
 import 'hardhat-gas-reporter'
-import "solidity-coverage";
+import 'solidity-coverage'
 
 const env = cleanEnv(process.env, {
 	DEPLOYER_PRIVATE_KEY: str(),

@@ -11,62 +11,92 @@ import {DepositQueueLib} from "./lib/DepositQueueLib.sol";
  * between Layer 1 and Layer 2 in the Intmax2 protocol
  */
 interface ILiquidity {
-	/// @notice address is zero address
+	/**
+	 * @notice address is zero address
+	 */
 	error AddressZero();
 
-	/// @notice Error thrown when someone other than the original depositor tries to cancel a deposit
+	/**
+	 * @notice Error thrown when someone other than the original depositor tries to cancel a deposit
+	 */
 	error OnlySenderCanCancelDeposit();
 
-	/// @notice Error thrown when the provided deposit hash doesn't match the calculated hash during cancellation
-	/// @param depositDataHash The hash from the deposit data
-	/// @param calculatedHash The hash calculated from given input
+	/**
+	 * @notice Error thrown when the provided deposit hash doesn't match the calculated hash during cancellation
+	 * @param depositDataHash The hash from the deposit data
+	 * @param calculatedHash The hash calculated from given input
+	 */
 	error InvalidDepositHash(bytes32 depositDataHash, bytes32 calculatedHash);
 
-	/// @notice Error thrown when the sender is not the Scroll Messenger in onlyWithdrawal context
+	/**
+	 * @notice Error thrown when the sender is not the Scroll Messenger in onlyWithdrawal context
+	 */
 	error SenderIsNotScrollMessenger();
 
-	/// @notice Error thrown when the withdrawal contract address is not set
+	/**
+	 * @notice Error thrown when the withdrawal contract address is not set
+	 */
 	error WithdrawalAddressNotSet();
 
-	/// @notice Error thrown when the xDomainMessageSender of the Scroll Messenger doesn't match the withdrawal contract address
+	/**
+	 * @notice Error thrown when the xDomainMessageSender of the Scroll Messenger doesn't match the withdrawal contract address
+	 */
 	error InvalidWithdrawalAddress();
 
-	/// @notice Error thrown when trying to claim a non-existent withdrawal
-	/// @param withdrawalHash The hash of the withdrawal that wasn't found
+	/**
+	 * @notice Error thrown when trying to claim a non-existent withdrawal
+	 * @param withdrawalHash The hash of the withdrawal that wasn't found
+	 */
 	error WithdrawalNotFound(bytes32 withdrawalHash);
 
-	/// @notice Error thrown when trying to deposit zero amount of native/ERC20/ERC1155 tokens
+	/**
+	 * @notice Error thrown when trying to deposit zero amount of native/ERC20/ERC1155 tokens
+	 */
 	error TriedToDepositZero();
 
-	/// @notice Error thrown when already relayed deposits
+	/**
+	 * @notice Error thrown when already relayed deposits
+	 */
 	error AlreadyRelayed();
 
-	/// @notice Error thrown when the deposit hash already exists
-	/// @dev Used to prevent duplicate deposits with the same parameters
+	/**
+	 * @notice Error thrown when the deposit hash already exists
+	 * @dev Used to prevent duplicate deposits with the same parameters
+	 */
 	error DepositHashAlreadyExists(bytes32 depositHash);
 
-	/// @notice Error thrown when the deposit amount exceeds the limit
-	/// @param depositAmount The amount that was attempted to be deposited
-	/// @param limit The maximum allowed deposit amount
+	/**
+	 * @notice Error thrown when the deposit amount exceeds the limit
+	 * @param depositAmount The amount that was attempted to be deposited
+	 * @param limit The maximum allowed deposit amount
+	 */
 	error DepositAmountExceedsLimit(uint256 depositAmount, uint256 limit);
 
-	/// @notice Error thrown when AML validation fails
+	/**
+	 * @notice Error thrown when AML validation fails
+	 */
 	error AmlValidationFailed();
 
-	/// @notice Error thrown when eligibility validation fails
+	/**
+	 * @notice Error thrown when eligibility validation fails
+	 */
 	error EligibilityValidationFailed();
 
-	/// @notice Error thrown when the admin tries to set fee more than WITHDRAWAL_FEE_RATIO_LIMIT
+	/**
+	 * @notice Error thrown when the admin tries to set fee more than WITHDRAWAL_FEE_RATIO_LIMIT
+	 */
 	error WithdrawalFeeRatioExceedsLimit();
 
-	/// @notice Event emitted when a deposit is made
-	/// @param depositId The unique identifier for the deposit
-	/// @param sender The address that made the deposit
-	/// @param recipientSaltHash The hash of the recipient's intmax2 address (BLS public key) and a secret salt
-	/// @param tokenIndex The index of the token being deposited
-	/// @param amount The amount of tokens deposited
-	/// @param isEligible if true, the deposit is eligible
-	/// @param depositedAt The timestamp of the deposit
+	/**
+	 * @notice Event emitted when a deposit is made
+	 * @param depositId The unique identifier for the deposit
+	 * @param sender The address that made the deposit
+	 * @param recipientSaltHash The hash of the recipient's intmax2 address (BLS public key) and a secret salt
+	 * @param tokenIndex The index of the token being deposited
+	 * @param amount The amount of tokens deposited
+	 * @param isEligible if true, the deposit is eligible
+	 * @param depositedAt The timestamp of the deposit
+	 */
 	event Deposited(
 		uint256 indexed depositId,
 		address indexed sender,
@@ -77,74 +107,94 @@ interface ILiquidity {
 		uint256 depositedAt
 	);
 
-	/// @notice Event emitted when deposits are relayed
-	/// @param upToDepositId The highest deposit ID that was relayed
-	/// @param gasLimit The gas limit for the L2 transaction
-	/// @param message Additional message data
+	/**
+	 * @notice Event emitted when deposits are relayed
+	 * @param upToDepositId The highest deposit ID that was relayed
+	 * @param gasLimit The gas limit for the L2 transaction
+	 * @param message Additional message data
+	 */
 	event DepositsRelayed(
 		uint256 indexed upToDepositId,
 		uint256 gasLimit,
 		bytes message
 	);
 
-	/// @notice Event emitted when a deposit is canceled
-	/// @param depositId The ID of the canceled deposit
+	/**
+	 * @notice Event emitted when a deposit is canceled
+	 * @param depositId The ID of the canceled deposit
+	 */
 	event DepositCanceled(uint256 indexed depositId);
 
-	/// @notice Event emitted when a withdrawal becomes claimable
-	/// @param withdrawalHash The hash of the claimable withdrawal
+	/**
+	 * @notice Event emitted when a withdrawal becomes claimable
+	 * @param withdrawalHash The hash of the claimable withdrawal
+	 */
 	event WithdrawalClaimable(bytes32 indexed withdrawalHash);
 
-	/// @notice Event emitted when a direct withdrawal succeeds
-	/// @param withdrawalHash The hash of the successful withdrawal
-	/// @param recipient The address that received the withdrawal
+	/**
+	 * @notice Event emitted when a direct withdrawal succeeds
+	 * @param withdrawalHash The hash of the successful withdrawal
+	 * @param recipient The address that received the withdrawal
+	 */
 	event DirectWithdrawalSuccessed(
 		bytes32 indexed withdrawalHash,
 		address indexed recipient
 	);
 
-	/// @notice Event emitted when a direct withdrawal fails, and the funds become claimable
-	/// @param withdrawalHash The hash of the failed withdrawal
-	/// @param withdrawal The withdrawal data
+	/**
+	 * @notice Event emitted when a direct withdrawal fails, and the funds become claimable
+	 * @param withdrawalHash The hash of the failed withdrawal
+	 * @param withdrawal The withdrawal data
+	 */
 	event DirectWithdrawalFailed(
 		bytes32 indexed withdrawalHash,
 		WithdrawalLib.Withdrawal withdrawal
 	);
 
-	/// @notice Event emitted when a withdrawal is claimed
-	/// @param recipient The address that claimed the withdrawal
-	/// @param withdrawalHash The hash of the claimed withdrawal
+	/**
+	 * @notice Event emitted when a withdrawal is claimed
+	 * @param recipient The address that claimed the withdrawal
+	 * @param withdrawalHash The hash of the claimed withdrawal
+	 */
 	event ClaimedWithdrawal(
 		address indexed recipient,
 		bytes32 indexed withdrawalHash
 	);
 
-	/// @notice Event emitted when withdrawal fee is collected
-	/// @param token The index of the token
-	/// @param amount The amount of tokens collected
+	/**
+	 * @notice Event emitted when withdrawal fee is collected
+	 * @param token The index of the token
+	 * @param amount The amount of tokens collected
+	 */
 	event WithdrawalFeeCollected(uint32 indexed token, uint256 amount);
 
-	/// @notice Event emitted when withdrawal fee are withdrawn
-	/// @param recipient The address that claimed the fees
-	/// @param token The index of the token
-	/// @param amount The amount of tokens claimed
+	/**
+	 * @notice Event emitted when withdrawal fee are withdrawn
+	 * @param recipient The address that claimed the fees
+	 * @param token The index of the token
+	 * @param amount The amount of tokens claimed
+	 */
 	event WithdrawalFeeWithdrawn(
 		address indexed recipient,
 		uint32 indexed token,
 		uint256 amount
 	);
 
-	/// @notice Event emitted when permitter addresses are set
-	/// @param amlPermitter The address of the AML permitter contract
-	/// @param eligibilityPermitter The address of the eligibility permitter contract
+	/**
+	 * @notice Event emitted when permitter addresses are set
+	 * @param amlPermitter The address of the AML permitter contract
+	 * @param eligibilityPermitter The address of the eligibility permitter contract
+	 */
 	event PermitterSet(
 		address indexed amlPermitter,
 		address indexed eligibilityPermitter
 	);
 
-	/// @notice Event emitted when the withdrawal fee ratio is set
-	/// @param tokenIndex The index of the token
-	/// @param feeRatio The withdrawal fee ratio for the token (in basis points)
+	/**
+	 * @notice Event emitted when the withdrawal fee ratio is set
+	 * @param tokenIndex The index of the token
+	 * @param feeRatio The withdrawal fee ratio for the token (in basis points)
+	 */
 	event WithdrawalFeeRatioSet(uint32 indexed tokenIndex, uint256 feeRatio);
 
 	/**

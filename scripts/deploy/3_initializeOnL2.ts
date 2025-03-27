@@ -6,7 +6,7 @@ import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, num, str } from 'envalid'
 
 // default values for late limiter
-const fixedPointOne = 10n ** 18n;
+const fixedPointOne = 10n ** 18n
 const defaultRateLimitTargetInterval = fixedPointOne * 30n // 30 seconds
 const defaultRateLimitAlpha = fixedPointOne / 3n // 1/3
 const defaultRateLimitK = fixedPointOne / 1000n // 0.001

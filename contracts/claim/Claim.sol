@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-/// @title Claim
-/// @notice Contract for handling claims from intmax2 and distributing rewards
-/// @dev This contract verifies claim proofs and manages reward allocations
+/**
+ * @title Claim
+ * @notice Contract for handling claims from intmax2 and distributing rewards
+ * @dev This contract verifies claim proofs and manages reward allocations
+ */
 import {IClaim} from "./IClaim.sol";
 import {IPlonkVerifier} from "../common/IPlonkVerifier.sol";
 import {ILiquidity} from "../liquidity/ILiquidity.sol";
@@ -27,28 +29,44 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	using Byte32Lib for bytes32;
 	using AllocationLib for AllocationLib.State;
 
-	/// @notice verifies the claim proof
+	/**
+	 * @notice verifies the claim proof
+	 */
 	IPlonkVerifier private claimVerifier;
 
-	/// @notice ScrollMessenger contract
+	/**
+	 * @notice ScrollMessenger contract
+	 */
 	IL2ScrollMessenger private l2ScrollMessenger;
 
-	/// @notice Rollup contract
+	/**
+	 * @notice Rollup contract
+	 */
 	IRollup private rollup;
 
-	/// @notice Liquidity contract
+	/**
+	 * @notice Liquidity contract
+	 */
 	address private liquidity;
 
-	/// @notice Contribution contract
+	/**
+	 * @notice Contribution contract
+	 */
 	IContribution private contribution;
 
-	/// @notice Nonce to make nullifier unique
+	/**
+	 * @notice Nonce to make nullifier unique
+	 */
 	uint256 private nullifierNonce;
 
-	/// @notice allocation state
+	/**
+	 * @notice allocation state
+	 */
 	AllocationLib.State private allocationState;
 
-	/// @notice nullifiers
+	/**
+	 * @notice nullifiers
+	 */
 	mapping(bytes32 => bool) private nullifiers;
 
 	uint32 private constant REWARD_TOKEN_INDEX = 1;
@@ -58,15 +76,17 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		_disableInitializers();
 	}
 
-	/// @notice Initializes the Claim contract
-	/// @dev Sets up the contract with required dependencies and initializes the allocation state
-	/// @param _admin Address of the contract admin
-	/// @param _scrollMessenger Address of the Scroll Messenger contract
-	/// @param _claimVerifier Address of the claim proof verifier contract
-	/// @param _liquidity Address of the Liquidity contract
-	/// @param _rollup Address of the Rollup contract
-	/// @param _contribution Address of the Contribution contract
-	/// @param periodInterval Time interval between allocation periods in seconds
+	/**
+	 * @notice Initializes the Claim contract
+	 * @dev Sets up the contract with required dependencies and initializes the allocation state
+	 * @param _admin Address of the contract admin
+	 * @param _scrollMessenger Address of the Scroll Messenger contract
+	 * @param _claimVerifier Address of the claim proof verifier contract
+	 * @param _liquidity Address of the Liquidity contract
+	 * @param _rollup Address of the Rollup contract
+	 * @param _contribution Address of the Contribution contract
+	 * @param periodInterval Time interval between allocation periods in seconds
+	 */
 	function initialize(
 		address _admin,
 		address _scrollMessenger,
@@ -96,11 +116,13 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		liquidity = _liquidity;
 	}
 
-	/// @notice Submit and verify claim proofs from intmax2
-	/// @dev Validates the claim proof, checks block hashes, and records contributions
-	/// @param claims Array of chained claims to be processed
-	/// @param publicInputs Public inputs for the claim proof verification
-	/// @param proof Zero-knowledge proof data
+	/**
+	 * @notice Submit and verify claim proofs from intmax2
+	 * @dev Validates the claim proof, checks block hashes, and records contributions
+	 * @param claims Array of chained claims to be processed
+	 * @param publicInputs Public inputs for the claim proof verification
+	 * @param proof Zero-knowledge proof data
+	 */
 	function submitClaimProof(
 		ChainedClaimLib.ChainedClaim[] calldata claims,
 		ClaimProofPublicInputsLib.ClaimProofPublicInputs calldata publicInputs,
@@ -134,10 +156,12 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
-	/// @notice Relay processed claims to the liquidity contract as withdrawals
-	/// @dev Creates withdrawal objects for each user's allocation and sends them to L1
-	/// @param period The allocation period to process
-	/// @param users Array of user addresses to process allocations for
+	/**
+	 * @notice Relay processed claims to the liquidity contract as withdrawals
+	 * @dev Creates withdrawal objects for each user's allocation and sends them to L1
+	 * @param period The allocation period to process
+	 * @param users Array of user addresses to process allocations for
+	 */
 	function relayClaims(uint256 period, address[] calldata users) external {
 		if (allocationState.getCurrentPeriod() <= period) {
 			revert AllocationLib.NotFinishedPeriod();
@@ -198,9 +222,11 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
-	/// @notice Relays a message to the L1 chain via the Scroll Messenger
-	/// @dev Encodes and sends a message to the liquidity contract on L1
-	/// @param message The encoded message to be sent to L1
+	/**
+	 * @notice Relays a message to the L1 chain via the Scroll Messenger
+	 * @dev Encodes and sends a message to the liquidity contract on L1
+	 * @param message The encoded message to be sent to L1
+	 */
 	function _relayMessage(bytes memory message) private {
 		uint256 value = 0; // relay to non-payable function
 		// In the current implementation of ScrollMessenger, the `gasLimit` is simply included in the L2 event log
@@ -216,11 +242,13 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		);
 	}
 
-	/// @notice Validates a claim proof
-	/// @dev Verifies the claim chain, checks the aggregator, and validates the ZK proof
-	/// @param claims Array of chained claims to validate
-	/// @param publicInputs Public inputs for the claim proof
-	/// @param proof Zero-knowledge proof data
+	/**
+	 * @notice Validates a claim proof
+	 * @dev Verifies the claim chain, checks the aggregator, and validates the ZK proof
+	 * @param claims Array of chained claims to validate
+	 * @param publicInputs Public inputs for the claim proof
+	 * @param proof Zero-knowledge proof data
+	 */
 	function _validateClaimProof(
 		ChainedClaimLib.ChainedClaim[] calldata claims,
 		ClaimProofPublicInputsLib.ClaimProofPublicInputs calldata publicInputs,
@@ -259,9 +287,11 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 		return allocationState.getAllocationConstants();
 	}
 
-	/// @notice Authorizes an upgrade to a new implementation
-	/// @dev Only the owner can authorize upgrades
-	/// @param newImplementation Address of the new implementation
+	/**
+	 * @notice Authorizes an upgrade to a new implementation
+	 * @dev Only the owner can authorize upgrades
+	 * @param newImplementation Address of the new implementation
+	 */
 	function _authorizeUpgrade(
 		address newImplementation
 	) internal override onlyOwner {}

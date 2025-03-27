@@ -212,7 +212,7 @@ describe('Rollup', () => {
 					ethers.ZeroAddress,
 					0,
 					0,
-					0
+					0,
 				),
 			).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 		})
@@ -247,7 +247,7 @@ describe('Rollup', () => {
 						ethers.ZeroAddress,
 						0,
 						0,
-						0
+						0,
 					),
 				).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 			})
@@ -258,7 +258,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress, 0, 0, 0,],
+						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress, 0, 0, 0],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -270,7 +270,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress, 0, 0, 0,],
+						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress, 0, 0, 0],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -282,7 +282,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress, 0, 0, 0,],
+						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress, 0, 0, 0],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -294,7 +294,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress, 0, 0, 0,],
+						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress, 0, 0, 0],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')

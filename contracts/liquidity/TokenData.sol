@@ -11,20 +11,28 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
  * different token types (Native, ERC20, ERC721, ERC1155)
  */
 abstract contract TokenData is Initializable, ITokenData {
-	/// @notice Native currency (ETH) address constant
-	/// @dev Used as a key in mappings to represent the native token
+	/**
+	 * @notice Native currency (ETH) address constant
+	 * @dev Used as a key in mappings to represent the native token
+	 */
 	address private constant NATIVE_CURRENCY_ADDRESS = address(0);
 
-	/// @notice Array of all token information stored in the system
-	/// @dev Index in this array corresponds to the token index used throughout the protocol
+	/**
+	 * @notice Array of all token information stored in the system
+	 * @dev Index in this array corresponds to the token index used throughout the protocol
+	 */
 	TokenInfo[] private tokenInfoList;
 
-	/// @notice Mapping from token address to token index for fungible tokens (NATIVE and ERC20)
-	/// @dev For fungible tokens, the tokenId is not relevant for indexing
+	/**
+	 * @notice Mapping from token address to token index for fungible tokens (NATIVE and ERC20)
+	 * @dev For fungible tokens, the tokenId is not relevant for indexing
+	 */
 	mapping(address => uint32) private fungibleTokenIndexMap;
 
-	/// @notice Mapping from token address and token ID to token index for non-fungible tokens (ERC721 and ERC1155)
-	/// @dev For non-fungible tokens, both address and ID are needed for indexing
+	/**
+	 * @notice Mapping from token address and token ID to token index for non-fungible tokens (ERC721 and ERC1155)
+	 * @dev For non-fungible tokens, both address and ID are needed for indexing
+	 */
 	mapping(address => mapping(uint256 => uint32))
 		private nonFungibleTokenIndexMap;
 

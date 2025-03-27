@@ -126,7 +126,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @param _admin Address that will be granted ownership of the contract
 	 * @param _scrollMessenger Address of the L2 ScrollMessenger contract
 	 * @param _liquidity Address of the Liquidity contract on L1
-	 * @param _contribution Address of the Contribution contract 
+	 * @param _contribution Address of the Contribution contract
 	 * @param _rateLimitThresholdInterval The threshold interval between block submissions
 	 * @param _rateLimitAlpha The smoothing factor for the exponential moving average
 	 * @param _rateLimitK The penalty coefficient for the rate limiter

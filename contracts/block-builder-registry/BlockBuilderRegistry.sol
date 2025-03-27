@@ -8,7 +8,6 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 /**
  * @title Block Builder Registry
  * @notice Registry for block builders to signal their availability in the Intmax2 protocol
- * @dev Implements the IBlockBuilderRegistry interface with upgradeable and ownership functionality
  */
 contract BlockBuilderRegistry is
 	OwnableUpgradeable,
