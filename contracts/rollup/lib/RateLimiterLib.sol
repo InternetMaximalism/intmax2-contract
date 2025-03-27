@@ -10,26 +10,62 @@ import {UD60x18, ud, convert} from "@prb/math/src/UD60x18.sol";
  */
 library RateLimiterLib {
 	/**
+	 * @notice Error thrown when trying to set the rate limiter constants to invalid values
+	 */
+	error InvalidConstants();
+
+	/**
+	 * @notice Constants for the rate limiter
+	 * @dev thresholdInterval Threshold interval between calls (fixed-point)
+	 * @dev alpha Smoothing factor for EMA (fixed-point)
+	 * @dev k Scaling factor for the penalty calculation
+	 */
+	event RateLimitConstantsSet(
+		uint256 thresholdInterval,
+		uint256 alpha,
+		uint256 k
+	);
+
+	/**
 	 * @notice Struct to store the state of the rate limiter
-	 * @dev Tracks the last call time and the exponential moving average of intervals
+	 * @dev Holds constants and variables for the rate limiting mechanism
+	 * @param thresholdInterval Threshold interval between calls (fixed-point)
+	 * @param alpha Smoothing factor for EMA (fixed-point)
+	 * @param k Scaling factor for the penalty calculation (fixed-point)
 	 * @param lastCallTime Timestamp of the last call to the rate limiter
 	 * @param emaInterval Exponential moving average of intervals between calls
 	 */
 	struct RateLimitState {
+		UD60x18 thresholdInterval;
+		UD60x18 alpha;
+		UD60x18 k;
 		uint256 lastCallTime; // Timestamp of the last call
 		UD60x18 emaInterval; // Exponential moving average of intervals between calls
 	}
 
 	/**
-	 * @notice Constants for the rate limiter (using fixed-point representation)
-	 * @dev These values control the behavior of the rate limiting mechanism
+	 * @notice Sets the constants for the rate limiter
+	 * @dev Initializes the threshold interval, smoothing factor, and penalty scaling factor
+	 * @param state The current state of the rate limiter
+	 * @param thresholdInterval Threshold interval between calls (fixed-point)
+	 * @param alpha Smoothing factor for EMA (fixed-point)
+	 * @param k Scaling factor for the penalty calculation
 	 */
-	// Target interval between calls (30 seconds in fixed-point)
-	uint256 public constant TARGET_INTERVAL = 30e18;
-	// Smoothing factor for EMA (≈ 1/3 in fixed-point)
-	uint256 public constant ALPHA = 333_333_333_333_333_333;
-	// Scaling factor for the penalty calculation
-	uint256 public constant K = 0.001e18;
+	function setConstants(
+		RateLimitState storage state,
+		uint256 thresholdInterval,
+		uint256 alpha,
+		uint256 k
+	) internal {
+		uint256 one = convert(1).unwrap();
+		if (alpha >= one) {
+			revert InvalidConstants();
+		}
+		state.thresholdInterval = ud(thresholdInterval);
+		state.alpha = ud(alpha);
+		state.k = ud(k);
+		emit RateLimitConstantsSet(thresholdInterval, alpha, k);
+	}
 
 	/**
 	 * @notice Helper function that computes the new EMA interval and penalty
@@ -43,14 +79,14 @@ library RateLimiterLib {
 		RateLimitState storage state,
 		uint256 currentTime
 	) private view returns (UD60x18 newEmaInterval, uint256 penalty) {
-		UD60x18 targetInterval = ud(TARGET_INTERVAL);
+		UD60x18 thresholdInterval = state.thresholdInterval;
 
-		// If this is the first call, we would initialize emaInterval to targetInterval.
+		// If this is the first call, we would initialize emaInterval to thresholdInterval.
 		if (state.lastCallTime == 0) {
-			return (targetInterval, 0);
+			return (thresholdInterval, 0);
 		}
 
-		UD60x18 alpha = ud(ALPHA);
+		UD60x18 alpha = state.alpha;
 		UD60x18 interval = convert(currentTime - state.lastCallTime);
 
 		// Calculate the new EMA interval:
@@ -61,10 +97,10 @@ library RateLimiterLib {
 			(convert(1) - alpha) *
 			state.emaInterval;
 
-		// If the new EMA is less than the target, compute the penalty.
-		if (newEmaInterval < targetInterval) {
-			UD60x18 deviation = targetInterval - newEmaInterval;
-			penalty = (ud(K) * deviation * deviation).unwrap();
+		// If the new EMA is less than the threshold, compute the penalty.
+		if (newEmaInterval < thresholdInterval) {
+			UD60x18 deviation = thresholdInterval - newEmaInterval;
+			penalty = (state.k * deviation * deviation).unwrap();
 		} else {
 			penalty = 0;
 		}

@@ -5,6 +5,12 @@ import { sleep } from '../../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { cleanEnv, num, str } from 'envalid'
 
+// default values for late limiter
+const fixedPointOne = 10n ** 18n;
+const defaultRateLimitTargetInterval = fixedPointOne * 30n // 30 seconds
+const defaultRateLimitAlpha = fixedPointOne / 3n // 1/3
+const defaultRateLimitK = fixedPointOne / 1000n // 0.001
+
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
 	SLEEP_TIME: num({
@@ -12,6 +18,15 @@ const env = cleanEnv(process.env, {
 	}),
 	PERIOD_INTERVAL: num({
 		default: 60 * 60, // 1 hour
+	}),
+	RATELIMIT_THRESHOLD_INTERVAL: str({
+		default: defaultRateLimitTargetInterval.toString(),
+	}),
+	RATELIMIT_ALPHA: str({
+		default: defaultRateLimitAlpha.toString(),
+	}),
+	RATELIMIT_K: str({
+		default: defaultRateLimitK.toString(),
 	}),
 })
 
@@ -72,6 +87,9 @@ async function main() {
 			await getL2MessengerAddress(),
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.l2Contribution,
+			env.RATELIMIT_THRESHOLD_INTERVAL,
+			env.RATELIMIT_ALPHA,
+			env.RATELIMIT_K,
 		)
 		await tx.wait()
 		console.log('Rollup initialized')

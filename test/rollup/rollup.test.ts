@@ -34,6 +34,11 @@ describe('Rollup', () => {
 			(await contributionTestFactory.deploy()) as ContributionTest
 		await l2ScrollMessenger.setResult(liquidity)
 		const { admin } = await getSigners()
+
+		const fixedPointOne = ethers.parseEther('1')
+		const rateLimitTargetInterval = fixedPointOne * 30n // 30 seconds
+		const rateLimitAlpha = fixedPointOne / 3n // 1/3
+		const rateLimitK = fixedPointOne / 1000n // 0.001
 		const rollup = (await upgrades.deployProxy(
 			rollupFactory,
 			[
@@ -41,6 +46,9 @@ describe('Rollup', () => {
 				await l2ScrollMessenger.getAddress(),
 				liquidity,
 				await contribution.getAddress(),
+				rateLimitTargetInterval,
+				rateLimitAlpha,
+				rateLimitK,
 			],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
 		)) as unknown as Rollup
@@ -202,6 +210,9 @@ describe('Rollup', () => {
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
+					0,
+					0,
+					0
 				),
 			).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 		})
@@ -234,6 +245,9 @@ describe('Rollup', () => {
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
+						0,
+						0,
+						0
 					),
 				).to.be.revertedWithCustomError(rollup, 'InvalidInitialization')
 			})
@@ -244,7 +258,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress],
+						[ethers.ZeroAddress, tmpAddress, tmpAddress, tmpAddress, 0, 0, 0,],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -256,7 +270,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress],
+						[tmpAddress, ethers.ZeroAddress, tmpAddress, tmpAddress, 0, 0, 0,],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -268,7 +282,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress],
+						[tmpAddress, tmpAddress, ethers.ZeroAddress, tmpAddress, 0, 0, 0,],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')
@@ -280,7 +294,7 @@ describe('Rollup', () => {
 				await expect(
 					upgrades.deployProxy(
 						rollupFactory,
-						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress],
+						[tmpAddress, tmpAddress, tmpAddress, ethers.ZeroAddress, 0, 0, 0,],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(rollupFactory, 'AddressZero')

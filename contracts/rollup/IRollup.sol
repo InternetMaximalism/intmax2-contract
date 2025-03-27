@@ -188,6 +188,19 @@ interface IRollup {
 	) external payable;
 
 	/**
+	 * @notice Sets the rate limiter constants for the rollup chain
+	 * @dev Can only be called by the contract owner
+	 * @param thresholdInterval The threshold block submission interval in seconds
+	 * @param alpha The alpha value for the exponential moving average
+	 * @param k The penalty coefficient for the rate limiter
+	 */
+	function setRateLimitConstants(
+		uint256 thresholdInterval,
+		uint256 alpha,
+		uint256 k
+	) external;
+
+	/**
 	 * @notice Withdraws accumulated penalty fees from the Rollup contract
 	 * @dev Only the contract owner can call this function
 	 * @param to The address to which the penalty fees will be transferred

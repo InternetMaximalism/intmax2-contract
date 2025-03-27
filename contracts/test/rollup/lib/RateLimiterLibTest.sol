@@ -8,6 +8,14 @@ contract RateLimiterLibTest {
 
 	RateLimiterLib.RateLimitState public state;
 
+	function setConstants(
+		uint256 thresholdInterval,
+		uint256 alpha,
+		uint256 k
+	) external {
+		state.setConstants(thresholdInterval, alpha, k);
+	}
+
 	event UpdateResult(uint256 penalty);
 
 	function update() external {

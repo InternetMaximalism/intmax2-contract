@@ -6,11 +6,22 @@ import {
 } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { RateLimiterLibTest } from '../../../typechain-types'
 
+const fixedPointOne = 10n ** 18n;
+const rateLimitTargetInterval = fixedPointOne * 30n // 30 seconds
+const rateLimitAlpha = fixedPointOne / 3n // 1/3
+const rateLimitK = fixedPointOne / 1000n // 0.001
+
 describe('RateLimiterLibTest', function () {
 	const setup = async (): Promise<RateLimiterLibTest> => {
 		const RateLimiterLibTest =
 			await ethers.getContractFactory('RateLimiterLibTest')
-		return await RateLimiterLibTest.deploy()
+		const rateLimiterLibTest = await RateLimiterLibTest.deploy()
+		await rateLimiterLibTest.setConstants(
+			rateLimitTargetInterval,
+			rateLimitAlpha,
+			rateLimitK
+		)
+		return rateLimiterLibTest
 	}
 	describe('update', function () {
 		it('should initialize with zero penalty on first call', async function () {

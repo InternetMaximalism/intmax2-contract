@@ -126,13 +126,19 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @param _admin Address that will be granted ownership of the contract
 	 * @param _scrollMessenger Address of the L2 ScrollMessenger contract
 	 * @param _liquidity Address of the Liquidity contract on L1
-	 * @param _contribution Address of the Contribution contract
+	 * @param _contribution Address of the Contribution contract 
+	 * @param _rateLimitThresholdInterval The threshold interval between block submissions
+	 * @param _rateLimitAlpha The smoothing factor for the exponential moving average
+	 * @param _rateLimitK The penalty coefficient for the rate limiter
 	 */
 	function initialize(
 		address _admin,
 		address _scrollMessenger,
 		address _liquidity,
-		address _contribution
+		address _contribution,
+		uint256 _rateLimitThresholdInterval,
+		uint256 _rateLimitAlpha,
+		uint256 _rateLimitK
 	) external initializer {
 		if (
 			_admin == address(0) ||
@@ -149,6 +155,11 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		liquidity = _liquidity;
 		contribution = IContribution(_contribution);
 
+		rateLimitState.setConstants(
+			_rateLimitThresholdInterval,
+			_rateLimitAlpha,
+			_rateLimitK
+		);
 		depositTreeRoot = depositTree.getRoot();
 		blockHashes.pushGenesisBlockHash(depositTreeRoot);
 	}
@@ -376,6 +387,21 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		if (excessFee > 0) {
 			payable(_msgSender()).transfer(excessFee);
 		}
+	}
+
+	/**
+	 * @notice Sets the rate limiter constants for the rollup chain
+	 * @dev Can only be called by the contract owner
+	 * @param targetInterval The target block submission interval in seconds
+	 * @param alpha The alpha value for the exponential moving average
+	 * @param k The penalty coefficient for the rate limiter
+	 */
+	function setRateLimitConstants(
+		uint256 targetInterval,
+		uint256 alpha,
+		uint256 k
+	) external onlyOwner {
+		rateLimitState.setConstants(targetInterval, alpha, k);
 	}
 
 	function withdrawPenaltyFee(address to) external onlyOwner {
