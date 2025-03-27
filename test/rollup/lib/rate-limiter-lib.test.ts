@@ -23,6 +23,41 @@ describe('RateLimiterLibTest', function () {
 		)
 		return rateLimiterLibTest
 	}
+
+	describe('setConstants', function () {
+		it('should set constants and emit event', async function () {
+			const RateLimiterLibTest = await ethers.getContractFactory('RateLimiterLibTest')
+			const rateLimiterLibTest = await RateLimiterLibTest.deploy()
+
+			await expect(rateLimiterLibTest.setConstants(
+				rateLimitTargetInterval,
+				rateLimitAlpha,
+				rateLimitK
+			))
+				.to.emit(rateLimiterLibTest, 'RateLimitConstantsSet')
+				.withArgs(rateLimitTargetInterval, rateLimitAlpha, rateLimitK)
+		})
+
+		it('should revert when alpha is greater than or equal to 1', async function () {
+			const RateLimiterLibTest = await ethers.getContractFactory('RateLimiterLibTest')
+			const rateLimiterLibTest = await RateLimiterLibTest.deploy()
+
+			// Try with alpha = 1
+			await expect(rateLimiterLibTest.setConstants(
+				rateLimitTargetInterval,
+				fixedPointOne, // alpha = 1
+				rateLimitK
+			)).to.be.revertedWithCustomError(rateLimiterLibTest, 'InvalidConstants')
+
+			// Try with alpha > 1
+			await expect(rateLimiterLibTest.setConstants(
+				rateLimitTargetInterval,
+				fixedPointOne * 2n, // alpha = 2
+				rateLimitK
+			)).to.be.revertedWithCustomError(rateLimiterLibTest, 'InvalidConstants')
+		})
+	})
+
 	describe('update', function () {
 		it('should initialize with zero penalty on first call', async function () {
 			const lib = await loadFixture(setup)
