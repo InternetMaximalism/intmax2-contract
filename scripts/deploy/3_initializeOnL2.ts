@@ -29,7 +29,7 @@ const env = cleanEnv(process.env, {
 		default: defaultRateLimitK.toString(),
 	}),
 	GRANT_ROLE: bool({
-		default: true,
+		default: false,
 	}),
 })
 
@@ -99,6 +99,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		if (env.GRANT_ROLE) {
 			await l2Contribution.grantRole(contributorRole, rollup)
+			console.log('Role granted')
 			await sleep(env.SLEEP_TIME)
 		}
 	}
@@ -119,6 +120,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		if (env.GRANT_ROLE) {
 			await l2Contribution.grantRole(contributorRole, withdrawal)
+			console.log('Role granted')
 			await sleep(env.SLEEP_TIME)
 		}
 	}
@@ -139,6 +141,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 		if (env.GRANT_ROLE) {
 			await l2Contribution.grantRole(contributorRole, claim)
+			console.log('Role granted')
 			await sleep(env.SLEEP_TIME)
 		}
 	}

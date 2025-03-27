@@ -5,7 +5,6 @@ if (network.name !== 'sepolia') {
 }
 
 async function main() {
-	console.log('deploying testErc20')
 	const TestERC20 = await ethers.getContractFactory('TestERC20')
 	const owner = (await ethers.getSigners())[0]
 	const testErc20 = await TestERC20.deploy(owner.address)

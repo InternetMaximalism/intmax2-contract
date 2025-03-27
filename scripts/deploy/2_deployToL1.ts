@@ -15,7 +15,7 @@ const env = cleanEnv(process.env, {
 		default: 30,
 	}),
 	GRANT_ROLE: bool({
-		default: true,
+		default: false,
 	}),
 })
 
