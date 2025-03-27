@@ -1,9 +1,9 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { getRandomPubkey, getRandomSalt } from '../../utils/rand'
-import { getPubkeySaltHash } from '../../utils/hash'
+import { getRandomPubkey, getRandomSalt } from '../utils/rand'
+import { getPubkeySaltHash } from '../utils/hash'
 import type { ContractTransactionResponse } from 'ethers'
-import { getLastDepositedEvent } from '../../utils/events'
+import { getLastDepositedEvent } from '../utils/events'
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()

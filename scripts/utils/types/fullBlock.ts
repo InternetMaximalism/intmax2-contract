@@ -1,4 +1,4 @@
-interface Block {
+export interface Block {
 	prevBlockHash: string
 	depositTreeRoot: string
 	signatureHash: string
@@ -6,7 +6,7 @@ interface Block {
 	blockNumber: number
 }
 
-interface BlockSignPayload {
+export interface BlockSignPayload {
 	isRegistrationBlock: boolean
 	txTreeRoot: string
 	expiry: number
@@ -14,7 +14,7 @@ interface BlockSignPayload {
 	blockBuilderNonce: number
 }
 
-interface Signature {
+export interface Signature {
 	blockSignPayload: BlockSignPayload
 	senderFlag: string
 	pubkeyHash: string
@@ -24,7 +24,7 @@ interface Signature {
 	messagePoint: [string, string, string, string]
 }
 
-interface FullBlock {
+export interface FullBlock {
 	block: Block
 	signature: Signature
 	pubkeys: string[] | null

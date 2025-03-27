@@ -1,10 +1,10 @@
-interface ClaimInfo {
+export interface ClaimInfo {
 	claims: Claim[]
 	claimProofPublicInputs: ClaimProofPublicInputs
 	pisHash: string
 }
 
-interface Claim {
+export interface Claim {
 	recipient: string
 	amount: string
 	nullifier: string
@@ -12,7 +12,7 @@ interface Claim {
 	blockNumber: number
 }
 
-interface ClaimProofPublicInputs {
+export interface ClaimProofPublicInputs {
 	lastClaimHash: string
 	claimAggregator: string
 }

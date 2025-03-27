@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { getRandomSalt } from '../../utils/rand'
-import { makeWithdrawalInfo } from '../../utils/withdrawal'
+import { getRandomSalt } from '../utils/rand'
+import { makeWithdrawalInfo } from '../utils/withdrawal'
 
 async function main() {
 	// note that to submit a withdrawal proof, you need to post at least one block

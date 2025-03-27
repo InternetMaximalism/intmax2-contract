@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { getRandomSalt } from '../../utils/rand'
-import { makeClaimInfo } from '../../utils/claim'
+import { getRandomSalt } from '../utils/rand'
+import { makeClaimInfo } from '../utils/claim'
 
 async function main() {
 	// note that to submit a claim proof, you need to post at least one block

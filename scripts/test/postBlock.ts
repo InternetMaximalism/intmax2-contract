@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { loadFullBlocks, postBlock } from '../../utils/rollup'
-import { sleep } from '../../utils/sleep'
+import { loadFullBlocks, postBlock } from '../utils/rollup'
+import { sleep } from '../utils/sleep'
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()

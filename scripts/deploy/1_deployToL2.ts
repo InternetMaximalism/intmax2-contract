@@ -1,6 +1,6 @@
 import { ethers, network, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
-import { sleep } from '../../utils/sleep'
+import { sleep } from '../utils/sleep'
 import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {

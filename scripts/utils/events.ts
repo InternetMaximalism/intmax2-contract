@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat'
-import type { SentMessageEvent } from '../typechain-types/@scroll-tech/contracts/libraries/IScrollMessenger'
-import { IScrollMessenger__factory, Liquidity } from '../typechain-types'
+import type { SentMessageEvent } from '../../typechain-types/@scroll-tech/contracts/libraries/IScrollMessenger'
+import { IScrollMessenger__factory, Liquidity } from '../../typechain-types'
 import {
 	DepositedEvent,
 	DepositsRelayedEvent,
-} from '../typechain-types/contracts/liquidity/Liquidity'
+} from '../../typechain-types/contracts/liquidity/Liquidity'
 
 const scrollMessengerAbi = IScrollMessenger__factory.abi
 

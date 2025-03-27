@@ -1,7 +1,9 @@
-import { Rollup } from '../typechain-types'
+import { Rollup } from '../../typechain-types'
 import * as fs from 'fs'
 import type { ContractTransactionResponse } from 'ethers'
 import { ethers } from 'hardhat'
+import type { FullBlock } from './types/fullBlock'
+import type { PairingData } from './types/pairing_data'
 
 export function loadFullBlocks(): FullBlock[] {
 	let fullBlocks = []

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
-import { sleep } from '../../utils/sleep'
+import { sleep } from '../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { bool, cleanEnv, num, str } from 'envalid'
 

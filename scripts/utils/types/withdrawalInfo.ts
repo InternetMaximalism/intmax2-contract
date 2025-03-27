@@ -1,10 +1,10 @@
-interface WithdrawalInfo {
+export interface WithdrawalInfo {
 	withdrawals: Withdrawal[]
 	withdrawalProofPublicInputs: WithdrawalProofPublicInputs
 	pisHash: string
 }
 
-interface Withdrawal {
+export interface Withdrawal {
 	recipient: string
 	tokenIndex: number
 	amount: string
@@ -13,7 +13,7 @@ interface Withdrawal {
 	blockNumber: number
 }
 
-interface WithdrawalProofPublicInputs {
+export interface WithdrawalProofPublicInputs {
 	lastWithdrawalHash: string
 	withdrawalAggregator: string
 }

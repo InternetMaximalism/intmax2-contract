@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { ethers } from 'hardhat'
+import type { Claim, ClaimInfo, ClaimProofPublicInputs } from './types/claimInfo'
 
 export function makeClaimInfo(aggregator: string, claims: Claim[]): ClaimInfo {
 	let hash = ethers.ZeroHash
