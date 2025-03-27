@@ -1,4 +1,4 @@
-import { ethers, network } from 'hardhat'
+import { ethers, } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../../utils/sleep'
@@ -13,14 +13,12 @@ const defaultRateLimitK = fixedPointOne / 1000n // 0.001
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	CLAIM_PERIOD_INTERVAL: num(),
 	ADMIN_PRIVATE_KEY: str({
 		default: '',
 	}),
 	SLEEP_TIME: num({
 		default: 10,
-	}),
-	PERIOD_INTERVAL: num({
-		default: 60 * 60, // 1 hour
 	}),
 	RATELIMIT_THRESHOLD_INTERVAL: str({
 		default: defaultRateLimitTargetInterval.toString(),
@@ -123,7 +121,7 @@ async function main() {
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
 			deployedL2Contracts.l2Contribution,
-			env.PERIOD_INTERVAL,
+			env.CLAIM_PERIOD_INTERVAL,
 		)
 		await tx.wait()
 		console.log('Claim initialized')

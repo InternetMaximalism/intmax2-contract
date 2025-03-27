@@ -7,12 +7,10 @@ import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
+	RELAYER_ADDRESS: str(),
+	CONTRIBUTION_PERIOD_INTERVAL: num(),
 	ADMIN_PRIVATE_KEY: str({
 		default: '',
-	}),
-	RELAYER_ADDRESS: str(),
-	PERIOD_INTERVAL: num({
-		default: 60 * 60, // 1 hour
 	}),
 	SLEEP_TIME: num({
 		default: 30,
@@ -21,7 +19,7 @@ const env = cleanEnv(process.env, {
 		default: false,
 	}),
 	DEPLOY_MOCK_MESSENGER: bool({
-		default: true,
+		default: false,
 	}),
 })
 
@@ -59,7 +57,7 @@ async function main() {
 		const contributionFactory = await ethers.getContractFactory('Contribution')
 		const l1Contribution = await upgrades.deployProxy(
 			contributionFactory,
-			[env.ADMIN_ADDRESS, env.PERIOD_INTERVAL],
+			[env.ADMIN_ADDRESS, env.CONTRIBUTION_PERIOD_INTERVAL],
 			{
 				kind: 'uups',
 			},

@@ -8,12 +8,29 @@
 
 Create a `.env` file with the following:
 
-- `DEPLOYER_PRIVATE_KEY`: Deployer's private key
-- `ADMIN_ADDRESS`: Admin's address
-- `RELAYER_ADDRESS`: Relayer's address
+### Required Variables
+- `DEPLOYER_PRIVATE_KEY`: Deployer's private key for contract deployment
+- `ADMIN_ADDRESS`: Admin's address for contract initialization and management
+- `RELAYER_ADDRESS`: Relayer's address for the Liquidity contract
+
+### API Keys
 - `ALCHEMY_KEY`: Key for Alchemy API access
-- `ETHERSCAN_API_KEY`: Key for Etherscan verification
-- `SCROLLSCAN_API_KEY`: Key for Scrollscan verification
+- `ETHERSCAN_API_KEY`: Key for Etherscan contract verification
+- `SCROLLSCAN_API_KEY`: Key for Scrollscan contract verification
+
+### Optional Variables with Defaults
+- `ADMIN_PRIVATE_KEY`: Admin's private key (required if `GRANT_ROLE=true`)
+- `RELAYER_PRIVATE_KEY`: Relayer's private key (required for running relay scripts like `relayDeposits.ts`)
+- `GRANT_ROLE`: Set to `true` to grant roles during deployment (default: `false`)
+- `DEPLOY_MOCK_MESSENGER`: Set to `true` to deploy mock messenger contracts for testing (default: `false`)
+- `SLEEP_TIME`: Sleep time in seconds between deployments (default: `30`)
+- `PERIOD_INTERVAL`: Period interval in seconds for contracts (default: `3600` - 1 hour)
+
+### Rate Limiting Parameters (for Rollup contract)
+- `RATELIMIT_THRESHOLD_INTERVAL`: Target interval for rate limiting (default: `30` seconds in fixed point)
+- `RATELIMIT_ALPHA`: Alpha parameter for rate limiting (default: `1/3` in fixed point)
+- `RATELIMIT_K`: K parameter for rate limiting (default: `0.001` in fixed point)
+
 
 ## Deployment
 
