@@ -1,5 +1,7 @@
 # INTMAX2 Contract
 
+<img src="https://github.com/user-attachments/assets/32d0dbd0-0fb7-4506-8810-0adf73494340" width="500">
+
 ## Installation
 
 ```sh
@@ -48,6 +50,8 @@ You can use the provided `.env.example` file as a template.
 ## Deployment
 
 The deployment process consists of 3 sequential stages. Each stage must be completed before proceeding to the next.
+
+![Contract Deployment](https://github.com/user-attachments/assets/129276f9-7b84-4d19-af9a-5c74e6f36a38)
 
 ### Network Configuration
 
