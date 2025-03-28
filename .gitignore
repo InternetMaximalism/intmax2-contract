@@ -13,3 +13,6 @@ artifacts
 .vscode/
 
 typechain-types/
+
+# Build output
+dist/

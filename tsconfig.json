@@ -9,8 +9,8 @@
 		"resolveJsonModule": true,
 		"declaration": true,
 		"outDir": "./dist",
-		"rootDir": "./"
+		"rootDir": "./src"
 	},
-	"include": ["src/**/*", "typechain-types/**/*", "scripts/utils/**/*"],
-	"exclude": ["node_modules", "dist", "test"]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", "test", "scripts"]
 }

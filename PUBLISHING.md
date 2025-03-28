@@ -129,14 +129,22 @@ To test the Foundry integration:
    forge build
    ```
 
+## Version Control and Publishing
+
+- The `dist` directory should be included in `.gitignore` since it contains generated files that don't need to be tracked in version control.
+- However, the `dist` directory should NOT be included in `.npmignore` since it contains the compiled JavaScript and TypeScript declaration files that need to be published to npm.
+- The `artifacts` directory is included in `.gitignore` by default, but specific artifact files are included in the npm package through the `files` field in `package.json`.
+
 ## Troubleshooting
 
 If you encounter issues during the publishing process:
 
-1. **TypeScript Compilation Errors**: Check that all imports in src/index.ts are correct and that the tsconfig.json is properly configured.
+1. **TypeScript Compilation Errors**: Check that src/index.ts only exports the contract names and that tsconfig.json is properly configured to only include the src directory.
 
 2. **Missing Files in Published Package**: Verify the "files" field in package.json includes all necessary files and that .npmignore doesn't exclude required files.
 
 3. **Foundry Import Errors**: Ensure the contracts are properly structured and that the foundry.toml configuration is correct.
 
 4. **Hardhat Artifacts Missing**: Make sure the contracts are compiled before publishing and that the artifacts are included in the package.
+
+5. **Script Dependencies**: Remember that this package only includes the contracts, not the utility scripts. If you need to use the utility scripts, you'll need to include them in your project separately.

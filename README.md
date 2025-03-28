@@ -44,24 +44,22 @@ forge install --no-git intmax2-contract
 ### In JavaScript/TypeScript Projects
 
 ```typescript
-// Import contract types and utilities
-import { TypechainTypes, Utils, ContractNames } from 'intmax2-contract';
+// Import contract names
+import { ContractNames, LibraryNames } from 'intmax2-contract';
 
-// Access contract ABIs and bytecode
-import { getContractABI, getContractBytecode } from 'intmax2-contract';
+// Example: Use contract names with your preferred library
+import { ethers } from 'ethers';
+import RollupArtifact from 'intmax2-contract/artifacts/contracts/rollup/Rollup.sol/Rollup.json';
 
-// Example: Deploy a contract
 async function deployRollup() {
-  const abi = await getContractABI(ContractNames.Rollup);
-  const bytecode = await getContractBytecode(ContractNames.Rollup);
-  
   // Use with ethers.js, web3.js, or other libraries
-  // const factory = new ethers.ContractFactory(abi, bytecode, signer);
-  // const contract = await factory.deploy();
+  const factory = new ethers.ContractFactory(
+    RollupArtifact.abi,
+    RollupArtifact.bytecode,
+    signer
+  );
+  const contract = await factory.deploy();
 }
-
-// Use utility functions
-const hash = Utils.Hash.keccak256('0x1234');
 ```
 
 ### In Foundry Projects

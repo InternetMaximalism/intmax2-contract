@@ -2,7 +2,9 @@
 
 /**
  * This script prepares the package for publishing to npm.
- * It compiles the contracts, generates TypeScript types, and builds the package.
+ * It compiles the contracts and builds the TypeScript files in src.
+ * 
+ * Note: This package only includes the contracts, not the utility scripts.
  */
 
 const { execSync } = require('child_process');
@@ -67,8 +69,14 @@ async function main() {
     }
   }
   
+  // Step 5: Copy README.md to dist for better npm package display
+  if (!execute('cp README.md dist/', 'Copying README.md to dist...')) {
+    process.exit(1);
+  }
+  
   log(`\n${colors.bright}${colors.green}=== Package Preparation Complete ===${colors.reset}`);
   log(`\nYou can now publish the package with: ${colors.yellow}npm publish${colors.reset}`);
+  log(`\nNote: This package only includes the contracts, not the utility scripts.`);
 }
 
 main().catch((error) => {
