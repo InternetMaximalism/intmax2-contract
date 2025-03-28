@@ -39,47 +39,6 @@ npm install intmax2-contract
 forge install --no-git intmax2-contract
 ```
 
-## Usage
-
-### In JavaScript/TypeScript Projects
-
-```typescript
-// Import contract names
-import { ContractNames, LibraryNames } from 'intmax2-contract';
-
-// Example: Use contract names with your preferred library
-import { ethers } from 'ethers';
-import RollupArtifact from 'intmax2-contract/artifacts/contracts/rollup/Rollup.sol/Rollup.json';
-
-async function deployRollup() {
-  // Use with ethers.js, web3.js, or other libraries
-  const factory = new ethers.ContractFactory(
-    RollupArtifact.abi,
-    RollupArtifact.bytecode,
-    signer
-  );
-  const contract = await factory.deploy();
-}
-```
-
-### In Foundry Projects
-
-```solidity
-// Import contracts
-import "intmax2-contract/contracts/rollup/Rollup.sol";
-import "intmax2-contract/contracts/liquidity/Liquidity.sol";
-
-contract MyContract {
-    Rollup public rollup;
-    
-    constructor(address _rollupAddress) {
-        rollup = Rollup(_rollupAddress);
-    }
-    
-    // Your contract logic
-}
-```
-
 ## Environment Setup
 
 Create a `.env` file in the root directory with the following variables:
