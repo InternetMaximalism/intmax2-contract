@@ -2,6 +2,8 @@
 
 ## Installation
 
+### As a Git Repository
+
 ```sh
 # Clone the repository
 git clone https://github.com/your-org/intmax2-contract.git
@@ -9,6 +11,75 @@ cd intmax2-contract
 
 # Install dependencies
 npm install
+```
+
+### As an NPM Package
+
+```sh
+# Install from npm
+npm install intmax2-contract
+```
+
+### For Foundry Projects
+
+In your `foundry.toml` file, add:
+
+```toml
+[profile.default]
+libs = ['node_modules']
+```
+
+Then install the package:
+
+```sh
+# Install the package
+npm install intmax2-contract
+
+# Or with Forge
+forge install --no-git intmax2-contract
+```
+
+## Usage
+
+### In JavaScript/TypeScript Projects
+
+```typescript
+// Import contract types and utilities
+import { TypechainTypes, Utils, ContractNames } from 'intmax2-contract';
+
+// Access contract ABIs and bytecode
+import { getContractABI, getContractBytecode } from 'intmax2-contract';
+
+// Example: Deploy a contract
+async function deployRollup() {
+  const abi = await getContractABI(ContractNames.Rollup);
+  const bytecode = await getContractBytecode(ContractNames.Rollup);
+  
+  // Use with ethers.js, web3.js, or other libraries
+  // const factory = new ethers.ContractFactory(abi, bytecode, signer);
+  // const contract = await factory.deploy();
+}
+
+// Use utility functions
+const hash = Utils.Hash.keccak256('0x1234');
+```
+
+### In Foundry Projects
+
+```solidity
+// Import contracts
+import "intmax2-contract/contracts/rollup/Rollup.sol";
+import "intmax2-contract/contracts/liquidity/Liquidity.sol";
+
+contract MyContract {
+    Rollup public rollup;
+    
+    constructor(address _rollupAddress) {
+        rollup = Rollup(_rollupAddress);
+    }
+    
+    // Your contract logic
+}
 ```
 
 ## Environment Setup

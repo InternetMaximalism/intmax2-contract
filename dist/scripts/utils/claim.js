@@ -1,0 +1,33 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.makeClaimInfo = makeClaimInfo;
+const hardhat_1 = require("hardhat");
+function makeClaimInfo(aggregator, claims) {
+    let hash = hardhat_1.ethers.ZeroHash;
+    for (const claim of claims) {
+        hash = hashClaimWithPrevHash(hash, claim);
+    }
+    const pis = {
+        lastClaimHash: hash,
+        claimAggregator: aggregator,
+    };
+    const pisHash = hashClaimPis(pis);
+    return {
+        claims: claims,
+        claimProofPublicInputs: pis,
+        pisHash,
+    };
+}
+function hashClaimWithPrevHash(prevHash, claim) {
+    return hardhat_1.ethers.solidityPackedKeccak256(['bytes32', 'address', 'uint256', 'bytes32', 'bytes32', 'uint32'], [
+        prevHash,
+        claim.recipient,
+        claim.amount,
+        claim.nullifier,
+        claim.blockHash,
+        claim.blockNumber,
+    ]);
+}
+function hashClaimPis(pis) {
+    return hardhat_1.ethers.solidityPackedKeccak256(['bytes32', 'address'], [pis.lastClaimHash, pis.claimAggregator]);
+}

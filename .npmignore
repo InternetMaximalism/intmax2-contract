@@ -1,0 +1,34 @@
+# Development files
+.env
+.env.example
+.prettierignore
+.prettierrc.json
+.solhint.json
+.solhintignore
+.github/
+.vscode/
+
+# Test files
+test/
+test_data/
+test_data_generator/
+contracts/test/
+
+# Scripts that are not needed for the package
+scripts/deploy/
+scripts/test/
+scripts/upgrade/
+
+# Documentation
+docs/
+
+# Build artifacts that are not needed
+cache/
+typechain-types/factories/
+typechain-types/hardhat.d.ts
+out/
+
+# Misc
+node_modules/
+coverage/
+coverage.json

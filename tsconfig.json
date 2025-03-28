@@ -6,6 +6,11 @@
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"skipLibCheck": true,
-		"resolveJsonModule": true
-	}
+		"resolveJsonModule": true,
+		"declaration": true,
+		"outDir": "./dist",
+		"rootDir": "./"
+	},
+	"include": ["src/**/*", "typechain-types/**/*", "scripts/utils/**/*"],
+	"exclude": ["node_modules", "dist", "test"]
 }

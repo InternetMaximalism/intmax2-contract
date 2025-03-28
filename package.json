@@ -1,5 +1,27 @@
 {
 	"name": "intmax2-contract",
+	"version": "1.0.0",
+	"description": "INTMAX2 Protocol Smart Contracts",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"contracts",
+		"artifacts/contracts/**/*.json",
+		"!artifacts/contracts/**/*.dbg.json"
+	],
+	"keywords": [
+		"ethereum",
+		"scroll",
+		"smart-contracts",
+		"solidity",
+		"rollup"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/your-org/intmax2-contract.git"
+	},
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "5.0.0",
 		"@openzeppelin/contracts": "5.1.0",
@@ -29,7 +51,10 @@
 		"lint": "npm run format && npm run solhint",
 		"solhint": "solhint --fix --noPrompt --max-warnings 0 \"contracts/**/*.sol\"",
 		"format": "prettier --write '**/*.{sol,ts,json,md,yml}'",
-		"docgen": "hardhat docgen"
+		"docgen": "hardhat docgen",
+		"build": "tsc",
+		"prepare-publish": "node scripts/prepare-publish.js",
+		"prepublishOnly": "npm run prepare-publish"
 	},
 	"engines": {
 		"node": "20"
