@@ -4,6 +4,9 @@ export function getCounterPartNetwork(): string {
 	if (network.name === 'localhost') {
 		return 'localhost'
 	}
+	if (network.name === 'holesky') {
+		return 'holesky'
+	}
 	if (network.name === 'sepolia') {
 		return 'scrollSepolia'
 	}

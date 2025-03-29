@@ -36,6 +36,12 @@ export const DeployedContractsSchema = z
 			'Block builder registry contract address',
 		),
 		liquidity: ethereumAddressSchema.describe('Liquidity contract address'),
+		amlPermitter: ethereumAddressSchema.describe(
+			'AML permitter contract address',
+		),
+		eligibilityPermitter: ethereumAddressSchema.describe(
+			'Eligibility permitter contract address',
+		),
 	})
 	.partial()
 

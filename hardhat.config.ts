@@ -47,6 +47,10 @@ const config: HardhatUserConfig = {
 			url: `https://scroll-sepolia.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
 			accounts,
 		},
+		holesky: {
+			url: `https://eth-holesky.g.alchemy.com/v2/${env.ALCHEMY_KEY}`,
+			accounts,
+		},
 	},
 	docgen: {
 		exclude: ['test'],
