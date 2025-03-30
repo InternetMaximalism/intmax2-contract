@@ -139,6 +139,9 @@ Create a `.env` file in the root directory with the following variables:
 - `DEPLOYER_PRIVATE_KEY`: Deployer's private key for contract deployment
 - `ADMIN_ADDRESS`: Admin's address for contract initialization and management
 - `RELAYER_ADDRESS`: Relayer's address for the Liquidity contract
+- `INTMAX_TOKEN_ADDRESS`: INTMAX token address. If set to empty string, use the address of `TestERC20` token instead.
+- `WBTC_ADDRESS`: Wrapped Bitcoin token address.
+- `USDC_ADDRESS`: USDC token address.
 - `CONTRIBUTION_PERIOD_INTERVAL`: Contribution period interval in seconds
 - `CLAIM_PERIOD_INTERVAL`: Claim period interval in seconds
 
