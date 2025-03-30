@@ -1,43 +1,12 @@
 import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-import { getRandomPubkey } from '../utils/rand'
+import { getRandomPubkey, getRandomSalt } from '../utils/rand'
+import { getPubkeySaltHash } from '../utils/hash'
+import type { ContractTransactionResponse } from 'ethers'
 import { getLastDepositedEvent } from '../utils/events'
-import {
-	encodePredicateSignatures,
-	fetchPredicateSignatures,
-} from '../utils/predicate'
-import 'dotenv/config'
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
-	const amlPermitter = await ethers.getContractAt(
-		'PredicatePermitter',
-		deployedContracts.amlPermitter,
-	)
-	if (!deployedContracts.amlPermitter) {
-		throw new Error('AML permitter contract should not be deployed')
-	}
-
-	const user = (await ethers.getSigners())[0]
-	const balance = await ethers.provider.getBalance(user.address)
-	console.log('balance:', balance.toString())
-	const pubkey = getRandomPubkey() // intmax address of user
-
-	console.log('amlPermitter address:', await amlPermitter.getAddress())
-	const policyId = await amlPermitter.getPolicy()
-	console.log('policyId:', policyId)
-	const serviceManager = await amlPermitter.getPredicateManager()
-	console.log('serviceManager:', serviceManager)
-
-	// Retrieve the signature from the Predicate
-	const { predicateSignatures, deposit } = await fetchPredicateSignatures(
-		deployedContracts.amlPermitter,
-		user.address,
-		pubkey,
-		ethers.parseEther('0.000000001'),
-	)
-	const encodedPredicateMessage = encodePredicateSignatures(predicateSignatures)
-
 	if (!deployedContracts.liquidity) {
 		throw new Error('liquidity contract should not be deployed')
 	}
@@ -45,16 +14,26 @@ async function main() {
 		'Liquidity',
 		deployedContracts.liquidity,
 	)
-	const tx = await liquidity
+
+	let tx: ContractTransactionResponse
+
+	const user = (await ethers.getSigners())[0]
+	const balance = await ethers.provider.getBalance(user.address)
+	console.log('balance:', balance.toString())
+	const pubkey = getRandomPubkey() // intmax address of user
+	const salt = getRandomSalt() // random salt
+	const recipientSaltHash = getPubkeySaltHash(pubkey, salt)
+	const deposit = {
+		recipientSaltHash,
+		tokenIndex: 0,
+		amount: ethers.parseEther('0.000001'),
+	}
+
+	tx = await liquidity
 		.connect(user)
-		.depositNativeToken(
-			deposit.recipientSaltHash,
-			encodedPredicateMessage,
-			'0x',
-			{
-				value: deposit.amount,
-			},
-		)
+		.depositNativeToken(deposit.recipientSaltHash, '0x', '0x', {
+			value: deposit.amount,
+		})
 	console.log('deposit tx hash:', tx.hash)
 	const res = await tx.wait()
 	if (!res?.blockNumber) {

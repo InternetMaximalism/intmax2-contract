@@ -5,8 +5,6 @@ import {
   signaturesToBytes,
 } from 'predicate-sdk'
 import { ethers } from 'hardhat'
-import { getRandomSalt } from './rand'
-import { getPubkeySaltHash } from './hash'
 import { z } from 'zod'
 import { cleanEnv, str } from 'envalid'
 
@@ -75,42 +73,22 @@ export class Predicate {
 }
 
 export const fetchPredicateSignatures = async (
-  liquidityContractAddress: string,
+  permitterContractAddress: string,
   depositor: string,
-  recipientPubkey: bigint,
-  amount: bigint,
+  msgValue: bigint,
+  encodedArgs: string,
 ) => {
-  const salt = getRandomSalt() // random salt
-  const recipientSaltHash = getPubkeySaltHash(recipientPubkey, salt)
-  const deposit = {
-    depositor,
-    recipientSaltHash,
-    tokenIndex: 0,
-    amount,
-    salt,
-  }
-
-  const iface = new ethers.Interface(['function depositNativeToken(bytes32)'])
-  const encodedArgs = iface.encodeFunctionData('depositNativeToken', [
-    recipientSaltHash,
-  ])
-  console.log('encodedArgs', encodedArgs)
-
   const predicateClient = new Predicate()
   const request = {
     from: depositor,
-    to: liquidityContractAddress,
+    to: permitterContractAddress,
     data: encodedArgs,
-    msg_value: amount.toString(), // depositNativeToken
+    msg_value: msgValue.toString(),
   }
   console.log('request', JSON.stringify(request, null, 2))
   const predicateSignatures = await predicateClient.evaluatePolicy(request)
-  console.log('predicateSignatures', predicateSignatures)
 
-  return {
-    predicateSignatures,
-    deposit,
-  }
+  return predicateSignatures;
 }
 
 export const encodePredicateSignatures = (
