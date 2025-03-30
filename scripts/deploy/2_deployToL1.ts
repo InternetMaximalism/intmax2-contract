@@ -5,10 +5,16 @@ import { sleep } from '../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { bool, cleanEnv, num, str } from 'envalid'
 
+
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
 	RELAYER_ADDRESS: str(),
 	CONTRIBUTION_PERIOD_INTERVAL: num(),
+	INTMAX_TOKEN_ADDRESS: str({
+		default: ''
+	}),
+	WBTC_ADDRESS: str(),
+	USDC_ADDRESS: str(),
 	ADMIN_PRIVATE_KEY: str({
 		default: '',
 	}),
@@ -93,11 +99,18 @@ async function main() {
 		}
 
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
-		// todo fix
+		let intmaxTokenAddress: string
+		if (
+			env.INTMAX_TOKEN_ADDRESS === ''
+		) {
+			intmaxTokenAddress = deployedContracts.testErc20
+		} else {
+			intmaxTokenAddress = env.INTMAX_TOKEN_ADDRESS
+		}
 		const initialERC20Tokens = [
-			deployedContracts.testErc20,
-			'0x779877A7B0D9E8603169DdbD7836e478b4624789',
-			'0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+			intmaxTokenAddress,
+			env.WBTC_ADDRESS,
+			env.USDC_ADDRESS,
 		]
 		const liquidity = await upgrades.deployProxy(
 			liquidityFactory,
