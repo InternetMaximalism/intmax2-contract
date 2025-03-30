@@ -8,11 +8,6 @@
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
 		"declaration": true,
-		"types": [
-			"node",
-			"mocha",
-			"@nomiclabs/hardhat-ethers"
-		],
 		"outDir": "./dist",
 		"rootDir": "./src"
 	},
