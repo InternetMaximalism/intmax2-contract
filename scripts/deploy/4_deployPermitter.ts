@@ -1,4 +1,4 @@
-import { ethers, upgrades } from 'hardhat'
+import { ethers } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { bool, cleanEnv, num, str } from 'envalid'
 
@@ -39,17 +39,12 @@ async function main() {
     console.log('deploying amlPermitter')
     const predicatePermitterFactory =
       await ethers.getContractFactory('PredicatePermitter')
-    const amlPermitter = await upgrades.deployProxy(
-      predicatePermitterFactory,
-      [
-        env.ADMIN_ADDRESS,
-        env.PREDICATE_AML_SERVICE_MANAGER,
-        env.PREDICATE_AML_POLICY_ID,
-      ],
-      {
-        kind: 'uups',
-      },
+    const amlPermitter = await predicatePermitterFactory.deploy(
+      env.ADMIN_ADDRESS,
+      env.PREDICATE_AML_SERVICE_MANAGER,
+      env.PREDICATE_AML_POLICY_ID
     )
+    await amlPermitter.waitForDeployment()
     deployedContracts = {
       amlPermitter: await amlPermitter.getAddress(),
       ...deployedContracts,
@@ -61,17 +56,12 @@ async function main() {
     console.log('deploying eligibilityPermitter')
     const predicatePermitterFactory =
       await ethers.getContractFactory('PredicatePermitter')
-    const eligibilityPermitter = await upgrades.deployProxy(
-      predicatePermitterFactory,
-      [
-        env.ADMIN_ADDRESS,
-        env.PREDICATE_ELIGIBILITY_SERVICE_MANAGER,
-        env.PREDICATE_ELIGIBILITY_POLICY_ID,
-      ],
-      {
-        kind: 'uups',
-      },
+    const eligibilityPermitter = await predicatePermitterFactory.deploy(
+      env.ADMIN_ADDRESS,
+      env.PREDICATE_ELIGIBILITY_SERVICE_MANAGER,
+      env.PREDICATE_ELIGIBILITY_POLICY_ID
     )
+    await eligibilityPermitter.waitForDeployment()
     deployedContracts = {
       eligibilityPermitter: await eligibilityPermitter.getAddress(),
       ...deployedContracts,
