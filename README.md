@@ -233,3 +233,71 @@ npx hardhat docgen
 - `test/`: Test files
 - `test_data/`: Test data files
 - `test_data_generator/`: Tools for generating test data
+
+## Contract Overview
+
+### Rollup
+
+A smart contract responsible for handling operations related to Intmax blocks.
+
+- **Deployment:** Scroll
+- **Functions:**
+  - **Block Posting:** Allows posting blocks.
+  - **Deposit Processing:** Integrates deposits from the liquidity contract into the Rollup state.
+  - **Penalty Fee Management:** Enables withdrawal and adjustment of penalty fees associated with rate limiting.
+
+### Liquidity
+
+This contract manages asset transfers between the Ethereum and Intmax networks. It handles user deposit and withdrawal operations and maintains asset states.
+
+- **Deployment:** Ethereum
+- **Functions:**
+  - **Asset Deposits:** Users can deposit tokens (native tokens, ERC20, ERC721, ERC1155) from Ethereum into Intmax.
+  - **AML Check:** Performs AML checks upon deposits and rejects deposits from non-compliant addresses.
+  - **Asset Withdrawals:** Sends tokens withdrawn from Intmax to users on Ethereum.
+  - **Deposit Management:** Stores deposited tokens in a queue, and a Deposit Relayer communicates this information to the Intmax network.
+  - **Contribution Recording:** Records addresses executing essential transactions (such as withdrawals).
+
+### Withdrawal
+
+Manages withdrawal processes from the Intmax network to Ethereum, verifies withdrawal proofs, and manages eligible token indices for direct withdrawals.
+
+- **Deployment:** Scroll
+- **Functions:**
+  - **Withdrawal Request Submission:** Allows submission and verification of withdrawal proofs from Intmax.
+  - **Token Management for Direct Withdrawals:** Manages token indices eligible for direct withdrawals.
+
+### Claim
+
+Used to claim rewards from privacy mining, distributing ITX tokens on Ethereum.
+
+- **Deployment:** Scroll
+- **Functions:**
+  - **Claim Proof Submission:** Submit claim proof from Intmax network.
+  - **Token Management for Direct Withdrawals:** Manages tokens eligible for direct withdrawals.
+
+### Block Builder Registry
+
+Maintains a registry of active block builders via heartbeat signals.
+
+- **Deployment:** Scroll
+- **Functions:**
+  - **Heartbeat Emission:** Enables periodic signals indicating active status.
+
+### L1/L2 Contribution
+
+Manages user contributions, tracking allocations, weights, and reward distributions.
+
+- **Deployment:** Ethereum and Scroll
+- **Functions:**
+  - **Contribution Recording:** Records user contributions with tags for specific periods.
+  - **Period Management:** Manages periodic increments and resets for contributions.
+  - **Weight Management:** Assigns and manages tag weights for each period.
+
+### Permitter Contract
+
+Verifies AML checks and validates legitimate mining activity via Predicate service. Invoked by Liquidity contract during deposits.
+
+- **Deployment**: Ethereum
+- **Functions:**
+  - **Policy Verification:** Rejects deposits from addresses not compliant with AML and mining validation policies.
