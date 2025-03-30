@@ -1,4 +1,4 @@
-import { ethers, network, upgrades } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { getL1MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../utils/sleep'
