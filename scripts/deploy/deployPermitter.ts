@@ -1,6 +1,7 @@
 import { ethers, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { cleanEnv, str } from 'envalid'
+import { Liquidity } from '../../typechain-types/contracts/Liquidity'
 
 const env = cleanEnv(process.env, {
   ADMIN_PRIVATE_KEY: str(),
@@ -74,16 +75,16 @@ async function main() {
     'Liquidity',
     deployedContracts.liquidity,
   )
-  const txSetPermitter = await liquidity
-    .connect(admin)
+  const txSetPermitter = await (liquidity
+    .connect(admin) as Liquidity)
     .setPermitter(
       deployedContracts.amlPermitter!,
       deployedContracts.eligibilityPermitter!,
     )
   console.log('setPermitter tx hash:', txSetPermitter.hash)
   const resSetPermitter = await txSetPermitter.wait()
-  if (resSetPermitter.status !== 1) {
-    throw new Error('No block number found')
+  if (resSetPermitter?.status !== 1) {
+    throw new Error('Tx not successful')
   }
 }
 
