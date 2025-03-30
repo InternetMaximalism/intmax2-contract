@@ -1,4 +1,4 @@
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getRandomPubkey, getRandomSalt } from '../utils/rand'
 import { getPubkeySaltHash } from '../utils/hash'
@@ -6,6 +6,12 @@ import type { ContractTransactionResponse } from 'ethers'
 import { getLastDepositedEvent } from '../utils/events'
 
 async function main() {
+	if (network.name === 'mainnet' || network.name === 'holesky') {
+		throw new Error(
+			'Please use `scripts/test/depositEthWithPredicate.ts` instead on mainnet or holesky network',
+		)
+	}
+
 	const deployedContracts = await readDeployedContracts()
 	if (!deployedContracts.liquidity) {
 		throw new Error('liquidity contract should not be deployed')

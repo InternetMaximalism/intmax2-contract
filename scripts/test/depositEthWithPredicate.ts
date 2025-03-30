@@ -1,4 +1,4 @@
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
 import { getRandomPubkey, getRandomSalt } from '../utils/rand'
 import { getLastDepositedEvent } from '../utils/events'
@@ -10,6 +10,12 @@ import 'dotenv/config'
 import { getPubkeySaltHash } from '../utils/hash'
 
 async function main() {
+	if (network.name !== 'mainnet' && network.name !== 'holesky') {
+		throw new Error(
+			'Please use scripts/test/depositEth.ts instead on networks other than mainnet and holesky.',
+		)
+	}
+
 	const deployedContracts = await readDeployedContracts()
 	const amlPermitter = await ethers.getContractAt(
 		'PredicatePermitter',
