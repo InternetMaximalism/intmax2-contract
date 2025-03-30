@@ -20,7 +20,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/your-org/intmax2-contract.git"
+		"url": "https://github.com/InternetMaximalism/intmax2-contract.git"
 	},
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "5.0.0",

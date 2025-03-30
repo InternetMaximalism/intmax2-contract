@@ -6,7 +6,7 @@
 
 ```sh
 # Clone the repository
-git clone https://github.com/your-org/intmax2-contract.git
+git clone https://github.com/InternetMaximalism/intmax2-contract.git
 cd intmax2-contract
 
 # Install dependencies
