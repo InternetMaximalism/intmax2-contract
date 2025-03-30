@@ -4,6 +4,7 @@ import { getL2MessengerAddress } from '../utils/addressBook'
 import { sleep } from '../utils/sleep'
 import { getCounterPartNetwork } from '../utils/counterPartNetwork'
 import { bool, cleanEnv, num, str } from 'envalid'
+import { Contribution } from '../../typechain-types/contracts/Contribution'
 
 // default values for late limiter
 const fixedPointOne = 10n ** 18n
@@ -144,19 +145,19 @@ async function main() {
 			throw new Error('ADMIN_ADDRESS and ADMIN_PRIVATE_KEY do not match')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, rollup))) {
-			await l2Contribution.connect(admin).grantRole(contributorRole, rollup)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, rollup)
 			console.log('for rollup')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, withdrawal))) {
-			await l2Contribution.connect(admin).grantRole(contributorRole, withdrawal)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, withdrawal)
 			console.log('for withdrawal')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, claim))) {
-			await l2Contribution.connect(admin).grantRole(contributorRole, claim)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, claim)
 			console.log('for claim')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, registry))) {
-			await l2Contribution.connect(admin).grantRole(contributorRole, registry)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, registry)
 			console.log('for registry')
 		}
 	}
