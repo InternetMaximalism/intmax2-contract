@@ -46,7 +46,7 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 	}
 
-	if (!deployedContracts.testErc20) {
+	if (!deployedContracts.testErc20 && env.INTMAX_TOKEN_ADDRESS === '') {
 		console.log('deploying testErc20')
 		const TestERC20 = await ethers.getContractFactory('TestERC20')
 		const owner = (await ethers.getSigners())[0]
@@ -94,13 +94,13 @@ async function main() {
 		if (!deployedContracts.l1Contribution) {
 			throw new Error('l1Contribution address is not set')
 		}
-		if (!deployedContracts.testErc20) {
-			throw new Error('testErc20 address is not set')
-		}
 
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		let intmaxTokenAddress: string
 		if (env.INTMAX_TOKEN_ADDRESS === '') {
+			if (!deployedContracts.testErc20) {
+				throw new Error('testErc20 address is not set')
+			}
 			intmaxTokenAddress = deployedContracts.testErc20
 		} else {
 			intmaxTokenAddress = env.INTMAX_TOKEN_ADDRESS
