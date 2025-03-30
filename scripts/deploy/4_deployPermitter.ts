@@ -74,10 +74,12 @@ async function main() {
     'Liquidity',
     deployedContracts.liquidity,
   )
-  const txSetPermitter = await liquidity.connect(admin).setPermitter(
-    deployedContracts.amlPermitter!,
-    deployedContracts.eligibilityPermitter!,
-  )
+  const txSetPermitter = await liquidity
+    .connect(admin)
+    .setPermitter(
+      deployedContracts.amlPermitter!,
+      deployedContracts.eligibilityPermitter!,
+    )
   console.log('setPermitter tx hash:', txSetPermitter.hash)
   const resSetPermitter = await txSetPermitter.wait()
   if (resSetPermitter.status !== 1) {

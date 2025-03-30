@@ -50,7 +50,7 @@ async function main() {
 		deposit.amount, // only native token
 		encodedArgs,
 	)
-	console.log('predicateSignatures', predicateSignatures);
+	console.log('predicateSignatures', predicateSignatures)
 	const encodedPredicateMessage = encodePredicateSignatures(predicateSignatures)
 
 	if (!deployedContracts.liquidity) {

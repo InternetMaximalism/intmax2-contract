@@ -88,7 +88,7 @@ export const fetchPredicateSignatures = async (
   console.log('request', JSON.stringify(request, null, 2))
   const predicateSignatures = await predicateClient.evaluatePolicy(request)
 
-  return predicateSignatures;
+  return predicateSignatures
 }
 
 export const encodePredicateSignatures = (
