@@ -1,7 +1,5 @@
 import { Liquidity } from '../../typechain-types'
-import {
-	DepositedEvent,
-} from '../../typechain-types/contracts/liquidity/Liquidity'
+import { DepositedEvent } from '../../typechain-types/contracts/liquidity/Liquidity'
 
 export async function getLastDepositedEvent(
 	liquidity: Liquidity,

@@ -129,7 +129,6 @@ Verifies AML checks and validates legitimate mining activity via Predicate servi
 - **Functions:**
   - **Policy Verification:** Rejects deposits from addresses not compliant with AML and mining validation policies.
 
-
 ## Environment Setup
 
 Create a `.env` file in the root directory with the following variables:

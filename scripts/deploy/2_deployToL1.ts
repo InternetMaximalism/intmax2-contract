@@ -11,7 +11,7 @@ const env = cleanEnv(process.env, {
 	RELAYER_ADDRESS: str(),
 	CONTRIBUTION_PERIOD_INTERVAL: num(),
 	INTMAX_TOKEN_ADDRESS: str({
-		default: ''
+		default: '',
 	}),
 	WBTC_ADDRESS: str(),
 	USDC_ADDRESS: str(),
@@ -100,9 +100,7 @@ async function main() {
 
 		const liquidityFactory = await ethers.getContractFactory('Liquidity')
 		let intmaxTokenAddress: string
-		if (
-			env.INTMAX_TOKEN_ADDRESS === ''
-		) {
+		if (env.INTMAX_TOKEN_ADDRESS === '') {
 			intmaxTokenAddress = deployedContracts.testErc20
 		} else {
 			intmaxTokenAddress = env.INTMAX_TOKEN_ADDRESS
@@ -155,9 +153,10 @@ async function main() {
 		)
 		const role = ethers.solidityPackedKeccak256(['string'], ['CONTRIBUTOR'])
 		if (!(await l1Contribution.hasRole(role, deployedContracts.liquidity))) {
-			await (l1Contribution
-				.connect(admin) as Contribution)
-				.grantRole(role, deployedContracts.liquidity)
+			await (l1Contribution.connect(admin) as Contribution).grantRole(
+				role,
+				deployedContracts.liquidity,
+			)
 			console.log('granted role')
 		}
 	}

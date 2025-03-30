@@ -145,19 +145,31 @@ async function main() {
 			throw new Error('ADMIN_ADDRESS and ADMIN_PRIVATE_KEY do not match')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, rollup))) {
-			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, rollup)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(
+				contributorRole,
+				rollup,
+			)
 			console.log('for rollup')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, withdrawal))) {
-			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, withdrawal)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(
+				contributorRole,
+				withdrawal,
+			)
 			console.log('for withdrawal')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, claim))) {
-			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, claim)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(
+				contributorRole,
+				claim,
+			)
 			console.log('for claim')
 		}
 		if (!(await l2Contribution.hasRole(contributorRole, registry))) {
-			await (l2Contribution.connect(admin) as Contribution).grantRole(contributorRole, registry)
+			await (l2Contribution.connect(admin) as Contribution).grantRole(
+				contributorRole,
+				registry,
+			)
 			console.log('for registry')
 		}
 	}

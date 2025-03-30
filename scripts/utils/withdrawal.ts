@@ -1,5 +1,9 @@
 import { ethers } from 'hardhat'
-import type { WithdrawalInfo, Withdrawal, WithdrawalProofPublicInputs } from './types/withdrawalInfo'
+import type {
+	WithdrawalInfo,
+	Withdrawal,
+	WithdrawalProofPublicInputs,
+} from './types/withdrawalInfo'
 
 export function makeWithdrawalInfo(
 	aggregator: string,

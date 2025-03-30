@@ -19,6 +19,7 @@ npm run prepare-publish
 ```
 
 This script will:
+
 1. Clean previous build artifacts
 2. Compile the Solidity contracts
 3. Generate TypeScript type definitions
@@ -61,11 +62,13 @@ npm version prerelease --preid=beta
 Before publishing, you can test the package locally:
 
 1. Build the package:
+
    ```sh
    npm run prepare-publish
    ```
 
 2. Create a test project and link the package:
+
    ```sh
    mkdir test-project
    cd test-project
@@ -74,10 +77,11 @@ Before publishing, you can test the package locally:
    ```
 
 3. Create a test script to verify the package works:
+
    ```js
    // test.js
-   const intmax2 = require('intmax2-contract');
-   console.log('Contract Names:', intmax2.ContractNames);
+   const intmax2 = require('intmax2-contract')
+   console.log('Contract Names:', intmax2.ContractNames)
    ```
 
 4. Run the test script:
@@ -90,17 +94,20 @@ Before publishing, you can test the package locally:
 To test the Foundry integration:
 
 1. Create a test Foundry project:
+
    ```sh
    forge init foundry-test
    cd foundry-test
    ```
 
 2. Install the package:
+
    ```sh
    npm install ../path/to/intmax2-contract
    ```
 
 3. Update the foundry.toml file:
+
    ```toml
    [profile.default]
    src = 'src'
@@ -109,18 +116,19 @@ To test the Foundry integration:
    ```
 
 4. Create a test contract that imports from the package:
+
    ```solidity
    // src/TestImport.sol
    pragma solidity ^0.8.27;
 
-   import "intmax2-contract/contracts/rollup/Rollup.sol";
+   import 'intmax2-contract/contracts/rollup/Rollup.sol';
 
    contract TestImport {
-       Rollup public rollup;
-       
-       constructor(address _rollupAddress) {
-           rollup = Rollup(_rollupAddress);
-       }
+   	Rollup public rollup;
+
+   	constructor(address _rollupAddress) {
+   		rollup = Rollup(_rollupAddress);
+   	}
    }
    ```
 
