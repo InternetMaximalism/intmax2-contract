@@ -42,7 +42,7 @@ async function main() {
     const amlPermitter = await predicatePermitterFactory.deploy(
       env.ADMIN_ADDRESS,
       env.PREDICATE_AML_SERVICE_MANAGER,
-      env.PREDICATE_AML_POLICY_ID
+      env.PREDICATE_AML_POLICY_ID,
     )
     await amlPermitter.waitForDeployment()
     deployedContracts = {
@@ -52,35 +52,42 @@ async function main() {
     await writeDeployedContracts(deployedContracts)
   }
 
-  if (!deployedContracts.eligibilityPermitter) {
-    console.log('deploying eligibilityPermitter')
-    const predicatePermitterFactory =
-      await ethers.getContractFactory('PredicatePermitter')
-    const eligibilityPermitter = await predicatePermitterFactory.deploy(
-      env.ADMIN_ADDRESS,
-      env.PREDICATE_ELIGIBILITY_SERVICE_MANAGER,
-      env.PREDICATE_ELIGIBILITY_POLICY_ID
-    )
-    await eligibilityPermitter.waitForDeployment()
-    deployedContracts = {
-      eligibilityPermitter: await eligibilityPermitter.getAddress(),
-      ...deployedContracts,
-    }
-    await writeDeployedContracts(deployedContracts)
-  }
+  // if (!deployedContracts.eligibilityPermitter) {
+  //   console.log('deploying eligibilityPermitter')
+  //   const predicatePermitterFactory =
+  //     await ethers.getContractFactory('PredicatePermitter')
+  //   const eligibilityPermitter = await upgrades.deployProxy(
+  //     predicatePermitterFactory,
+  //     [
+  //       env.ADMIN_ADDRESS,
+  //       env.PREDICATE_ELIGIBILITY_SERVICE_MANAGER,
+  //       env.PREDICATE_ELIGIBILITY_POLICY_ID,
+  //     ],
+  //     {
+  //       kind: 'uups',
+  //     },
+  //   )
+  //   deployedContracts = {
+  //     eligibilityPermitter: await eligibilityPermitter.getAddress(),
+  //     ...deployedContracts,
+  //   }
+  //   await writeDeployedContracts(deployedContracts)
+  // }
 
-  const liquidity = await ethers.getContractAt(
-    'Liquidity',
-    deployedContracts.liquidity!,
-  )
-  const txSetPermitter = await liquidity.setPermitter(
-    deployedContracts.amlPermitter!,
-    deployedContracts.eligibilityPermitter!,
-  )
-  console.log('setPermitter tx hash:', txSetPermitter.hash)
-  const resSetPermitter = await txSetPermitter.wait()
-  if (!resSetPermitter?.blockNumber) {
-    throw new Error('No block number found')
+  if (deployedContracts.liquidity) {
+    const liquidity = await ethers.getContractAt(
+      'Liquidity',
+      deployedContracts.liquidity,
+    )
+    const txSetPermitter = await liquidity.setPermitter(
+      deployedContracts.amlPermitter!,
+      deployedContracts.eligibilityPermitter!,
+    )
+    console.log('setPermitter tx hash:', txSetPermitter.hash)
+    const resSetPermitter = await txSetPermitter.wait()
+    if (!resSetPermitter?.blockNumber) {
+      throw new Error('No block number found')
+    }
   }
 }
 

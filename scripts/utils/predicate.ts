@@ -7,19 +7,33 @@ import {
 import { ethers } from 'hardhat'
 import { getRandomSalt } from './rand'
 import { getPubkeySaltHash } from './hash'
+import { z } from 'zod'
+import { cleanEnv, str } from 'envalid'
 
-const config = {
-  PREDICATE_API_URL: process.env.PREDICATE_API_URL,
-  PREDICATE_API_KEY: process.env.PREDICATE_API_KEY,
-}
+export const predicateSignaturesValidation = z.strictObject({
+  is_compliant: z.boolean(),
+  signers: z.array(z.string()),
+  signature: z.array(z.string()),
+  expiry_block: z.number(),
+  task_id: z.string(),
+})
+
+export type predicateSignaturesValidationType = z.infer<
+  typeof predicateSignaturesValidation
+>
+
+const env = cleanEnv(process.env, {
+  PREDICATE_API_URL: str(),
+  PREDICATE_API_KEY: str(),
+})
 
 export class Predicate {
   private predicateClient: PredicateClient
 
   constructor() {
     const predicateConfig: PredicateConfig = {
-      apiUrl: config.PREDICATE_API_URL!,
-      apiKey: config.PREDICATE_API_KEY!,
+      apiUrl: env.PREDICATE_API_URL,
+      apiKey: env.PREDICATE_API_KEY,
     }
     this.predicateClient = new PredicateClient(predicateConfig)
   }
@@ -33,7 +47,7 @@ export class Predicate {
     try {
       const headers = {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.PREDICATE_API_KEY!,
+        'x-api-key': env.PREDICATE_API_KEY,
       }
       const options = {
         method: 'POST',
@@ -41,10 +55,8 @@ export class Predicate {
         body: JSON.stringify(request),
       }
 
-      const response = await fetch(
-        `${config.PREDICATE_API_URL}/v1/task`,
-        options,
-      )
+      console.log('PREDICATE_API_URL', env.PREDICATE_API_URL)
+      const response = await fetch(`${env.PREDICATE_API_URL}/v1/task`, options)
       if (!response.ok) {
         throw new Error(
           `Failed to fetch predicate signatures: ${response.statusText}`,
@@ -52,7 +64,9 @@ export class Predicate {
       }
 
       const json = await response.json()
-      return json.data
+      const predicateSignatures = predicateSignaturesValidation.parse(json)
+
+      return predicateSignatures
     } catch (error) {
       console.error('Error fetching predicate signatures:', error)
       throw error
@@ -77,8 +91,9 @@ export const fetchPredicateSignatures = async (
   }
 
   const iface = new ethers.Interface(['function depositNativeToken(bytes32)'])
-  const encodedArgs = iface.encodeFunctionData("depositNativeToken", [recipientSaltHash]);
-  // const encodedArgs = '0x'
+  const encodedArgs = iface.encodeFunctionData('depositNativeToken', [
+    recipientSaltHash,
+  ])
   console.log('encodedArgs', encodedArgs)
 
   const predicateClient = new Predicate()
@@ -88,6 +103,7 @@ export const fetchPredicateSignatures = async (
     data: encodedArgs,
     msg_value: amount.toString(), // depositNativeToken
   }
+  console.log('request', JSON.stringify(request, null, 2))
   const predicateSignatures = await predicateClient.evaluatePolicy(request)
   console.log('predicateSignatures', predicateSignatures)
 
@@ -101,13 +117,9 @@ export const encodePredicateSignatures = (
   predicateSignatures: PredicateResponse,
 ) => {
   const predicateMessage = signaturesToBytes(predicateSignatures)
-  const { taskId, expireByBlockNumber, signerAddresses, signatures } =
-    predicateMessage
-  const abiCoder = new ethers.AbiCoder()
-  const encodedPredicateMessage = abiCoder.encode(
-    ['string', 'uint256', 'address[]', 'bytes[]'],
-    [taskId, expireByBlockNumber, signerAddresses, signatures],
-  )
-
-  return encodedPredicateMessage
+  const predicateMessageType = [
+    'tuple(string taskId, uint256 expireByBlockNumber, address[] signerAddresses, bytes[] signatures)',
+  ]
+  const encoder = ethers.AbiCoder.defaultAbiCoder()
+  return encoder.encode(predicateMessageType, [predicateMessage])
 }

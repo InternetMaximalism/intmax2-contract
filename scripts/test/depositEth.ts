@@ -6,27 +6,24 @@ import {
 	encodePredicateSignatures,
 	fetchPredicateSignatures,
 } from '../utils/predicate'
+import 'dotenv/config'
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.liquidity || !deployedContracts.amlPermitter) {
-		throw new Error('liquidity contract should not be deployed')
-	}
-	const liquidity = await ethers.getContractAt(
-		'Liquidity',
-		deployedContracts.liquidity,
-	)
 	const amlPermitter = await ethers.getContractAt(
 		'PredicatePermitter',
 		deployedContracts.amlPermitter,
 	)
+	if (!deployedContracts.amlPermitter) {
+		throw new Error('AML permitter contract should not be deployed')
+	}
 
 	const user = (await ethers.getSigners())[0]
 	const balance = await ethers.provider.getBalance(user.address)
 	console.log('balance:', balance.toString())
 	const pubkey = getRandomPubkey() // intmax address of user
 
-	console.log('amlPermitter address:', amlPermitter.address)
+	console.log('amlPermitter address:', await amlPermitter.getAddress())
 	const policyId = await amlPermitter.getPolicy()
 	console.log('policyId:', policyId)
 	const serviceManager = await amlPermitter.getPredicateManager()
@@ -34,13 +31,20 @@ async function main() {
 
 	// Retrieve the signature from the Predicate
 	const { predicateSignatures, deposit } = await fetchPredicateSignatures(
-		deployedContracts.liquidity,
+		deployedContracts.amlPermitter,
 		user.address,
 		pubkey,
-		ethers.parseEther('0.000001'),
+		ethers.parseEther('0.000000001'),
 	)
 	const encodedPredicateMessage = encodePredicateSignatures(predicateSignatures)
 
+	if (!deployedContracts.liquidity) {
+		throw new Error('liquidity contract should not be deployed')
+	}
+	const liquidity = await ethers.getContractAt(
+		'Liquidity',
+		deployedContracts.liquidity,
+	)
 	const tx = await liquidity
 		.connect(user)
 		.depositNativeToken(
