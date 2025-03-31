@@ -123,11 +123,11 @@ Manages user contributions, tracking allocations, weights, and reward distributi
 
 ### Permitter Contract
 
-Verifies AML checks and validates legitimate mining activity via Predicate service. Invoked by Liquidity contract during deposits.
+This contract uses a service called Predicate to verify AML checks and to determine whether the transaction originates from valid mining activities. It is invoked by the Liquidity contract whenever a user deposits funds. Deposits from addresses that do not comply with predetermined policies will be rejected.
 
 - **Deployment**: Ethereum
 - **Functions:**
-  - **Policy Verification:** Rejects deposits from addresses not compliant with AML and mining validation policies.
+  - **Policy Verification:** Rejects transaction executions from addresses not compliant with AML and mining validation policies.
 
 ## Environment Setup
 
