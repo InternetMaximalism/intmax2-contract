@@ -105,7 +105,7 @@ async function main() {
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
 			deployedL2Contracts.l2Contribution,
-			[0, 1, 2], // 0: eth, 1: itx, 2: usdc
+			[0, 1, 2, 3], // 0: eth, 1: intmax token, 2: wbtc, 3: usdc
 		)
 		await tx.wait()
 		console.log('Withdrawal initialized')

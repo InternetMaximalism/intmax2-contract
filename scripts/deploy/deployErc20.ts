@@ -1,4 +1,4 @@
-import { ethers, network } from 'hardhat'
+import { ethers } from 'hardhat'
 
 async function main() {
 	const TestERC20 = await ethers.getContractFactory('TestERC20')
