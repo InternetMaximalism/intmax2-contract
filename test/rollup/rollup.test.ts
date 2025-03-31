@@ -1013,7 +1013,7 @@ describe('Rollup', () => {
 			it('revert SenderAccountIdsInvalidLength', async () => {
 				const [rollup] = await loadFixture(setup)
 				const inputs = await generateValidInputs()
-				inputs.senderAccountIds = ethers.hexlify(ethers.randomBytes(7)) // 7バイト (5の倍数ではない)
+				inputs.senderAccountIds = ethers.hexlify(ethers.randomBytes(7)) // 7 bytes (not a multiple of 5)
 
 				await expect(
 					rollup.postNonRegistrationBlock(

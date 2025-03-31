@@ -309,13 +309,13 @@ describe('Claim', () => {
 				const { claims, claimProofPublicInputs, proof } =
 					await generateTestArgs([user1.address])
 
-				const claim２ = { ...claims[0] }
-				claim２.nullifier = ethers.hexlify(ethers.randomBytes(32))
+				const claim2 = { ...claims[0] }
+				claim2.nullifier = ethers.hexlify(ethers.randomBytes(32))
 				claimProofPublicInputs.lastClaimHash = hashWithPrevHash(
-					claim２,
+					claim2,
 					claimProofPublicInputs.lastClaimHash,
 				)
-				const newClaims = [claims[0], claim２]
+				const newClaims = [claims[0], claim2]
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
@@ -342,12 +342,12 @@ describe('Claim', () => {
 				const { claims, claimProofPublicInputs, proof } =
 					await generateTestArgs([user1.address])
 
-				const claim２ = { ...claims[0] }
+				const claim2 = { ...claims[0] }
 				claimProofPublicInputs.lastClaimHash = hashWithPrevHash(
-					claim２,
+					claim2,
 					claimProofPublicInputs.lastClaimHash,
 				)
-				const newClaims = [claims[0], claim２]
+				const newClaims = [claims[0], claim2]
 				await rollupTestForClaim.setTestData(
 					claims[0].blockNumber,
 					claims[0].blockHash,
