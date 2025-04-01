@@ -56,6 +56,7 @@ async function main() {
 			testErc20: await testErc20.getAddress(),
 			...deployedContracts,
 		})
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.l1Contribution) {
@@ -73,6 +74,7 @@ async function main() {
 			l1Contribution: await l1Contribution.getAddress(),
 			...deployedContracts,
 		})
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (!deployedContracts.liquidity) {
@@ -130,10 +132,10 @@ async function main() {
 			liquidity: await liquidity.getAddress(),
 			...deployedContracts,
 		})
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (env.GRANT_ROLE) {
-		console.log('Granting role to l2Contribution')
 		if (env.ADMIN_PRIVATE_KEY === '') {
 			throw new Error('ADMIN_PRIVATE_KEY is required')
 		}
