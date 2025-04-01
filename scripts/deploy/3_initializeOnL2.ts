@@ -165,14 +165,6 @@ async function main() {
 			console.log('for claim')
 			await sleep(env.SLEEP_TIME)
 		}
-		if (!(await l2Contribution.hasRole(contributorRole, registry))) {
-			await (l2Contribution.connect(admin) as Contribution).grantRole(
-				contributorRole,
-				registry,
-			)
-			console.log('for registry')
-			await sleep(env.SLEEP_TIME)
-		}
 	}
 }
 
