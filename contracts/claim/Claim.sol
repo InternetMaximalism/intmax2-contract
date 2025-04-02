@@ -32,32 +32,32 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	/**
 	 * @notice verifies the claim proof
 	 */
-	IPlonkVerifier private claimVerifier;
+	IPlonkVerifier public claimVerifier;
 
 	/**
 	 * @notice ScrollMessenger contract
 	 */
-	IL2ScrollMessenger private l2ScrollMessenger;
+	IL2ScrollMessenger public l2ScrollMessenger;
 
 	/**
 	 * @notice Rollup contract
 	 */
-	IRollup private rollup;
+	IRollup public rollup;
 
 	/**
 	 * @notice Liquidity contract
 	 */
-	address private liquidity;
+	address public liquidity;
 
 	/**
 	 * @notice Contribution contract
 	 */
-	IContribution private contribution;
+	IContribution public contribution;
 
 	/**
 	 * @notice Nonce to make nullifier unique
 	 */
-	uint256 private nullifierNonce;
+	uint256 public nullifierNonce;
 
 	/**
 	 * @notice allocation state
@@ -67,9 +67,9 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	/**
 	 * @notice nullifiers
 	 */
-	mapping(bytes32 => bool) private nullifiers;
+	mapping(bytes32 => bool) public nullifiers;
 
-	uint32 private constant REWARD_TOKEN_INDEX = 1;
+	uint32 public constant REWARD_TOKEN_INDEX = 1;
 
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {

@@ -27,18 +27,18 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @notice The maximum number of senders in a block
 	 * @dev Used to limit the size of blocks and for padding sender arrays
 	 */
-	uint256 private constant NUM_SENDERS_IN_BLOCK = 128;
+	uint256 public constant NUM_SENDERS_IN_BLOCK = 128;
 	/**
 	 * @notice The number of bytes required to represent the account IDs of all senders in a block
 	 * @dev Each account ID uses 5 bytes, so 128 senders require 640 bytes
 	 */
-	uint256 private constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
+	uint256 public constant FULL_ACCOUNT_IDS_BYTES = NUM_SENDERS_IN_BLOCK * 5;
 
 	/**
 	 * @notice Address of the Liquidity contract on L1
 	 * @dev Used to verify cross-chain messages from the Liquidity contract
 	 */
-	address private liquidity;
+	address public liquidity;
 
 	/**
 	 * @notice The ID of the last processed deposit from the Liquidity contract
@@ -68,13 +68,13 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @notice Reference to the L2 ScrollMessenger contract
 	 * @dev Used for cross-chain communication with L1
 	 */
-	IL2ScrollMessenger private l2ScrollMessenger;
+	IL2ScrollMessenger public l2ScrollMessenger;
 
 	/**
 	 * @notice Reference to the Contribution contract
 	 * @dev Used to record block builder contributions
 	 */
-	IContribution private contribution;
+	IContribution public contribution;
 
 	/**
 	 * @notice Sparse Merkle tree for tracking deposits

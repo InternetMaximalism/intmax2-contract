@@ -54,13 +54,13 @@ contract Liquidity is
 	uint256 public deploymentTime;
 
 	/// @notice Address of the L1 ScrollMessenger contract
-	IL1ScrollMessenger private l1ScrollMessenger;
+	IL1ScrollMessenger public l1ScrollMessenger;
 
 	/// @notice Address of the Contribution contract
-	IContribution private contribution;
+	IContribution public contribution;
 
 	/// @notice Address of the Rollup contract
-	address private rollup;
+	address public rollup;
 
 	/// @notice Address of the AML Permitter contract
 	/// @dev If not set, we skip AML check
@@ -84,7 +84,7 @@ contract Liquidity is
 
 	/// @notice Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
 	/// @dev Used to prevent duplicate deposits with the same parameters
-	mapping(bytes32 => bool) private doesDepositHashExist;
+	mapping(bytes32 => bool) public doesDepositHashExist;
 
 	/// @notice Deposit information queue that tracks all deposits
 	/// @dev Used to manage the order and state of deposits
