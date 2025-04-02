@@ -12,6 +12,7 @@ const env = cleanEnv(process.env, {
 	DEPLOY_MOCK_MESSENGER: bool({
 		default: false,
 	}),
+	PLONK_VERIFIER_TYPE: str({ choices: ['mock', 'faster-mining', 'normal'], default: 'normal' }),
 })
 
 async function main() {
@@ -108,11 +109,16 @@ async function main() {
 
 	let WithdrawalPlonkVerifier_
 	let ClaimPlonkVerifier_
-	if (network.name === 'localhost') {
+	if (env.PLONK_VERIFIER_TYPE === 'mock') {
 		WithdrawalPlonkVerifier_ =
 			await ethers.getContractFactory('MockPlonkVerifier')
 		ClaimPlonkVerifier_ = await ethers.getContractFactory('MockPlonkVerifier')
-	} else {
+	} else if (env.PLONK_VERIFIER_TYPE === 'faster-mining') {
+		WithdrawalPlonkVerifier_ = await ethers.getContractFactory(
+			'WithdrawalPlonkVerifier',
+		)
+		ClaimPlonkVerifier_ = await ethers.getContractFactory('FasterClaimPlonkVerifier')
+	} else if (env.PLONK_VERIFIER_TYPE === 'normal') {
 		WithdrawalPlonkVerifier_ = await ethers.getContractFactory(
 			'WithdrawalPlonkVerifier',
 		)

@@ -156,6 +156,7 @@ Create a `.env` file in the root directory with the following variables:
 - `RELAYER_PRIVATE_KEY`: Relayer's private key (required for running relay scripts like `relayDeposits.ts`)
 - `GRANT_ROLE`: Set to `true` to grant roles during deployment (default: `false`)
 - `DEPLOY_MOCK_MESSENGER`: Set to `true` to deploy mock messenger contracts for testing (default: `false`)
+- `PLONK_VERIFIER_TYPE`: Type of Plonk verifier to deploy. Options are `mock`, `faster-mining`, `normal` (default: `normal`)
 - `SLEEP_TIME`: Sleep time in seconds between deployments (default: `30`)
 
 ### Rate Limiting Parameters (for Rollup contract)
