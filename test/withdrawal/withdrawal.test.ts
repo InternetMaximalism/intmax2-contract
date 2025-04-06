@@ -292,12 +292,15 @@ describe('Withdrawal', () => {
 				const initialVerifier = await withdrawal.withdrawalVerifier()
 
 				// Create a new mock verifier
-				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifierFactory =
+					await ethers.getContractFactory('MockPlonkVerifier')
 				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
 				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
 
 				// Update the verifier
-				await expect(withdrawal.connect(admin).updateVerifier(newVerifierAddress))
+				await expect(
+					withdrawal.connect(admin).updateVerifier(newVerifierAddress),
+				)
 					.to.emit(withdrawal, 'VerifierUpdated')
 					.withArgs(newVerifierAddress)
 
@@ -314,13 +317,19 @@ describe('Withdrawal', () => {
 				const { user } = await getSigners()
 
 				// Create a new mock verifier
-				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifierFactory =
+					await ethers.getContractFactory('MockPlonkVerifier')
 				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
 				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
 
 				// Try to update the verifier as non-owner
-				await expect(withdrawal.connect(user).updateVerifier(newVerifierAddress))
-					.to.be.revertedWithCustomError(withdrawal, 'OwnableUnauthorizedAccount')
+				await expect(
+					withdrawal.connect(user).updateVerifier(newVerifierAddress),
+				)
+					.to.be.revertedWithCustomError(
+						withdrawal,
+						'OwnableUnauthorizedAccount',
+					)
 					.withArgs(user.address)
 			})
 
@@ -329,8 +338,9 @@ describe('Withdrawal', () => {
 				const { admin } = await getSigners()
 
 				// Try to update the verifier to zero address
-				await expect(withdrawal.connect(admin).updateVerifier(ethers.ZeroAddress))
-					.to.be.revertedWithCustomError(withdrawal, 'AddressZero')
+				await expect(
+					withdrawal.connect(admin).updateVerifier(ethers.ZeroAddress),
+				).to.be.revertedWithCustomError(withdrawal, 'AddressZero')
 			})
 		})
 	})

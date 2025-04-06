@@ -291,7 +291,8 @@ describe('Claim', () => {
 				const initialVerifier = await claim.claimVerifier()
 
 				// Create a new mock verifier
-				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifierFactory =
+					await ethers.getContractFactory('MockPlonkVerifier')
 				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
 				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
 
@@ -313,7 +314,8 @@ describe('Claim', () => {
 				const { user1 } = await getSigners()
 
 				// Create a new mock verifier
-				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifierFactory =
+					await ethers.getContractFactory('MockPlonkVerifier')
 				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
 				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
 
@@ -328,8 +330,9 @@ describe('Claim', () => {
 				const { admin } = await getSigners()
 
 				// Try to update the verifier to zero address
-				await expect(claim.connect(admin).updateVerifier(ethers.ZeroAddress))
-					.to.be.revertedWithCustomError(claim, 'AddressZero')
+				await expect(
+					claim.connect(admin).updateVerifier(ethers.ZeroAddress),
+				).to.be.revertedWithCustomError(claim, 'AddressZero')
 			})
 		})
 	})

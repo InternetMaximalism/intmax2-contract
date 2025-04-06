@@ -27,7 +27,6 @@ const env = cleanEnv(process.env, {
 	DEPLOY_MOCK_MESSENGER: bool({
 		default: false,
 	}),
-
 })
 
 async function main() {
