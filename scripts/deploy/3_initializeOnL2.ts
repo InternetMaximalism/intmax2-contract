@@ -125,11 +125,11 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 	}
 	if ((await registry.owner()) === ethers.ZeroAddress) {
-		await sleep(env.SLEEP_TIME)
 		console.log('Initializing BlockBuilderRegistry')
 		const tx = await registry.initialize(env.ADMIN_ADDRESS)
 		await tx.wait()
 		console.log('BlockBuilderRegistry initialized')
+		await sleep(env.SLEEP_TIME)
 	}
 
 	if (env.GRANT_ROLE) {
