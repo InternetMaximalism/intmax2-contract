@@ -281,6 +281,60 @@ describe('Withdrawal', () => {
 			})
 		})
 	})
+
+	describe('updateVerifier', () => {
+		describe('success', () => {
+			it('should update the withdrawal verifier address', async () => {
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+
+				// Get the initial verifier address
+				const initialVerifier = await withdrawal.withdrawalVerifier()
+
+				// Create a new mock verifier
+				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
+				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
+
+				// Update the verifier
+				await expect(withdrawal.connect(admin).updateVerifier(newVerifierAddress))
+					.to.emit(withdrawal, 'VerifierUpdated')
+					.withArgs(newVerifierAddress)
+
+				// Check that the verifier was updated
+				const updatedVerifier = await withdrawal.withdrawalVerifier()
+				expect(updatedVerifier).to.equal(newVerifierAddress)
+				expect(updatedVerifier).to.not.equal(initialVerifier)
+			})
+		})
+
+		describe('fail', () => {
+			it('should revert when called by non-owner', async () => {
+				const { withdrawal } = await loadFixture(setup)
+				const { user } = await getSigners()
+
+				// Create a new mock verifier
+				const newMockPlonkVerifierFactory = await ethers.getContractFactory('MockPlonkVerifier')
+				const newMockPlonkVerifier = await newMockPlonkVerifierFactory.deploy()
+				const newVerifierAddress = await newMockPlonkVerifier.getAddress()
+
+				// Try to update the verifier as non-owner
+				await expect(withdrawal.connect(user).updateVerifier(newVerifierAddress))
+					.to.be.revertedWithCustomError(withdrawal, 'OwnableUnauthorizedAccount')
+					.withArgs(user.address)
+			})
+
+			it('should revert when trying to set zero address', async () => {
+				const { withdrawal } = await loadFixture(setup)
+				const { admin } = await getSigners()
+
+				// Try to update the verifier to zero address
+				await expect(withdrawal.connect(admin).updateVerifier(ethers.ZeroAddress))
+					.to.be.revertedWithCustomError(withdrawal, 'AddressZero')
+			})
+		})
+	})
+
 	describe('submitWithdrawalProof', () => {
 		describe('success', () => {
 			it('should accept valid withdrawal proof and queue direct withdrawals', async () => {

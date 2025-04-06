@@ -10,7 +10,7 @@ import {
 	L2ScrollMessengerTestForRollup,
 	ContributionTest,
 } from '../../typechain-types'
-import { loadPairingData } from '../../utils/rollup'
+import { loadPairingData } from '../../scripts/utils/rollup'
 import block1 from '../../test_data/block1.json'
 import { ContractTransactionResponse } from 'ethers'
 describe('Rollup', () => {

@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { PairingLibTest } from '../../../typechain-types'
 import block1 from '../../../test_data/block1.json'
-import { loadPairingData } from '../../../utils/rollup'
+import { loadPairingData } from '../../../scripts/utils/rollup'
 
 describe('PairingLibTest', function () {
 	const setup = async (): Promise<PairingLibTest> => {
