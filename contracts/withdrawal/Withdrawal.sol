@@ -116,6 +116,19 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		innerAddDirectWithdrawalTokenIndices(_directWithdrawalTokenIndices);
 	}
 
+	/**
+	 * @notice Updates the withdrawal verifier address
+	 * @dev Only the contract owner can update the verifier
+	 * @param _withdrawalVerifier Address of the new withdrawal verifier
+	 */
+	function updateVerifier(address _withdrawalVerifier) external onlyOwner {
+		if (_withdrawalVerifier == address(0)) {
+			revert AddressZero();
+		}
+		withdrawalVerifier = IPlonkVerifier(_withdrawalVerifier);
+		emit VerifierUpdated(_withdrawalVerifier);
+	}
+
 	function submitWithdrawalProof(
 		ChainedWithdrawalLib.ChainedWithdrawal[] calldata withdrawals,
 		WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs

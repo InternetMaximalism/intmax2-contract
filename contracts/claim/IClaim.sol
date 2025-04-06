@@ -39,6 +39,11 @@ interface IClaim {
 	error ClaimProofVerificationFailed();
 
 	/**
+	 * @notice Emitted when new claim verifier is set
+	 */
+	event VerifierUpdated(address indexed claimVerifier);
+
+	/**
 	 * @notice Emitted when a direct withdrawal is queued
 	 * @param withdrawalHash The hash of the withdrawal
 	 * @param recipient The address of the recipient
@@ -49,6 +54,13 @@ interface IClaim {
 		address indexed recipient,
 		WithdrawalLib.Withdrawal withdrawal
 	);
+
+	/**
+	 * @notice Updates the claim verifier address
+	 * @dev Only the contract owner can update the verifier
+	 * @param _claimVerifier Address of the new claim verifier
+	 */
+	function updateVerifier(address _claimVerifier) external;
 
 	/**
 	 * @notice Submit claim proof from intmax2

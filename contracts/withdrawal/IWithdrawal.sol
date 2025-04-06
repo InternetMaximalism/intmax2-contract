@@ -57,6 +57,11 @@ interface IWithdrawal {
 	error TokenNotExist(uint256 tokenIndex);
 
 	/**
+	 * @notice Emitted when new withdrawal verifier is set
+	 */
+	event VerifierUpdated(address indexed withdrawalVerifier);
+
+	/**
 	 * @notice Emitted when a claimable withdrawal is queued
 	 * @dev Triggered for withdrawals of tokens not in the direct withdrawal list
 	 * @param withdrawalHash The hash of the withdrawal, used as an identifier

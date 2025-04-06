@@ -117,6 +117,19 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	}
 
 	/**
+	 * @notice Updates the claim verifier address
+	 * @dev Only the contract owner can update the verifier
+	 * @param _claimVerifier Address of the new claim verifier
+	 */
+	function updateVerifier(address _claimVerifier) external onlyOwner {
+		if (_claimVerifier == address(0)) {
+			revert AddressZero();
+		}
+		claimVerifier = IPlonkVerifier(_claimVerifier);
+		emit VerifierUpdated(_claimVerifier);
+	}
+
+	/**
 	 * @notice Submit and verify claim proofs from intmax2
 	 * @dev Validates the claim proof, checks block hashes, and records contributions
 	 * @param claims Array of chained claims to be processed
