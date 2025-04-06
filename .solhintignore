@@ -1,3 +1,5 @@
 node_modules
 contracts/verifiers/ClaimPlonkVerifier.sol
+contracts/verifiers/FasterClaimPlonkVerifier.sol
 contracts/verifiers/WithdrawalPlonkVerifier.sol
+
