@@ -573,7 +573,7 @@ describe('Claim', () => {
 			const user = ethers.Wallet.createRandom().address
 			const info = await claim.getAllocationInfo(0, user)
 			expect(info[0]).to.equal(0n)
-			expect(info[1]).to.equal(46549479166666666666666n)
+			expect(info[1]).to.equal(23274739583333333333333n)
 			expect(info[2]).to.equal(0n)
 			expect(info[3]).to.equal(0n)
 		})
