@@ -29,6 +29,11 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	using WithdrawalProofPublicInputsLib for WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs;
 	using Byte32Lib for bytes32;
 
+	/// @notice Maximum number of withdrawals that can be relayed in a single transaction
+	/// @dev This limit prevents situations where too many withdrawals are relayed to L1 simultaneously,
+	/// @dev which could exceed the L1 block gas limit and cause transaction failures.
+	uint256 public constant RELAY_LIMIT = 100;
+
 	/**
 	 * @notice Reference to the PLONK verifier contract for withdrawal proofs
 	 * @dev Used to verify zero-knowledge proofs of withdrawals
@@ -161,6 +166,11 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		}
 		if (directWithdrawalCounter == 0 && claimableWithdrawalCounter == 0) {
 			return;
+		}
+		if (
+			directWithdrawalCounter + claimableWithdrawalCounter > RELAY_LIMIT
+		) {
+			revert RelayLimitExceeded();
 		}
 		WithdrawalLib.Withdrawal[]
 			memory directWithdrawals = new WithdrawalLib.Withdrawal[](

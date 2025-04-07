@@ -525,13 +525,21 @@ describe('Claim', () => {
 					)
 				}
 				const UINT256_MAX = 2n ** 256n - 1n
-				const { claim, scrollMessenger, liquidityAddress } =
+				const { claim, rollupTestForClaim, scrollMessenger, liquidityAddress } =
 					await loadFixture(setup)
 				const { deployer } = await getSigners()
+				const { user1 } = await getSigners()
+				const { claims, claimProofPublicInputs, proof } =
+					await generateTestArgs([user1.address])
+				await rollupTestForClaim.setTestData(
+					claims[0].blockNumber,
+					claims[0].blockHash,
+				)
+				await claim
+					.connect(user1)
+					.submitClaimProof(claims, claimProofPublicInputs, proof)
 				await time.increase(60 * 60 * 24)
-				const user = ethers.Wallet.createRandom().address
-				await scrollMessenger.clear()
-				await claim.relayClaims(0, [user])
+				await claim.relayClaims(0, [user1.address])
 				expect(await scrollMessenger.to()).to.equal(liquidityAddress)
 				expect(await scrollMessenger.value()).to.equal(0)
 				expect(isValidBytes(await scrollMessenger.message())).to.be.true

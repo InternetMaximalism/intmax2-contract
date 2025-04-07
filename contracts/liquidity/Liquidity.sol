@@ -50,6 +50,11 @@ contract Liquidity is
 	/// @dev 1bp = 0.01%
 	uint256 public constant WITHDRAWAL_FEE_RATIO_LIMIT = 1500;
 
+	/// @notice Maximum number of deposits that can be relayed in a single transaction
+	/// @dev This limit prevents situations where too many deposits are relayed to L2 simultaneously,
+	/// @dev which could exceed the L2 block gas limit and cause transaction failures.
+	uint256 public constant RELAY_LIMIT = 450;
+
 	/// @notice Deployment time which is used to calculate the deposit limit
 	uint256 public deploymentTime;
 
@@ -405,6 +410,9 @@ contract Liquidity is
 		bytes32[] memory depositHashes = depositQueue.batchDequeue(
 			upToDepositId
 		);
+		if (depositHashes.length > RELAY_LIMIT) {
+			revert RelayLimitExceeded();
+		}
 		bytes memory message = abi.encodeWithSelector(
 			IRollup.processDeposits.selector,
 			upToDepositId,

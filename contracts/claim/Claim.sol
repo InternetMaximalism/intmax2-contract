@@ -29,6 +29,11 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	using Byte32Lib for bytes32;
 	using AllocationLib for AllocationLib.State;
 
+	/// @notice Maximum number of claim that can be relayed in a single transaction
+	/// @dev This limit prevents situations where too many claims are relayed to L1 simultaneously,
+	/// @dev which could exceed the L1 block gas limit and cause transaction failures.
+	uint256 public constant RELAY_LIMIT = 100;
+
 	/**
 	 * @notice verifies the claim proof
 	 */
@@ -213,6 +218,13 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 			counter++;
 		}
 		nullifierNonce = nullifierNonceCached + counter;
+
+		if (counter == 0) {
+			return;
+		}
+		if (counter > RELAY_LIMIT) {
+			revert RelayLimitExceeded();
+		}
 
 		// cut the array to the actual size
 		WithdrawalLib.Withdrawal[]

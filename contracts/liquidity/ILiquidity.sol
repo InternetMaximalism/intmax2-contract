@@ -60,6 +60,12 @@ interface ILiquidity {
 	error AlreadyRelayed();
 
 	/**
+	 * @notice Error thrown when the relayer tries to relay deposits that exceed the limit
+	 * @dev Prevent relaying too many deposits to L2 and causing transaction failures on L2
+	 */
+	error RelayLimitExceeded();
+
+	/**
 	 * @notice Error thrown when the deposit hash already exists
 	 * @dev Used to prevent duplicate deposits with the same parameters
 	 */

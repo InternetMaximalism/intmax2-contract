@@ -57,6 +57,12 @@ interface IWithdrawal {
 	error TokenNotExist(uint256 tokenIndex);
 
 	/**
+	 * @notice Error when trying to relay too many claims at once
+	 * @dev To prevent transaction failure on L1 due to large gas consumption
+	 */
+	error RelayLimitExceeded();
+
+	/**
 	 * @notice Emitted when new withdrawal verifier is set
 	 */
 	event VerifierUpdated(address indexed withdrawalVerifier);
