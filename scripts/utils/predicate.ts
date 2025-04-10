@@ -7,6 +7,7 @@ import {
 import { ethers } from 'hardhat'
 import { z } from 'zod'
 import { cleanEnv, str } from 'envalid'
+import axios from 'axios'
 
 export const predicateSignaturesValidation = z.strictObject({
 	is_compliant: z.boolean(),
@@ -73,12 +74,12 @@ export class Predicate {
 }
 
 export const fetchPredicateSignatures = async (
+	predicateBaseUrl: string,
 	permitterContractAddress: string,
 	depositor: string,
 	msgValue: bigint,
 	encodedArgs: string,
 ) => {
-	const predicateClient = new Predicate()
 	const request = {
 		from: depositor,
 		to: permitterContractAddress,
@@ -86,9 +87,16 @@ export const fetchPredicateSignatures = async (
 		msg_value: msgValue.toString(),
 	}
 	console.log('request', JSON.stringify(request, null, 2))
-	const predicateSignatures = await predicateClient.evaluatePolicy(request)
+	console.log("predicateBaseUrl", predicateBaseUrl);
+	const predicateSignatures = await axios.post(
+		`${predicateBaseUrl}/v1/predicate/evaluate-policy`,
+		request,
+	)
 
-	return predicateSignatures
+	// const predicateClient = new Predicate()
+	// const predicateSignatures = await predicateClient.evaluatePolicy(request)
+
+	return predicateSignatures.data
 }
 
 export const encodePredicateSignatures = (

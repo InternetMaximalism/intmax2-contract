@@ -50,7 +50,13 @@ async function main() {
 	console.log('encodedArgs', encodedArgs)
 
 	// Retrieve the signature from the Predicate
+	const predicateBaseUrl = process.env.PREDICATE_API_URL;
+	if (!predicateBaseUrl) {
+		throw new Error('PREDICATE_API_URL is not defined in .env file')
+	}
+
 	const predicateSignatures = await fetchPredicateSignatures(
+		predicateBaseUrl,
 		deployedContracts.amlPermitter,
 		user.address,
 		deposit.amount, // only native token
