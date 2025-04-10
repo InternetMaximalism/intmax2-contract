@@ -65,39 +65,39 @@ async function main() {
 	console.log('predicateSignatures', predicateSignatures)
 	const encodedPredicateMessage = encodePredicateSignatures(predicateSignatures)
 
-	if (!deployedContracts.liquidity) {
-		throw new Error('liquidity contract should not be deployed')
-	}
-	const liquidity = await ethers.getContractAt(
-		'Liquidity',
-		deployedContracts.liquidity,
-	)
-	const tx = await liquidity
-		.connect(user)
-		.depositNativeToken(
-			deposit.recipientSaltHash,
-			encodedPredicateMessage,
-			'0x',
-			{
-				value: deposit.amount,
-			},
-		)
-	console.log('deposit tx hash:', tx.hash)
-	const res = await tx.wait()
-	if (!res?.blockNumber) {
-		throw new Error('No block number found')
-	}
-	const depositedBlockNumber = res.blockNumber
-	const depositEvent = await getLastDepositedEvent(
-		liquidity,
-		user.address,
-		depositedBlockNumber,
-	)
-	const { depositId } = depositEvent.args
-	console.log('depositId:', depositId)
+	// if (!deployedContracts.liquidity) {
+	// 	throw new Error('liquidity contract should not be deployed')
+	// }
+	// const liquidity = await ethers.getContractAt(
+	// 	'Liquidity',
+	// 	deployedContracts.liquidity,
+	// )
+	// const tx = await liquidity
+	// 	.connect(user)
+	// 	.depositNativeToken(
+	// 		deposit.recipientSaltHash,
+	// 		encodedPredicateMessage,
+	// 		'0x',
+	// 		{
+	// 			value: deposit.amount,
+	// 		},
+	// 	)
+	// console.log('deposit tx hash:', tx.hash)
+	// const res = await tx.wait()
+	// if (!res?.blockNumber) {
+	// 	throw new Error('No block number found')
+	// }
+	// const depositedBlockNumber = res.blockNumber
+	// const depositEvent = await getLastDepositedEvent(
+	// 	liquidity,
+	// 	user.address,
+	// 	depositedBlockNumber,
+	// )
+	// const { depositId } = depositEvent.args
+	// console.log('depositId:', depositId)
 
-	const depositData = await liquidity.getDepositData(depositId)
-	console.log('deposit data:', depositData)
+	// const depositData = await liquidity.getDepositData(depositId)
+	// console.log('deposit data:', depositData)
 }
 
 main().catch((error) => {
