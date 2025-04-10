@@ -1,12 +1,9 @@
 import {
-	PredicateClient,
-	PredicateConfig,
 	PredicateResponse,
 	signaturesToBytes,
 } from 'predicate-sdk'
 import { ethers } from 'hardhat'
 import { z } from 'zod'
-import { cleanEnv, str } from 'envalid'
 import axios from 'axios'
 
 export const predicateSignaturesValidation = z.strictObject({
@@ -20,58 +17,6 @@ export const predicateSignaturesValidation = z.strictObject({
 export type predicateSignaturesValidationType = z.infer<
 	typeof predicateSignaturesValidation
 >
-
-const env = cleanEnv(process.env, {
-	PREDICATE_API_URL: str(),
-	PREDICATE_API_KEY: str(),
-})
-
-export class Predicate {
-	private predicateClient: PredicateClient
-
-	constructor() {
-		const predicateConfig: PredicateConfig = {
-			apiUrl: env.PREDICATE_API_URL,
-			apiKey: env.PREDICATE_API_KEY,
-		}
-		this.predicateClient = new PredicateClient(predicateConfig)
-	}
-
-	public async evaluatePolicy(request: {
-		from: string
-		to: string
-		data: string
-		msg_value: string
-	}): Promise<PredicateResponse> {
-		try {
-			const headers = {
-				'Content-Type': 'application/json',
-				'x-api-key': env.PREDICATE_API_KEY,
-			}
-			const options = {
-				method: 'POST',
-				headers,
-				body: JSON.stringify(request),
-			}
-
-			console.log('PREDICATE_API_URL', env.PREDICATE_API_URL)
-			const response = await fetch(`${env.PREDICATE_API_URL}/v1/task`, options)
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch predicate signatures: ${response.statusText}`,
-				)
-			}
-
-			const json = await response.json()
-			const predicateSignatures = predicateSignaturesValidation.parse(json)
-
-			return predicateSignatures
-		} catch (error) {
-			console.error('Error fetching predicate signatures:', error)
-			throw error
-		}
-	}
-}
 
 export const fetchPredicateSignatures = async (
 	predicateBaseUrl: string,
