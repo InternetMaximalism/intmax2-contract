@@ -1,5 +1,1222 @@
 # Solidity API
 
+## DepositLib
+
+Library for handling deposit operations and data structures
+
+_Provides utilities for working with deposits in the Intmax2 protocol_
+
+### Deposit
+
+Represents a deposit in the Deposit tree
+
+_This struct is used as a leaf in the Deposit Merkle tree_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct Deposit {
+	address depositor;
+	bytes32 recipientSaltHash;
+	uint256 amount;
+	uint32 tokenIndex;
+	bool isEligible;
+}
+```
+
+### getHash
+
+```solidity
+function getHash(struct DepositLib.Deposit deposit) internal pure returns (bytes32)
+```
+
+Calculates the hash of a Deposit struct
+
+_Uses keccak256 to hash the packed encoding of all deposit fields_
+
+#### Parameters
+
+| Name    | Type                      | Description                     |
+| ------- | ------------------------- | ------------------------------- |
+| deposit | struct DepositLib.Deposit | The Deposit struct to be hashed |
+
+#### Return Values
+
+| Name | Type    | Description                                                                    |
+| ---- | ------- | ------------------------------------------------------------------------------ |
+| [0]  | bytes32 | bytes32 The calculated hash of the Deposit, used as a leaf in the Deposit tree |
+
+## IContribution
+
+Interface for the Contribution contract that tracks user contributions across different periods
+
+_This interface defines the methods and events for recording and querying contributions_
+
+### PeriodIntervalZero
+
+```solidity
+error PeriodIntervalZero()
+```
+
+Error thrown when attempting to initialize with a zero period interval
+
+_This error is used to prevent invalid period configurations_
+
+### ContributionRecorded
+
+```solidity
+event ContributionRecorded(uint256 periodNumber, bytes32 tag, address user, uint256 amount)
+```
+
+Emitted when a contribution is recorded
+
+#### Parameters
+
+| Name         | Type    | Description                                                        |
+| ------------ | ------- | ------------------------------------------------------------------ |
+| periodNumber | uint256 | The number of the period when the contribution was recorded        |
+| tag          | bytes32 | The tag associated with the contribution (used for categorization) |
+| user         | address | The address of the user making the contribution                    |
+| amount       | uint256 | The amount of the contribution                                     |
+
+### getCurrentPeriod
+
+```solidity
+function getCurrentPeriod() external view returns (uint256)
+```
+
+Gets the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - start_timestamp) / period_interval_
+
+#### Return Values
+
+| Name | Type    | Description               |
+| ---- | ------- | ------------------------- |
+| [0]  | uint256 | The current period number |
+
+### recordContribution
+
+```solidity
+function recordContribution(bytes32 tag, address user, uint256 amount) external
+```
+
+Records a contribution for a specific tag and user
+
+_Can only be called by addresses with the CONTRIBUTOR role_
+
+#### Parameters
+
+| Name   | Type    | Description                                                        |
+| ------ | ------- | ------------------------------------------------------------------ |
+| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
+| user   | address | The address of the user making the contribution                    |
+| amount | uint256 | The amount of contribution to record                               |
+
+### totalContributions
+
+```solidity
+function totalContributions(uint256 period, bytes32 tag) external view returns (uint256)
+```
+
+Returns the total contribution for a specific tag in the specified period
+
+_Aggregates all user contributions for the given tag and period_
+
+#### Parameters
+
+| Name   | Type    | Description                                                      |
+| ------ | ------- | ---------------------------------------------------------------- |
+| period | uint256 | The period number for which the contribution is being queried    |
+| tag    | bytes32 | The tag (as bytes32) for which the contribution is being queried |
+
+#### Return Values
+
+| Name | Type    | Description                                                    |
+| ---- | ------- | -------------------------------------------------------------- |
+| [0]  | uint256 | The total contribution amount for the specified period and tag |
+
+### userContributions
+
+```solidity
+function userContributions(uint256 period, bytes32 tag, address user) external view returns (uint256)
+```
+
+Returns the contribution of a specific user for a tag in the specified period
+
+_Retrieves individual user contribution data_
+
+#### Parameters
+
+| Name   | Type    | Description                                                      |
+| ------ | ------- | ---------------------------------------------------------------- |
+| period | uint256 | The period number for which the contribution is being queried    |
+| tag    | bytes32 | The tag (as bytes32) for which the contribution is being queried |
+| user   | address | The address of the user whose contribution is being queried      |
+
+#### Return Values
+
+| Name | Type    | Description                                                     |
+| ---- | ------- | --------------------------------------------------------------- |
+| [0]  | uint256 | The contribution amount for the specified user, period, and tag |
+
+## IRollup
+
+Interface for the Intmax2 L2 rollup contract
+
+_Defines the external functions, events, and errors for the Rollup contract_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when a required address parameter is the zero address
+
+_Used in initialize function to validate address parameters_
+
+### OnlyScrollMessenger
+
+```solidity
+error OnlyScrollMessenger()
+```
+
+Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
+
+_Used to enforce cross-chain message security_
+
+### OnlyLiquidity
+
+```solidity
+error OnlyLiquidity()
+```
+
+Error thrown when the xDomainMessageSender in ScrollMessenger is not the liquidity contract
+
+_Used to ensure only the authorized Liquidity contract can send cross-chain messages_
+
+### TooManySenderPublicKeys
+
+```solidity
+error TooManySenderPublicKeys()
+```
+
+Error thrown when the number of public keys exceeds 128
+
+_Used to limit the size of registration blocks_
+
+### TooManyAccountIds
+
+```solidity
+error TooManyAccountIds()
+```
+
+Error thrown when the number of account IDs exceeds 128
+
+_Used to limit the size of non-registration blocks_
+
+### SenderAccountIdsInvalidLength
+
+```solidity
+error SenderAccountIdsInvalidLength()
+```
+
+Error thrown when the length of account IDs bytes is not a multiple of 5
+
+_Each account ID must be exactly 5 bytes_
+
+### PairingCheckFailed
+
+```solidity
+error PairingCheckFailed()
+```
+
+Error thrown when the posted block fails the pairing test
+
+_Indicates an invalid signature or incorrect message point_
+
+### BlockNumberOutOfRange
+
+```solidity
+error BlockNumberOutOfRange()
+```
+
+Error thrown when the specified block number is greater than the latest block number
+
+_Used in getBlockHash to prevent accessing non-existent blocks_
+
+### InsufficientPenaltyFee
+
+```solidity
+error InsufficientPenaltyFee()
+```
+
+Error thrown when the fee for the rate limiter is insufficient
+
+_The msg.value must cover the penalty calculated by the rate limiter_
+
+### Expired
+
+```solidity
+error Expired()
+```
+
+Error thrown when the expiry timestamp is in the past
+
+_Block expiry timestamps must be in the future or zero (no expiry)_
+
+### InvalidNonce
+
+```solidity
+error InvalidNonce()
+```
+
+Error thrown when the given nonce is less than the current nonce
+
+_Nonces must be monotonically increasing to prevent replay attacks_
+
+### DepositsProcessed
+
+```solidity
+event DepositsProcessed(uint256 lastProcessedDepositId, bytes32 depositTreeRoot)
+```
+
+Event emitted when deposits bridged from the liquidity contract are processed
+
+_Triggered when the processDeposits function is called by the Liquidity contract_
+
+#### Parameters
+
+| Name                   | Type    | Description                                       |
+| ---------------------- | ------- | ------------------------------------------------- |
+| lastProcessedDepositId | uint256 | The ID of the last processed deposit              |
+| depositTreeRoot        | bytes32 | The new root of the deposit tree after processing |
+
+### DepositLeafInserted
+
+```solidity
+event DepositLeafInserted(uint32 depositIndex, bytes32 depositHash)
+```
+
+Event emitted when a deposit is inserted into the deposit tree
+
+_Emitted for each deposit processed in the processDeposits function_
+
+#### Parameters
+
+| Name         | Type    | Description                                  |
+| ------------ | ------- | -------------------------------------------- |
+| depositIndex | uint32  | The index of the deposit in the deposit tree |
+| depositHash  | bytes32 | The hash of the deposit data                 |
+
+### BlockPosted
+
+```solidity
+event BlockPosted(bytes32 prevBlockHash, address blockBuilder, uint64 timestamp, uint256 blockNumber, bytes32 depositTreeRoot, bytes32 signatureHash)
+```
+
+Event emitted when a new block is posted to the rollup chain
+
+_Contains all essential information about the newly posted block_
+
+#### Parameters
+
+| Name            | Type    | Description                                               |
+| --------------- | ------- | --------------------------------------------------------- |
+| prevBlockHash   | bytes32 | The hash of the previous block in the chain               |
+| blockBuilder    | address | The address of the block builder who submitted the block  |
+| timestamp       | uint64  | The timestamp when the block was posted                   |
+| blockNumber     | uint256 | The sequential number of the posted block                 |
+| depositTreeRoot | bytes32 | The root of the deposit tree at the time of block posting |
+| signatureHash   | bytes32 | The hash of the block signature data                      |
+
+### BlockPostData
+
+Struct to store block data to avoid stack too deep errors
+
+_Used in the internal \_postBlock function to organize block parameters_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct BlockPostData {
+	bool isRegistrationBlock;
+	bytes32 txTreeRoot;
+	uint64 expiry;
+	address builderAddress;
+	uint32 builderNonce;
+	bytes16 senderFlags;
+	bytes32[2] aggregatedPublicKey;
+	bytes32[4] aggregatedSignature;
+	bytes32[4] messagePoint;
+}
+```
+
+### postRegistrationBlock
+
+```solidity
+function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
+```
+
+Posts a registration block for senders' first transactions
+
+_Registration blocks include the public keys of new senders_
+
+#### Parameters
+
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The registration block nonce of the block builder            |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
+
+### postNonRegistrationBlock
+
+```solidity
+function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
+```
+
+Posts a non-registration block for senders' subsequent transactions
+
+_Non-registration blocks use account IDs instead of full public keys_
+
+#### Parameters
+
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
+| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
+
+### setRateLimitConstants
+
+```solidity
+function setRateLimitConstants(uint256 thresholdInterval, uint256 alpha, uint256 k) external
+```
+
+Sets the rate limiter constants for the rollup chain
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name              | Type    | Description                                        |
+| ----------------- | ------- | -------------------------------------------------- |
+| thresholdInterval | uint256 | The threshold block submission interval in seconds |
+| alpha             | uint256 | The alpha value for the exponential moving average |
+| k                 | uint256 | The penalty coefficient for the rate limiter       |
+
+### withdrawPenaltyFee
+
+```solidity
+function withdrawPenaltyFee(address to) external
+```
+
+Withdraws accumulated penalty fees from the Rollup contract
+
+_Only the contract owner can call this function_
+
+#### Parameters
+
+| Name | Type    | Description                                               |
+| ---- | ------- | --------------------------------------------------------- |
+| to   | address | The address to which the penalty fees will be transferred |
+
+### processDeposits
+
+```solidity
+function processDeposits(uint256 lastProcessedDepositId, bytes32[] depositHashes) external
+```
+
+Processes deposits from the Liquidity contract
+
+_Can only be called by the Liquidity contract via Scroll Messenger_
+
+#### Parameters
+
+| Name                   | Type      | Description                                      |
+| ---------------------- | --------- | ------------------------------------------------ |
+| lastProcessedDepositId | uint256   | The ID of the last processed deposit             |
+| depositHashes          | bytes32[] | Array of hashes for the deposits to be processed |
+
+### getLatestBlockNumber
+
+```solidity
+function getLatestBlockNumber() external view returns (uint32)
+```
+
+Gets the block number of the latest posted block
+
+_Returns the highest block number in the rollup chain_
+
+#### Return Values
+
+| Name | Type   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| [0]  | uint32 | The latest block number (zero-based) |
+
+### getPenalty
+
+```solidity
+function getPenalty() external view returns (uint256)
+```
+
+Gets the current penalty fee required by the rate limiter
+
+_Calculated based on the exponential moving average of block intervals_
+
+#### Return Values
+
+| Name | Type    | Description                                                   |
+| ---- | ------- | ------------------------------------------------------------- |
+| [0]  | uint256 | The penalty fee in wei required for the next block submission |
+
+### getBlockHash
+
+```solidity
+function getBlockHash(uint32 blockNumber) external view returns (bytes32)
+```
+
+Gets the block hash for a specific block number
+
+_Reverts if the block number is out of range_
+
+#### Parameters
+
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
+| blockNumber | uint32 | The block number to query |
+
+#### Return Values
+
+| Name | Type    | Description                     |
+| ---- | ------- | ------------------------------- |
+| [0]  | bytes32 | The hash of the specified block |
+
+## Rollup
+
+Implementation of the Intmax2 L2 rollup contract
+
+_Manages block submission, deposit processing, and maintains the state of the rollup chain_
+
+### NUM_SENDERS_IN_BLOCK
+
+```solidity
+uint256 NUM_SENDERS_IN_BLOCK
+```
+
+The maximum number of senders in a block
+
+_Used to limit the size of blocks and for padding sender arrays_
+
+### FULL_ACCOUNT_IDS_BYTES
+
+```solidity
+uint256 FULL_ACCOUNT_IDS_BYTES
+```
+
+The number of bytes required to represent the account IDs of all senders in a block
+
+_Each account ID uses 5 bytes, so 128 senders require 640 bytes_
+
+### liquidity
+
+```solidity
+address liquidity
+```
+
+Address of the Liquidity contract on L1
+
+_Used to verify cross-chain messages from the Liquidity contract_
+
+### lastProcessedDepositId
+
+```solidity
+uint256 lastProcessedDepositId
+```
+
+The ID of the last processed deposit from the Liquidity contract
+
+_Used to track which deposits have been included in the deposit tree_
+
+### blockHashes
+
+```solidity
+bytes32[] blockHashes
+```
+
+Array of block hashes in the rollup chain
+
+_Index 0 contains the genesis block hash_
+
+### builderRegistrationNonce
+
+```solidity
+mapping(address => uint32) builderRegistrationNonce
+```
+
+Mapping of block builder addresses to their current nonce for registration blocks
+
+_Used to prevent replay attacks and ensure block ordering_
+
+### builderNonRegistrationNonce
+
+```solidity
+mapping(address => uint32) builderNonRegistrationNonce
+```
+
+Mapping of block builder addresses to their current nonce for non-registration blocks
+
+_Used to prevent replay attacks and ensure block ordering_
+
+### l2ScrollMessenger
+
+```solidity
+contract IL2ScrollMessenger l2ScrollMessenger
+```
+
+Reference to the L2 ScrollMessenger contract
+
+_Used for cross-chain communication with L1_
+
+### contribution
+
+```solidity
+contract IContribution contribution
+```
+
+Reference to the Contribution contract
+
+_Used to record block builder contributions_
+
+### depositTreeRoot
+
+```solidity
+bytes32 depositTreeRoot
+```
+
+Current root of the deposit Merkle tree
+
+_Updated whenever new deposits are processed_
+
+### depositIndex
+
+```solidity
+uint32 depositIndex
+```
+
+Current index for the next deposit in the deposit tree
+
+_Incremented for each processed deposit_
+
+### onlyLiquidityContract
+
+```solidity
+modifier onlyLiquidityContract()
+```
+
+Modifier to restrict function access to the Liquidity contract via ScrollMessenger
+
+_Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution, uint256 _rateLimitThresholdInterval, uint256 _rateLimitAlpha, uint256 _rateLimitK) external
+```
+
+Initializes the Rollup contract
+
+_Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts_
+
+#### Parameters
+
+| Name                         | Type    | Description                                             |
+| ---------------------------- | ------- | ------------------------------------------------------- |
+| \_admin                      | address | Address that will be granted ownership of the contract  |
+| \_scrollMessenger            | address | Address of the L2 ScrollMessenger contract              |
+| \_liquidity                  | address | Address of the Liquidity contract on L1                 |
+| \_contribution               | address | Address of the Contribution contract                    |
+| \_rateLimitThresholdInterval | uint256 | The threshold interval between block submissions        |
+| \_rateLimitAlpha             | uint256 | The smoothing factor for the exponential moving average |
+| \_rateLimitK                 | uint256 | The penalty coefficient for the rate limiter            |
+
+### postRegistrationBlock
+
+```solidity
+function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
+```
+
+Posts a registration block for senders' first transactions
+
+_Registration blocks include the public keys of new senders_
+
+#### Parameters
+
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The registration block nonce of the block builder            |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
+
+### postNonRegistrationBlock
+
+```solidity
+function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
+```
+
+Posts a non-registration block for senders' subsequent transactions
+
+_Non-registration blocks use account IDs instead of full public keys_
+
+#### Parameters
+
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
+| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
+
+### processDeposits
+
+```solidity
+function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
+```
+
+### setRateLimitConstants
+
+```solidity
+function setRateLimitConstants(uint256 targetInterval, uint256 alpha, uint256 k) external
+```
+
+Sets the rate limiter constants for the rollup chain
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name           | Type    | Description                                        |
+| -------------- | ------- | -------------------------------------------------- |
+| targetInterval | uint256 | The target block submission interval in seconds    |
+| alpha          | uint256 | The alpha value for the exponential moving average |
+| k              | uint256 | The penalty coefficient for the rate limiter       |
+
+### withdrawPenaltyFee
+
+```solidity
+function withdrawPenaltyFee(address to) external
+```
+
+Withdraws accumulated penalty fees from the Rollup contract
+
+_Only the contract owner can call this function_
+
+#### Parameters
+
+| Name | Type    | Description                                               |
+| ---- | ------- | --------------------------------------------------------- |
+| to   | address | The address to which the penalty fees will be transferred |
+
+### getLatestBlockNumber
+
+```solidity
+function getLatestBlockNumber() external view returns (uint32)
+```
+
+Gets the block number of the latest posted block
+
+_Returns the highest block number in the rollup chain_
+
+#### Return Values
+
+| Name | Type   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| [0]  | uint32 | The latest block number (zero-based) |
+
+### getBlockHash
+
+```solidity
+function getBlockHash(uint32 blockNumber) external view returns (bytes32)
+```
+
+Gets the block hash for a specific block number
+
+_Reverts if the block number is out of range_
+
+#### Parameters
+
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
+| blockNumber | uint32 | The block number to query |
+
+#### Return Values
+
+| Name | Type    | Description                     |
+| ---- | ------- | ------------------------------- |
+| [0]  | bytes32 | The hash of the specified block |
+
+### getPenalty
+
+```solidity
+function getPenalty() external view returns (uint256)
+```
+
+Gets the current penalty fee required by the rate limiter
+
+_Calculated based on the exponential moving average of block intervals_
+
+#### Return Values
+
+| Name | Type    | Description                                                   |
+| ---- | ------- | ------------------------------------------------------------- |
+| [0]  | uint256 | The penalty fee in wei required for the next block submission |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name              | Type    | Description                                |
+| ----------------- | ------- | ------------------------------------------ |
+| newImplementation | address | Address of the new implementation contract |
+
+## BlockHashLib
+
+Library for managing block hashes in the Intmax2 rollup chain
+
+_Provides utilities for calculating, storing, and retrieving block hashes_
+
+### pushGenesisBlockHash
+
+```solidity
+function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
+```
+
+Pushes the genesis block hash to the block hashes array
+
+_Creates the first block hash with special parameters for the genesis block_
+
+#### Parameters
+
+| Name                   | Type      | Description                                         |
+| ---------------------- | --------- | --------------------------------------------------- |
+| blockHashes            | bytes32[] | The storage array of block hashes                   |
+| initialDepositTreeRoot | bytes32   | The initial deposit tree root for the genesis block |
+
+### getBlockNumber
+
+```solidity
+function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
+```
+
+Gets the current block number based on the number of block hashes
+
+_The block number is equal to the length of the blockHashes array_
+
+#### Parameters
+
+| Name        | Type      | Description                       |
+| ----------- | --------- | --------------------------------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type   | Description                                                |
+| ---- | ------ | ---------------------------------------------------------- |
+| [0]  | uint32 | The current block number (length of the blockHashes array) |
+
+### getPrevHash
+
+```solidity
+function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
+```
+
+Gets the hash of the previous block
+
+_Returns the last element in the blockHashes array_
+
+#### Parameters
+
+| Name        | Type      | Description                       |
+| ----------- | --------- | --------------------------------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type    | Description                    |
+| ---- | ------- | ------------------------------ |
+| [0]  | bytes32 | The hash of the previous block |
+
+### pushBlockHash
+
+```solidity
+function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
+```
+
+Pushes a new block hash to the block hashes array
+
+_Calculates the block hash based on inputs and appends it to the array_
+
+#### Parameters
+
+| Name            | Type      | Description                             |
+| --------------- | --------- | --------------------------------------- |
+| blockHashes     | bytes32[] | The storage array of block hashes       |
+| depositTreeRoot | bytes32   | The deposit tree root for the new block |
+| signatureHash   | bytes32   | The signature hash for the new block    |
+| timestamp       | uint64    | The timestamp of the new block          |
+
+#### Return Values
+
+| Name      | Type    | Description                                |
+| --------- | ------- | ------------------------------------------ |
+| blockHash | bytes32 | The newly calculated and pushed block hash |
+
+## DepositTreeLib
+
+Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
+
+_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
+Implements an incremental Merkle tree for efficiently tracking deposits_
+
+### MerkleTreeFull
+
+```solidity
+error MerkleTreeFull()
+```
+
+Error thrown when the Merkle tree is full
+
+_Thrown when attempting to add a deposit to a tree that has reached its maximum capacity_
+
+### \_DEPOSIT_CONTRACT_TREE_DEPTH
+
+```solidity
+uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
+```
+
+Depth of the Merkle tree
+
+_The tree has a maximum of 2^32 - 1 leaves_
+
+### DepositTree
+
+Structure representing the deposit tree
+
+_Contains the branch nodes, deposit count, and default hash for empty nodes_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct DepositTree {
+	bytes32[32] _branch;
+	uint256 depositCount;
+	bytes32 defaultHash;
+}
+```
+
+### \_MAX_DEPOSIT_COUNT
+
+```solidity
+uint256 _MAX_DEPOSIT_COUNT
+```
+
+Maximum number of deposits allowed in the tree
+
+_Ensures depositCount fits into 32 bits (2^32 - 1)_
+
+### initialize
+
+```solidity
+function initialize(struct DepositTreeLib.DepositTree depositTree) internal
+```
+
+Initializes the deposit tree with default values
+
+_Sets up the default hash using an empty Deposit struct_
+
+#### Parameters
+
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+### getRoot
+
+```solidity
+function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
+```
+
+Computes and returns the current Merkle root
+
+_Calculates the root by combining branch nodes with zero hashes_
+
+#### Parameters
+
+| Name        | Type                              | Description                                    |
+| ----------- | --------------------------------- | ---------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
+
+#### Return Values
+
+| Name | Type    | Description                   |
+| ---- | ------- | ----------------------------- |
+| [0]  | bytes32 | The computed Merkle root hash |
+
+### deposit
+
+```solidity
+function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
+```
+
+Adds a new leaf to the Merkle tree
+
+_Updates the appropriate branch node and increments the deposit count_
+
+#### Parameters
+
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+| leafHash    | bytes32                           | The hash of the new deposit leaf to be added    |
+
+### getBranch
+
+```solidity
+function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
+```
+
+Retrieves the current branch nodes of the Merkle tree
+
+_Used for generating Merkle proofs or debugging_
+
+#### Parameters
+
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+#### Return Values
+
+| Name | Type        | Description                                            |
+| ---- | ----------- | ------------------------------------------------------ |
+| [0]  | bytes32[32] | Array of branch node hashes at each height of the tree |
+
+## PairingLib
+
+Library for elliptic curve pairing operations used in signature verification
+
+_Provides utilities for verifying BLS signatures using the precompiled pairing contract_
+
+### PairingOpCodeFailed
+
+```solidity
+error PairingOpCodeFailed()
+```
+
+Error thrown when the elliptic curve pairing operation fails
+
+_This can happen if the precompiled contract call fails or returns an invalid result_
+
+### NEG_G1_X
+
+```solidity
+uint256 NEG_G1_X
+```
+
+X-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### NEG_G1_Y
+
+```solidity
+uint256 NEG_G1_Y
+```
+
+Y-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### pairing
+
+```solidity
+function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
+```
+
+Performs an elliptic curve pairing operation to verify a BLS signature
+
+_Uses the precompiled contract at address 8 to perform the pairing check_
+
+#### Parameters
+
+| Name                | Type       | Description                                                            |
+| ------------------- | ---------- | ---------------------------------------------------------------------- |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements representing a G1 point) |
+| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements representing a G2 point)  |
+| messagePoint        | bytes32[4] | The message point (4 32-byte elements representing a G2 point)         |
+
+#### Return Values
+
+| Name | Type | Description                                                                 |
+| ---- | ---- | --------------------------------------------------------------------------- |
+| [0]  | bool | bool True if the signature is valid (pairing check passes), false otherwise |
+
+## RateLimiterLib
+
+A library for implementing a rate limiting mechanism with exponential moving average (EMA)
+
+_Uses fixed-point arithmetic to calculate penalties for rapid block submissions_
+
+### InvalidConstants
+
+```solidity
+error InvalidConstants()
+```
+
+Error thrown when trying to set the rate limiter constants to invalid values
+
+### RateLimitConstantsSet
+
+```solidity
+event RateLimitConstantsSet(uint256 thresholdInterval, uint256 alpha, uint256 k)
+```
+
+Constants for the rate limiter
+
+_thresholdInterval Threshold interval between calls (fixed-point)
+alpha Smoothing factor for EMA (fixed-point)
+k Scaling factor for the penalty calculation_
+
+### RateLimitState
+
+Struct to store the state of the rate limiter
+
+_Holds constants and variables for the rate limiting mechanism_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct RateLimitState {
+	UD60x18 thresholdInterval;
+	UD60x18 alpha;
+	UD60x18 k;
+	uint256 lastCallTime;
+	UD60x18 emaInterval;
+}
+```
+
+### setConstants
+
+```solidity
+function setConstants(struct RateLimiterLib.RateLimitState state, uint256 thresholdInterval, uint256 alpha, uint256 k) internal
+```
+
+Sets the constants for the rate limiter
+
+_Initializes the threshold interval, smoothing factor, and penalty scaling factor_
+
+#### Parameters
+
+| Name              | Type                                 | Description                                    |
+| ----------------- | ------------------------------------ | ---------------------------------------------- |
+| state             | struct RateLimiterLib.RateLimitState | The current state of the rate limiter          |
+| thresholdInterval | uint256                              | Threshold interval between calls (fixed-point) |
+| alpha             | uint256                              | Smoothing factor for EMA (fixed-point)         |
+| k                 | uint256                              | Scaling factor for the penalty calculation     |
+
+### update
+
+```solidity
+function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
+```
+
+Updates the rate limiter state and calculates the penalty
+
+_Updates lastCallTime and emaInterval, then returns the penalty_
+
+#### Parameters
+
+| Name  | Type                                 | Description                           |
+| ----- | ------------------------------------ | ------------------------------------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+
+#### Return Values
+
+| Name | Type    | Description                       |
+| ---- | ------- | --------------------------------- |
+| [0]  | uint256 | The calculated penalty fee in wei |
+
+### getPenalty
+
+```solidity
+function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
+```
+
+Computes the penalty that would be applied by update, without changing state
+
+_Useful for checking the penalty before actually updating the state_
+
+#### Parameters
+
+| Name  | Type                                 | Description                           |
+| ----- | ------------------------------------ | ------------------------------------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+
+#### Return Values
+
+| Name | Type    | Description                       |
+| ---- | ------- | --------------------------------- |
+| [0]  | uint256 | The calculated penalty fee in wei |
+
 ## Claim
 
 ### RELAY_LIMIT
@@ -831,55 +2048,6 @@ _Each uint256 in the resulting array represents 4 bytes (32 bits) of the origina
 | ---- | --------- | -------------------------------------------------------------------- |
 | [0]  | uint256[] | An array of 8 uint256 values, each representing 4 bytes of the input |
 
-## DepositLib
-
-Library for handling deposit operations and data structures
-
-_Provides utilities for working with deposits in the Intmax2 protocol_
-
-### Deposit
-
-Represents a deposit in the Deposit tree
-
-_This struct is used as a leaf in the Deposit Merkle tree_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct Deposit {
-	address depositor;
-	bytes32 recipientSaltHash;
-	uint256 amount;
-	uint32 tokenIndex;
-	bool isEligible;
-}
-```
-
-### getHash
-
-```solidity
-function getHash(struct DepositLib.Deposit deposit) internal pure returns (bytes32)
-```
-
-Calculates the hash of a Deposit struct
-
-_Uses keccak256 to hash the packed encoding of all deposit fields_
-
-#### Parameters
-
-| Name    | Type                      | Description                     |
-| ------- | ------------------------- | ------------------------------- |
-| deposit | struct DepositLib.Deposit | The Deposit struct to be hashed |
-
-#### Return Values
-
-| Name | Type    | Description                                                                    |
-| ---- | ------- | ------------------------------------------------------------------------------ |
-| [0]  | bytes32 | bytes32 The calculated hash of the Deposit, used as a leaf in the Deposit tree |
-
 ## IPlonkVerifier
 
 Interface for verifying PLONK zero-knowledge proofs
@@ -1083,120 +2251,6 @@ _Can only be called by an account with the DEFAULT_ADMIN_ROLE_
 | Name              | Type    | Description                                |
 | ----------------- | ------- | ------------------------------------------ |
 | newImplementation | address | Address of the new implementation contract |
-
-## IContribution
-
-Interface for the Contribution contract that tracks user contributions across different periods
-
-_This interface defines the methods and events for recording and querying contributions_
-
-### PeriodIntervalZero
-
-```solidity
-error PeriodIntervalZero()
-```
-
-Error thrown when attempting to initialize with a zero period interval
-
-_This error is used to prevent invalid period configurations_
-
-### ContributionRecorded
-
-```solidity
-event ContributionRecorded(uint256 periodNumber, bytes32 tag, address user, uint256 amount)
-```
-
-Emitted when a contribution is recorded
-
-#### Parameters
-
-| Name         | Type    | Description                                                        |
-| ------------ | ------- | ------------------------------------------------------------------ |
-| periodNumber | uint256 | The number of the period when the contribution was recorded        |
-| tag          | bytes32 | The tag associated with the contribution (used for categorization) |
-| user         | address | The address of the user making the contribution                    |
-| amount       | uint256 | The amount of the contribution                                     |
-
-### getCurrentPeriod
-
-```solidity
-function getCurrentPeriod() external view returns (uint256)
-```
-
-Gets the current period number based on the current timestamp
-
-_Calculated as (current_timestamp - start_timestamp) / period_interval_
-
-#### Return Values
-
-| Name | Type    | Description               |
-| ---- | ------- | ------------------------- |
-| [0]  | uint256 | The current period number |
-
-### recordContribution
-
-```solidity
-function recordContribution(bytes32 tag, address user, uint256 amount) external
-```
-
-Records a contribution for a specific tag and user
-
-_Can only be called by addresses with the CONTRIBUTOR role_
-
-#### Parameters
-
-| Name   | Type    | Description                                                        |
-| ------ | ------- | ------------------------------------------------------------------ |
-| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
-| user   | address | The address of the user making the contribution                    |
-| amount | uint256 | The amount of contribution to record                               |
-
-### totalContributions
-
-```solidity
-function totalContributions(uint256 period, bytes32 tag) external view returns (uint256)
-```
-
-Returns the total contribution for a specific tag in the specified period
-
-_Aggregates all user contributions for the given tag and period_
-
-#### Parameters
-
-| Name   | Type    | Description                                                      |
-| ------ | ------- | ---------------------------------------------------------------- |
-| period | uint256 | The period number for which the contribution is being queried    |
-| tag    | bytes32 | The tag (as bytes32) for which the contribution is being queried |
-
-#### Return Values
-
-| Name | Type    | Description                                                    |
-| ---- | ------- | -------------------------------------------------------------- |
-| [0]  | uint256 | The total contribution amount for the specified period and tag |
-
-### userContributions
-
-```solidity
-function userContributions(uint256 period, bytes32 tag, address user) external view returns (uint256)
-```
-
-Returns the contribution of a specific user for a tag in the specified period
-
-_Retrieves individual user contribution data_
-
-#### Parameters
-
-| Name   | Type    | Description                                                      |
-| ------ | ------- | ---------------------------------------------------------------- |
-| period | uint256 | The period number for which the contribution is being queried    |
-| tag    | bytes32 | The tag (as bytes32) for which the contribution is being queried |
-| user   | address | The address of the user whose contribution is being queried      |
-
-#### Return Values
-
-| Name | Type    | Description                                                     |
-| ---- | ------- | --------------------------------------------------------------- |
-| [0]  | uint256 | The contribution amount for the specified user, period, and tag |
 
 ## ILiquidity
 
@@ -3205,1060 +4259,6 @@ _Can only be called by the contract owner_
 | Name              | Type    | Description                                |
 | ----------------- | ------- | ------------------------------------------ |
 | newImplementation | address | Address of the new implementation contract |
-
-## IRollup
-
-Interface for the Intmax2 L2 rollup contract
-
-_Defines the external functions, events, and errors for the Rollup contract_
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-Error thrown when a required address parameter is the zero address
-
-_Used in initialize function to validate address parameters_
-
-### OnlyScrollMessenger
-
-```solidity
-error OnlyScrollMessenger()
-```
-
-Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
-
-_Used to enforce cross-chain message security_
-
-### OnlyLiquidity
-
-```solidity
-error OnlyLiquidity()
-```
-
-Error thrown when the xDomainMessageSender in ScrollMessenger is not the liquidity contract
-
-_Used to ensure only the authorized Liquidity contract can send cross-chain messages_
-
-### TooManySenderPublicKeys
-
-```solidity
-error TooManySenderPublicKeys()
-```
-
-Error thrown when the number of public keys exceeds 128
-
-_Used to limit the size of registration blocks_
-
-### TooManyAccountIds
-
-```solidity
-error TooManyAccountIds()
-```
-
-Error thrown when the number of account IDs exceeds 128
-
-_Used to limit the size of non-registration blocks_
-
-### SenderAccountIdsInvalidLength
-
-```solidity
-error SenderAccountIdsInvalidLength()
-```
-
-Error thrown when the length of account IDs bytes is not a multiple of 5
-
-_Each account ID must be exactly 5 bytes_
-
-### PairingCheckFailed
-
-```solidity
-error PairingCheckFailed()
-```
-
-Error thrown when the posted block fails the pairing test
-
-_Indicates an invalid signature or incorrect message point_
-
-### BlockNumberOutOfRange
-
-```solidity
-error BlockNumberOutOfRange()
-```
-
-Error thrown when the specified block number is greater than the latest block number
-
-_Used in getBlockHash to prevent accessing non-existent blocks_
-
-### InsufficientPenaltyFee
-
-```solidity
-error InsufficientPenaltyFee()
-```
-
-Error thrown when the fee for the rate limiter is insufficient
-
-_The msg.value must cover the penalty calculated by the rate limiter_
-
-### Expired
-
-```solidity
-error Expired()
-```
-
-Error thrown when the expiry timestamp is in the past
-
-_Block expiry timestamps must be in the future or zero (no expiry)_
-
-### InvalidNonce
-
-```solidity
-error InvalidNonce()
-```
-
-Error thrown when the given nonce is less than the current nonce
-
-_Nonces must be monotonically increasing to prevent replay attacks_
-
-### DepositsProcessed
-
-```solidity
-event DepositsProcessed(uint256 lastProcessedDepositId, bytes32 depositTreeRoot)
-```
-
-Event emitted when deposits bridged from the liquidity contract are processed
-
-_Triggered when the processDeposits function is called by the Liquidity contract_
-
-#### Parameters
-
-| Name                   | Type    | Description                                       |
-| ---------------------- | ------- | ------------------------------------------------- |
-| lastProcessedDepositId | uint256 | The ID of the last processed deposit              |
-| depositTreeRoot        | bytes32 | The new root of the deposit tree after processing |
-
-### DepositLeafInserted
-
-```solidity
-event DepositLeafInserted(uint32 depositIndex, bytes32 depositHash)
-```
-
-Event emitted when a deposit is inserted into the deposit tree
-
-_Emitted for each deposit processed in the processDeposits function_
-
-#### Parameters
-
-| Name         | Type    | Description                                  |
-| ------------ | ------- | -------------------------------------------- |
-| depositIndex | uint32  | The index of the deposit in the deposit tree |
-| depositHash  | bytes32 | The hash of the deposit data                 |
-
-### BlockPosted
-
-```solidity
-event BlockPosted(bytes32 prevBlockHash, address blockBuilder, uint64 timestamp, uint256 blockNumber, bytes32 depositTreeRoot, bytes32 signatureHash)
-```
-
-Event emitted when a new block is posted to the rollup chain
-
-_Contains all essential information about the newly posted block_
-
-#### Parameters
-
-| Name            | Type    | Description                                               |
-| --------------- | ------- | --------------------------------------------------------- |
-| prevBlockHash   | bytes32 | The hash of the previous block in the chain               |
-| blockBuilder    | address | The address of the block builder who submitted the block  |
-| timestamp       | uint64  | The timestamp when the block was posted                   |
-| blockNumber     | uint256 | The sequential number of the posted block                 |
-| depositTreeRoot | bytes32 | The root of the deposit tree at the time of block posting |
-| signatureHash   | bytes32 | The hash of the block signature data                      |
-
-### BlockPostData
-
-Struct to store block data to avoid stack too deep errors
-
-_Used in the internal \_postBlock function to organize block parameters_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct BlockPostData {
-	bool isRegistrationBlock;
-	bytes32 txTreeRoot;
-	uint64 expiry;
-	address builderAddress;
-	uint32 builderNonce;
-	bytes16 senderFlags;
-	bytes32[2] aggregatedPublicKey;
-	bytes32[4] aggregatedSignature;
-	bytes32[4] messagePoint;
-}
-```
-
-### postRegistrationBlock
-
-```solidity
-function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
-```
-
-Posts a registration block for senders' first transactions
-
-_Registration blocks include the public keys of new senders_
-
-#### Parameters
-
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The registration block nonce of the block builder            |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
-
-### postNonRegistrationBlock
-
-```solidity
-function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
-```
-
-Posts a non-registration block for senders' subsequent transactions
-
-_Non-registration blocks use account IDs instead of full public keys_
-
-#### Parameters
-
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
-| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
-
-### setRateLimitConstants
-
-```solidity
-function setRateLimitConstants(uint256 thresholdInterval, uint256 alpha, uint256 k) external
-```
-
-Sets the rate limiter constants for the rollup chain
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name              | Type    | Description                                        |
-| ----------------- | ------- | -------------------------------------------------- |
-| thresholdInterval | uint256 | The threshold block submission interval in seconds |
-| alpha             | uint256 | The alpha value for the exponential moving average |
-| k                 | uint256 | The penalty coefficient for the rate limiter       |
-
-### withdrawPenaltyFee
-
-```solidity
-function withdrawPenaltyFee(address to) external
-```
-
-Withdraws accumulated penalty fees from the Rollup contract
-
-_Only the contract owner can call this function_
-
-#### Parameters
-
-| Name | Type    | Description                                               |
-| ---- | ------- | --------------------------------------------------------- |
-| to   | address | The address to which the penalty fees will be transferred |
-
-### processDeposits
-
-```solidity
-function processDeposits(uint256 lastProcessedDepositId, bytes32[] depositHashes) external
-```
-
-Processes deposits from the Liquidity contract
-
-_Can only be called by the Liquidity contract via Scroll Messenger_
-
-#### Parameters
-
-| Name                   | Type      | Description                                      |
-| ---------------------- | --------- | ------------------------------------------------ |
-| lastProcessedDepositId | uint256   | The ID of the last processed deposit             |
-| depositHashes          | bytes32[] | Array of hashes for the deposits to be processed |
-
-### getLatestBlockNumber
-
-```solidity
-function getLatestBlockNumber() external view returns (uint32)
-```
-
-Gets the block number of the latest posted block
-
-_Returns the highest block number in the rollup chain_
-
-#### Return Values
-
-| Name | Type   | Description                          |
-| ---- | ------ | ------------------------------------ |
-| [0]  | uint32 | The latest block number (zero-based) |
-
-### getPenalty
-
-```solidity
-function getPenalty() external view returns (uint256)
-```
-
-Gets the current penalty fee required by the rate limiter
-
-_Calculated based on the exponential moving average of block intervals_
-
-#### Return Values
-
-| Name | Type    | Description                                                   |
-| ---- | ------- | ------------------------------------------------------------- |
-| [0]  | uint256 | The penalty fee in wei required for the next block submission |
-
-### getBlockHash
-
-```solidity
-function getBlockHash(uint32 blockNumber) external view returns (bytes32)
-```
-
-Gets the block hash for a specific block number
-
-_Reverts if the block number is out of range_
-
-#### Parameters
-
-| Name        | Type   | Description               |
-| ----------- | ------ | ------------------------- |
-| blockNumber | uint32 | The block number to query |
-
-#### Return Values
-
-| Name | Type    | Description                     |
-| ---- | ------- | ------------------------------- |
-| [0]  | bytes32 | The hash of the specified block |
-
-## Rollup
-
-Implementation of the Intmax2 L2 rollup contract
-
-_Manages block submission, deposit processing, and maintains the state of the rollup chain_
-
-### NUM_SENDERS_IN_BLOCK
-
-```solidity
-uint256 NUM_SENDERS_IN_BLOCK
-```
-
-The maximum number of senders in a block
-
-_Used to limit the size of blocks and for padding sender arrays_
-
-### FULL_ACCOUNT_IDS_BYTES
-
-```solidity
-uint256 FULL_ACCOUNT_IDS_BYTES
-```
-
-The number of bytes required to represent the account IDs of all senders in a block
-
-_Each account ID uses 5 bytes, so 128 senders require 640 bytes_
-
-### liquidity
-
-```solidity
-address liquidity
-```
-
-Address of the Liquidity contract on L1
-
-_Used to verify cross-chain messages from the Liquidity contract_
-
-### lastProcessedDepositId
-
-```solidity
-uint256 lastProcessedDepositId
-```
-
-The ID of the last processed deposit from the Liquidity contract
-
-_Used to track which deposits have been included in the deposit tree_
-
-### blockHashes
-
-```solidity
-bytes32[] blockHashes
-```
-
-Array of block hashes in the rollup chain
-
-_Index 0 contains the genesis block hash_
-
-### builderRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderRegistrationNonce
-```
-
-Mapping of block builder addresses to their current nonce for registration blocks
-
-_Used to prevent replay attacks and ensure block ordering_
-
-### builderNonRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderNonRegistrationNonce
-```
-
-Mapping of block builder addresses to their current nonce for non-registration blocks
-
-_Used to prevent replay attacks and ensure block ordering_
-
-### l2ScrollMessenger
-
-```solidity
-contract IL2ScrollMessenger l2ScrollMessenger
-```
-
-Reference to the L2 ScrollMessenger contract
-
-_Used for cross-chain communication with L1_
-
-### contribution
-
-```solidity
-contract IContribution contribution
-```
-
-Reference to the Contribution contract
-
-_Used to record block builder contributions_
-
-### depositTreeRoot
-
-```solidity
-bytes32 depositTreeRoot
-```
-
-Current root of the deposit Merkle tree
-
-_Updated whenever new deposits are processed_
-
-### depositIndex
-
-```solidity
-uint32 depositIndex
-```
-
-Current index for the next deposit in the deposit tree
-
-_Incremented for each processed deposit_
-
-### onlyLiquidityContract
-
-```solidity
-modifier onlyLiquidityContract()
-```
-
-Modifier to restrict function access to the Liquidity contract via ScrollMessenger
-
-_Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution, uint256 _rateLimitThresholdInterval, uint256 _rateLimitAlpha, uint256 _rateLimitK) external
-```
-
-Initializes the Rollup contract
-
-_Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts_
-
-#### Parameters
-
-| Name                         | Type    | Description                                             |
-| ---------------------------- | ------- | ------------------------------------------------------- |
-| \_admin                      | address | Address that will be granted ownership of the contract  |
-| \_scrollMessenger            | address | Address of the L2 ScrollMessenger contract              |
-| \_liquidity                  | address | Address of the Liquidity contract on L1                 |
-| \_contribution               | address | Address of the Contribution contract                    |
-| \_rateLimitThresholdInterval | uint256 | The threshold interval between block submissions        |
-| \_rateLimitAlpha             | uint256 | The smoothing factor for the exponential moving average |
-| \_rateLimitK                 | uint256 | The penalty coefficient for the rate limiter            |
-
-### postRegistrationBlock
-
-```solidity
-function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
-```
-
-Posts a registration block for senders' first transactions
-
-_Registration blocks include the public keys of new senders_
-
-#### Parameters
-
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The registration block nonce of the block builder            |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
-
-### postNonRegistrationBlock
-
-```solidity
-function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
-```
-
-Posts a non-registration block for senders' subsequent transactions
-
-_Non-registration blocks use account IDs instead of full public keys_
-
-#### Parameters
-
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
-| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
-
-### processDeposits
-
-```solidity
-function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
-```
-
-### setRateLimitConstants
-
-```solidity
-function setRateLimitConstants(uint256 targetInterval, uint256 alpha, uint256 k) external
-```
-
-Sets the rate limiter constants for the rollup chain
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name           | Type    | Description                                        |
-| -------------- | ------- | -------------------------------------------------- |
-| targetInterval | uint256 | The target block submission interval in seconds    |
-| alpha          | uint256 | The alpha value for the exponential moving average |
-| k              | uint256 | The penalty coefficient for the rate limiter       |
-
-### withdrawPenaltyFee
-
-```solidity
-function withdrawPenaltyFee(address to) external
-```
-
-Withdraws accumulated penalty fees from the Rollup contract
-
-_Only the contract owner can call this function_
-
-#### Parameters
-
-| Name | Type    | Description                                               |
-| ---- | ------- | --------------------------------------------------------- |
-| to   | address | The address to which the penalty fees will be transferred |
-
-### getLatestBlockNumber
-
-```solidity
-function getLatestBlockNumber() external view returns (uint32)
-```
-
-Gets the block number of the latest posted block
-
-_Returns the highest block number in the rollup chain_
-
-#### Return Values
-
-| Name | Type   | Description                          |
-| ---- | ------ | ------------------------------------ |
-| [0]  | uint32 | The latest block number (zero-based) |
-
-### getBlockHash
-
-```solidity
-function getBlockHash(uint32 blockNumber) external view returns (bytes32)
-```
-
-Gets the block hash for a specific block number
-
-_Reverts if the block number is out of range_
-
-#### Parameters
-
-| Name        | Type   | Description               |
-| ----------- | ------ | ------------------------- |
-| blockNumber | uint32 | The block number to query |
-
-#### Return Values
-
-| Name | Type    | Description                     |
-| ---- | ------- | ------------------------------- |
-| [0]  | bytes32 | The hash of the specified block |
-
-### getPenalty
-
-```solidity
-function getPenalty() external view returns (uint256)
-```
-
-Gets the current penalty fee required by the rate limiter
-
-_Calculated based on the exponential moving average of block intervals_
-
-#### Return Values
-
-| Name | Type    | Description                                                   |
-| ---- | ------- | ------------------------------------------------------------- |
-| [0]  | uint256 | The penalty fee in wei required for the next block submission |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name              | Type    | Description                                |
-| ----------------- | ------- | ------------------------------------------ |
-| newImplementation | address | Address of the new implementation contract |
-
-## BlockHashLib
-
-Library for managing block hashes in the Intmax2 rollup chain
-
-_Provides utilities for calculating, storing, and retrieving block hashes_
-
-### pushGenesisBlockHash
-
-```solidity
-function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
-```
-
-Pushes the genesis block hash to the block hashes array
-
-_Creates the first block hash with special parameters for the genesis block_
-
-#### Parameters
-
-| Name                   | Type      | Description                                         |
-| ---------------------- | --------- | --------------------------------------------------- |
-| blockHashes            | bytes32[] | The storage array of block hashes                   |
-| initialDepositTreeRoot | bytes32   | The initial deposit tree root for the genesis block |
-
-### getBlockNumber
-
-```solidity
-function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
-```
-
-Gets the current block number based on the number of block hashes
-
-_The block number is equal to the length of the blockHashes array_
-
-#### Parameters
-
-| Name        | Type      | Description                       |
-| ----------- | --------- | --------------------------------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-
-#### Return Values
-
-| Name | Type   | Description                                                |
-| ---- | ------ | ---------------------------------------------------------- |
-| [0]  | uint32 | The current block number (length of the blockHashes array) |
-
-### getPrevHash
-
-```solidity
-function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
-```
-
-Gets the hash of the previous block
-
-_Returns the last element in the blockHashes array_
-
-#### Parameters
-
-| Name        | Type      | Description                       |
-| ----------- | --------- | --------------------------------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-
-#### Return Values
-
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| [0]  | bytes32 | The hash of the previous block |
-
-### pushBlockHash
-
-```solidity
-function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
-```
-
-Pushes a new block hash to the block hashes array
-
-_Calculates the block hash based on inputs and appends it to the array_
-
-#### Parameters
-
-| Name            | Type      | Description                             |
-| --------------- | --------- | --------------------------------------- |
-| blockHashes     | bytes32[] | The storage array of block hashes       |
-| depositTreeRoot | bytes32   | The deposit tree root for the new block |
-| signatureHash   | bytes32   | The signature hash for the new block    |
-| timestamp       | uint64    | The timestamp of the new block          |
-
-#### Return Values
-
-| Name      | Type    | Description                                |
-| --------- | ------- | ------------------------------------------ |
-| blockHash | bytes32 | The newly calculated and pushed block hash |
-
-## DepositTreeLib
-
-Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
-
-_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
-Implements an incremental Merkle tree for efficiently tracking deposits_
-
-### MerkleTreeFull
-
-```solidity
-error MerkleTreeFull()
-```
-
-Error thrown when the Merkle tree is full
-
-_Thrown when attempting to add a deposit to a tree that has reached its maximum capacity_
-
-### \_DEPOSIT_CONTRACT_TREE_DEPTH
-
-```solidity
-uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
-```
-
-Depth of the Merkle tree
-
-_The tree has a maximum of 2^32 - 1 leaves_
-
-### DepositTree
-
-Structure representing the deposit tree
-
-_Contains the branch nodes, deposit count, and default hash for empty nodes_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct DepositTree {
-	bytes32[32] _branch;
-	uint256 depositCount;
-	bytes32 defaultHash;
-}
-```
-
-### \_MAX_DEPOSIT_COUNT
-
-```solidity
-uint256 _MAX_DEPOSIT_COUNT
-```
-
-Maximum number of deposits allowed in the tree
-
-_Ensures depositCount fits into 32 bits (2^32 - 1)_
-
-### initialize
-
-```solidity
-function initialize(struct DepositTreeLib.DepositTree depositTree) internal
-```
-
-Initializes the deposit tree with default values
-
-_Sets up the default hash using an empty Deposit struct_
-
-#### Parameters
-
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-### getRoot
-
-```solidity
-function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
-```
-
-Computes and returns the current Merkle root
-
-_Calculates the root by combining branch nodes with zero hashes_
-
-#### Parameters
-
-| Name        | Type                              | Description                                    |
-| ----------- | --------------------------------- | ---------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
-
-#### Return Values
-
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| [0]  | bytes32 | The computed Merkle root hash |
-
-### deposit
-
-```solidity
-function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
-```
-
-Adds a new leaf to the Merkle tree
-
-_Updates the appropriate branch node and increments the deposit count_
-
-#### Parameters
-
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-| leafHash    | bytes32                           | The hash of the new deposit leaf to be added    |
-
-### getBranch
-
-```solidity
-function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
-```
-
-Retrieves the current branch nodes of the Merkle tree
-
-_Used for generating Merkle proofs or debugging_
-
-#### Parameters
-
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-#### Return Values
-
-| Name | Type        | Description                                            |
-| ---- | ----------- | ------------------------------------------------------ |
-| [0]  | bytes32[32] | Array of branch node hashes at each height of the tree |
-
-## PairingLib
-
-Library for elliptic curve pairing operations used in signature verification
-
-_Provides utilities for verifying BLS signatures using the precompiled pairing contract_
-
-### PairingOpCodeFailed
-
-```solidity
-error PairingOpCodeFailed()
-```
-
-Error thrown when the elliptic curve pairing operation fails
-
-_This can happen if the precompiled contract call fails or returns an invalid result_
-
-### NEG_G1_X
-
-```solidity
-uint256 NEG_G1_X
-```
-
-X-coordinate of the negated generator point G1
-
-_Used in the pairing check to verify signatures_
-
-### NEG_G1_Y
-
-```solidity
-uint256 NEG_G1_Y
-```
-
-Y-coordinate of the negated generator point G1
-
-_Used in the pairing check to verify signatures_
-
-### pairing
-
-```solidity
-function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
-```
-
-Performs an elliptic curve pairing operation to verify a BLS signature
-
-_Uses the precompiled contract at address 8 to perform the pairing check_
-
-#### Parameters
-
-| Name                | Type       | Description                                                            |
-| ------------------- | ---------- | ---------------------------------------------------------------------- |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements representing a G1 point) |
-| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements representing a G2 point)  |
-| messagePoint        | bytes32[4] | The message point (4 32-byte elements representing a G2 point)         |
-
-#### Return Values
-
-| Name | Type | Description                                                                 |
-| ---- | ---- | --------------------------------------------------------------------------- |
-| [0]  | bool | bool True if the signature is valid (pairing check passes), false otherwise |
-
-## RateLimiterLib
-
-A library for implementing a rate limiting mechanism with exponential moving average (EMA)
-
-_Uses fixed-point arithmetic to calculate penalties for rapid block submissions_
-
-### InvalidConstants
-
-```solidity
-error InvalidConstants()
-```
-
-Error thrown when trying to set the rate limiter constants to invalid values
-
-### RateLimitConstantsSet
-
-```solidity
-event RateLimitConstantsSet(uint256 thresholdInterval, uint256 alpha, uint256 k)
-```
-
-Constants for the rate limiter
-
-_thresholdInterval Threshold interval between calls (fixed-point)
-alpha Smoothing factor for EMA (fixed-point)
-k Scaling factor for the penalty calculation_
-
-### RateLimitState
-
-Struct to store the state of the rate limiter
-
-_Holds constants and variables for the rate limiting mechanism_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct RateLimitState {
-	UD60x18 thresholdInterval;
-	UD60x18 alpha;
-	UD60x18 k;
-	uint256 lastCallTime;
-	UD60x18 emaInterval;
-}
-```
-
-### setConstants
-
-```solidity
-function setConstants(struct RateLimiterLib.RateLimitState state, uint256 thresholdInterval, uint256 alpha, uint256 k) internal
-```
-
-Sets the constants for the rate limiter
-
-_Initializes the threshold interval, smoothing factor, and penalty scaling factor_
-
-#### Parameters
-
-| Name              | Type                                 | Description                                    |
-| ----------------- | ------------------------------------ | ---------------------------------------------- |
-| state             | struct RateLimiterLib.RateLimitState | The current state of the rate limiter          |
-| thresholdInterval | uint256                              | Threshold interval between calls (fixed-point) |
-| alpha             | uint256                              | Smoothing factor for EMA (fixed-point)         |
-| k                 | uint256                              | Scaling factor for the penalty calculation     |
-
-### update
-
-```solidity
-function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
-```
-
-Updates the rate limiter state and calculates the penalty
-
-_Updates lastCallTime and emaInterval, then returns the penalty_
-
-#### Parameters
-
-| Name  | Type                                 | Description                           |
-| ----- | ------------------------------------ | ------------------------------------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
-
-#### Return Values
-
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| [0]  | uint256 | The calculated penalty fee in wei |
-
-### getPenalty
-
-```solidity
-function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
-```
-
-Computes the penalty that would be applied by update, without changing state
-
-_Useful for checking the penalty before actually updating the state_
-
-#### Parameters
-
-| Name  | Type                                 | Description                           |
-| ----- | ------------------------------------ | ------------------------------------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
-
-#### Return Values
-
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| [0]  | uint256 | The calculated penalty fee in wei |
 
 ## IWithdrawal
 
