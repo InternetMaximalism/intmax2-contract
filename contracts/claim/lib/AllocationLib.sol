@@ -24,7 +24,7 @@ library AllocationLib {
 	 * @notice Error emitted when the period interval is zero
 	 * @dev Period interval must be greater than zero
 	 */
-	error periodIntervalZero();
+	error PeriodIntervalZero();
 
 	/**
 	 * @notice Emitted when a contribution is recorded
@@ -93,7 +93,7 @@ library AllocationLib {
 	 */
 	function initialize(State storage state, uint256 periodInterval) internal {
 		if (periodInterval == 0) {
-			revert periodIntervalZero();
+			revert PeriodIntervalZero();
 		}
 		state.periodInterval = periodInterval;
 		if (periodInterval > 1 days) {
