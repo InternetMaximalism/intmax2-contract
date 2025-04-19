@@ -217,11 +217,11 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 			tempDirectWithdrawals[counter] = withdrawal;
 			counter++;
 		}
-		nullifierNonce = nullifierNonceCached + counter;
-
 		if (counter == 0) {
 			return;
 		}
+		nullifierNonce = nullifierNonceCached + counter;
+
 		if (counter > RELAY_LIMIT) {
 			revert RelayLimitExceeded();
 		}

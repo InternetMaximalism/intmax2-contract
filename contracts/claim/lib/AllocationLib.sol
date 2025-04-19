@@ -144,13 +144,14 @@ library AllocationLib {
 		uint256 periodNumber,
 		address user
 	) internal view returns (uint256) {
-		if (state.totalContributions[periodNumber] == 0) {
+		uint256 totalContribution = state.totalContributions[periodNumber];
+		if (totalContribution == 0) {
 			return 0;
 		}
 		return
 			(getAllocationPerPeriod(state, periodNumber) *
 				state.userContributions[periodNumber][user]) /
-			state.totalContributions[periodNumber];
+			totalContribution;
 	}
 
 	/**

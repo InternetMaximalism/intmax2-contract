@@ -66,16 +66,16 @@ contract Contribution is
 		__UUPSUpgradeable_init();
 		__AccessControl_init();
 		_grantRole(DEFAULT_ADMIN_ROLE, admin);
-		periodInterval = _periodInterval;
-		if (periodInterval > 1 days) {
+		if (_periodInterval > 1 days) {
 			// align the start timestamp to the start of the day
 			startTimestamp = (block.timestamp / 1 days) * 1 days;
 		} else {
 			// align the start timestamp to the start of the period
 			startTimestamp =
-				(block.timestamp / periodInterval) *
-				periodInterval;
+				(block.timestamp / _periodInterval) *
+				_periodInterval;
 		}
+		periodInterval = _periodInterval;
 	}
 
 	/**

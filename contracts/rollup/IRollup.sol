@@ -123,9 +123,6 @@ interface IRollup {
 	 * @param builderAddress The address of the block builder who submitted the block
 	 * @param builderNonce The nonce of the block builder (for replay protection)
 	 * @param senderFlags Flags indicating whether senders' signatures are included in the aggregated signature
-	 * @param aggregatedPublicKey The aggregated public key for signature verification
-	 * @param aggregatedSignature The aggregated signature of all participating senders
-	 * @param messagePoint The hash of the tx tree root mapped to G2 curve point
 	 */
 	struct BlockPostData {
 		bool isRegistrationBlock;
@@ -134,9 +131,6 @@ interface IRollup {
 		address builderAddress;
 		uint32 builderNonce;
 		bytes16 senderFlags;
-		bytes32[2] aggregatedPublicKey;
-		bytes32[4] aggregatedSignature;
-		bytes32[4] messagePoint;
 	}
 
 	/**

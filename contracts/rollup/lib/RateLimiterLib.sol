@@ -71,13 +71,11 @@ library RateLimiterLib {
 	 * @notice Helper function that computes the new EMA interval and penalty
 	 * @dev Calculates the new EMA based on the current interval and previous EMA
 	 * @param state The current state of the rate limiter
-	 * @param currentTime The current block timestamp
 	 * @return newEmaInterval The computed new exponential moving average interval
 	 * @return penalty The computed penalty fee in wei
 	 */
 	function _computeNewState(
-		RateLimitState storage state,
-		uint256 currentTime
+		RateLimitState storage state
 	) private view returns (UD60x18 newEmaInterval, uint256 penalty) {
 		UD60x18 thresholdInterval = state.thresholdInterval;
 
@@ -87,7 +85,7 @@ library RateLimiterLib {
 		}
 
 		UD60x18 alpha = state.alpha;
-		UD60x18 interval = convert(currentTime - state.lastCallTime);
+		UD60x18 interval = convert(block.timestamp - state.lastCallTime);
 
 		// Calculate the new EMA interval:
 		// newEmaInterval = alpha * interval + (1 - alpha) * state.emaInterval
@@ -113,14 +111,10 @@ library RateLimiterLib {
 	 * @return The calculated penalty fee in wei
 	 */
 	function update(RateLimitState storage state) internal returns (uint256) {
-		uint256 currentTime = block.timestamp;
-		(UD60x18 newEmaInterval, uint256 penalty) = _computeNewState(
-			state,
-			currentTime
-		);
+		(UD60x18 newEmaInterval, uint256 penalty) = _computeNewState(state);
 
 		// Update the state with the new values.
-		state.lastCallTime = currentTime;
+		state.lastCallTime = block.timestamp;
 		state.emaInterval = newEmaInterval;
 		return penalty;
 	}
@@ -135,7 +129,7 @@ library RateLimiterLib {
 		RateLimitState storage state
 	) internal view returns (uint256) {
 		// We simply compute what the penalty would be.
-		(, uint256 penalty) = _computeNewState(state, block.timestamp);
+		(, uint256 penalty) = _computeNewState(state);
 		return penalty;
 	}
 }

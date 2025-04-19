@@ -689,11 +689,12 @@ contract Liquidity is
 		bytes memory encodedData,
 		bytes memory amlPermission
 	) private {
-		if (address(amlPermitter) == address(0)) {
+		IPermitter amlPermitterCached = amlPermitter;
+		if (address(amlPermitterCached) == address(0)) {
 			// if aml permitter is not set, skip aml check
 			return;
 		}
-		bool result = amlPermitter.permit(
+		bool result = amlPermitterCached.permit(
 			_msgSender(),
 			msg.value,
 			encodedData,
@@ -716,7 +717,8 @@ contract Liquidity is
 		bytes memory encodedData,
 		bytes memory eligibilityPermission
 	) private returns (bool) {
-		if (address(eligibilityPermitter) == address(0)) {
+		IPermitter eligibilityPermitterCached = eligibilityPermitter;
+		if (address(eligibilityPermitterCached) == address(0)) {
 			// if eligibility permitter is not set, skip eligibility check
 			return true;
 		}
@@ -724,7 +726,7 @@ contract Liquidity is
 			// if eligibility permitter is set but permission doesn't returned, return false.
 			return false;
 		}
-		bool result = eligibilityPermitter.permit(
+		bool result = eligibilityPermitterCached.permit(
 			_msgSender(),
 			msg.value,
 			encodedData,

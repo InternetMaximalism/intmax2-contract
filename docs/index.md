@@ -2075,9 +2075,6 @@ struct BlockPostData {
 	address builderAddress;
 	uint32 builderNonce;
 	bytes16 senderFlags;
-	bytes32[2] aggregatedPublicKey;
-	bytes32[4] aggregatedSignature;
-	bytes32[4] messagePoint;
 }
 ```
 
@@ -2233,280 +2230,81 @@ _Reverts if the block number is out of range_
 | ---- | ------- | ------------------------------- |
 | [0]  | bytes32 | The hash of the specified block |
 
-## IWithdrawal
+## Rollup
 
-Interface for the Withdrawal contract that processes withdrawals from L2 to L1
+Implementation of the Intmax2 L2 rollup contract
 
-_Defines the functions, events, and errors for handling withdrawal proofs and token management_
+_Manages block submission, deposit processing, and maintains the state of the rollup chain_
 
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-Error thrown when a required address parameter is the zero address
-
-_Used in initialize function to validate address parameters_
-
-### WithdrawalChainVerificationFailed
+### NUM_SENDERS_IN_BLOCK
 
 ```solidity
-error WithdrawalChainVerificationFailed()
+uint256 NUM_SENDERS_IN_BLOCK
 ```
 
-Error thrown when the verification of the withdrawal proof's public input hash chain fails
+The maximum number of senders in a block
 
-_Indicates that the chain of withdrawal hashes doesn't match the expected final hash_
+_Used to limit the size of blocks and for padding sender arrays_
 
-### WithdrawalAggregatorMismatch
+### FULL_ACCOUNT_IDS_BYTES
 
 ```solidity
-error WithdrawalAggregatorMismatch()
+uint256 FULL_ACCOUNT_IDS_BYTES
 ```
 
-Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
+The number of bytes required to represent the account IDs of all senders in a block
 
-_Ensures that only the designated aggregator can submit the proof_
+_Each account ID uses 5 bytes, so 128 senders require 640 bytes_
 
-### BlockHashNotExists
+### liquidity
 
 ```solidity
-error BlockHashNotExists(bytes32 blockHash)
+address liquidity
 ```
 
-Error thrown when the block hash in the withdrawal proof's public input doesn't exist
+Address of the Liquidity contract on L1
 
-_Ensures that withdrawals reference valid blocks in the rollup chain_
+_Used to verify cross-chain messages from the Liquidity contract_
 
-#### Parameters
-
-| Name      | Type    | Description                                       |
-| --------- | ------- | ------------------------------------------------- |
-| blockHash | bytes32 | The non-existent block hash that caused the error |
-
-### WithdrawalProofVerificationFailed
+### lastProcessedDepositId
 
 ```solidity
-error WithdrawalProofVerificationFailed()
+uint256 lastProcessedDepositId
 ```
 
-Error thrown when the zero-knowledge proof verification fails
+The ID of the last processed deposit from the Liquidity contract
 
-_Indicates an invalid or malformed withdrawal proof_
+_Used to track which deposits have been included in the deposit tree_
 
-### TokenAlreadyExist
+### blockHashes
 
 ```solidity
-error TokenAlreadyExist(uint256 tokenIndex)
+bytes32[] blockHashes
 ```
 
-Error thrown when attempting to add a token to direct withdrawal tokens that already exists
+Array of block hashes in the rollup chain
 
-_Prevents duplicate entries in the direct withdrawal token list_
+_Index 0 contains the genesis block hash_
 
-#### Parameters
-
-| Name       | Type    | Description                                                              |
-| ---------- | ------- | ------------------------------------------------------------------------ |
-| tokenIndex | uint256 | The index of the token that already exists in the direct withdrawal list |
-
-### TokenNotExist
+### builderRegistrationNonce
 
 ```solidity
-error TokenNotExist(uint256 tokenIndex)
+mapping(address => uint32) builderRegistrationNonce
 ```
 
-Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
+Mapping of block builder addresses to their current nonce for registration blocks
 
-_Ensures that only tokens in the direct withdrawal list can be removed_
+_Used to prevent replay attacks and ensure block ordering_
 
-#### Parameters
-
-| Name       | Type    | Description                                                       |
-| ---------- | ------- | ----------------------------------------------------------------- |
-| tokenIndex | uint256 | The index of the non-existent token in the direct withdrawal list |
-
-### RelayLimitExceeded
+### builderNonRegistrationNonce
 
 ```solidity
-error RelayLimitExceeded()
+mapping(address => uint32) builderNonRegistrationNonce
 ```
 
-Error when trying to relay too many claims at once
+Mapping of block builder addresses to their current nonce for non-registration blocks
 
-_To prevent transaction failure on L1 due to large gas consumption_
-
-### VerifierUpdated
-
-```solidity
-event VerifierUpdated(address withdrawalVerifier)
-```
-
-Emitted when new withdrawal verifier is set
-
-### ClaimableWithdrawalQueued
-
-```solidity
-event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a claimable withdrawal is queued
-
-_Triggered for withdrawals of tokens not in the direct withdrawal list_
-
-#### Parameters
-
-| Name           | Type                            | Description                                       |
-| -------------- | ------------------------------- | ------------------------------------------------- |
-| withdrawalHash | bytes32                         | The hash of the withdrawal, used as an identifier |
-| recipient      | address                         | The L1 address of the recipient                   |
-| withdrawal     | struct WithdrawalLib.Withdrawal | The complete withdrawal details                   |
-
-### DirectWithdrawalQueued
-
-```solidity
-event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
-```
-
-Emitted when a direct withdrawal is queued
-
-_Triggered for withdrawals of tokens in the direct withdrawal list_
-
-#### Parameters
-
-| Name           | Type                            | Description                                       |
-| -------------- | ------------------------------- | ------------------------------------------------- |
-| withdrawalHash | bytes32                         | The hash of the withdrawal, used as an identifier |
-| recipient      | address                         | The L1 address of the recipient                   |
-| withdrawal     | struct WithdrawalLib.Withdrawal | The complete withdrawal details                   |
-
-### DirectWithdrawalTokenIndicesAdded
-
-```solidity
-event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
-```
-
-Emitted when token indices are added to the direct withdrawal list
-
-_Triggered by the addDirectWithdrawalTokenIndices function_
-
-#### Parameters
-
-| Name         | Type      | Description                                                          |
-| ------------ | --------- | -------------------------------------------------------------------- |
-| tokenIndices | uint256[] | Array of token indices that were added to the direct withdrawal list |
-
-### DirectWithdrawalTokenIndicesRemoved
-
-```solidity
-event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
-```
-
-Emitted when token indices are removed from the direct withdrawal list
-
-_Triggered by the removeDirectWithdrawalTokenIndices function_
-
-#### Parameters
-
-| Name         | Type      | Description                                                              |
-| ------------ | --------- | ------------------------------------------------------------------------ |
-| tokenIndices | uint256[] | Array of token indices that were removed from the direct withdrawal list |
-
-### submitWithdrawalProof
-
-```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
-```
-
-Submit and verify a withdrawal proof from Intmax2 L2
-
-_Processes the withdrawals and relays them to the Liquidity contract on L1_
-
-#### Parameters
-
-| Name         | Type                                                              | Description                                         |
-| ------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
-| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | Array of chained withdrawals to process             |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
-| proof        | bytes                                                             | The zero-knowledge proof data                       |
-
-### getDirectWithdrawalTokenIndices
-
-```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
-```
-
-Get the list of token indices that can be withdrawn directly
-
-_Returns the current set of direct withdrawal token indices_
-
-#### Return Values
-
-| Name | Type      | Description                                              |
-| ---- | --------- | -------------------------------------------------------- |
-| [0]  | uint256[] | An array of token indices that can be withdrawn directly |
-
-### addDirectWithdrawalTokenIndices
-
-```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name         | Type      | Description                                            |
-| ------------ | --------- | ------------------------------------------------------ |
-| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
-
-### removeDirectWithdrawalTokenIndices
-
-```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
-```
-
-Remove token indices from the list of direct withdrawal token indices
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name         | Type      | Description                                                 |
-| ------------ | --------- | ----------------------------------------------------------- |
-| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
-
-## Withdrawal
-
-Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
-
-_Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
-
-### RELAY_LIMIT
-
-```solidity
-uint256 RELAY_LIMIT
-```
-
-Maximum number of withdrawals that can be relayed in a single transaction
-
-_This limit prevents situations where too many withdrawals are relayed to L1 simultaneously,
-which could exceed the L1 block gas limit and cause transaction failures._
-
-### withdrawalVerifier
-
-```solidity
-contract IPlonkVerifier withdrawalVerifier
-```
-
-Reference to the PLONK verifier contract for withdrawal proofs
-
-_Used to verify zero-knowledge proofs of withdrawals_
+_Used to prevent replay attacks and ensure block ordering_
 
 ### l2ScrollMessenger
 
@@ -2518,26 +2316,6 @@ Reference to the L2 ScrollMessenger contract
 
 _Used for cross-chain communication with L1_
 
-### rollup
-
-```solidity
-contract IRollup rollup
-```
-
-Reference to the Rollup contract
-
-_Used to verify block hashes for withdrawals_
-
-### liquidity
-
-```solidity
-address liquidity
-```
-
-Address of the Liquidity contract on L1
-
-_Target for cross-chain messages about withdrawals_
-
 ### contribution
 
 ```solidity
@@ -2546,27 +2324,37 @@ contract IContribution contribution
 
 Reference to the Contribution contract
 
-_Used to record withdrawal contributions_
+_Used to record block builder contributions_
 
-### nullifiers
-
-```solidity
-mapping(bytes32 => bool) nullifiers
-```
-
-Mapping of nullifiers to their used status
-
-_Prevents double-spending of withdrawals_
-
-### directWithdrawalTokenIndices
+### depositTreeRoot
 
 ```solidity
-struct EnumerableSet.UintSet directWithdrawalTokenIndices
+bytes32 depositTreeRoot
 ```
 
-Set of token indices that can be withdrawn directly
+Current root of the deposit Merkle tree
 
-_Tokens not in this set will be processed as claimable withdrawals_
+_Updated whenever new deposits are processed_
+
+### depositIndex
+
+```solidity
+uint32 depositIndex
+```
+
+Current index for the next deposit in the deposit tree
+
+_Incremented for each processed deposit_
+
+### onlyLiquidityContract
+
+```solidity
+modifier onlyLiquidityContract()
+```
+
+Modifier to restrict function access to the Liquidity contract via ScrollMessenger
+
+_Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract_
 
 ### constructor
 
@@ -2577,108 +2365,165 @@ constructor() public
 ### initialize
 
 ```solidity
-function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
+function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution, uint256 _rateLimitThresholdInterval, uint256 _rateLimitAlpha, uint256 _rateLimitK) external
 ```
 
-Initializes the Withdrawal contract
+Initializes the Rollup contract
 
-_Sets up the initial state with required contract references and token indices_
+_Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts_
 
 #### Parameters
 
-| Name                           | Type      | Description                                            |
-| ------------------------------ | --------- | ------------------------------------------------------ |
-| \_admin                        | address   | Address that will be granted ownership of the contract |
-| \_scrollMessenger              | address   | Address of the L2 ScrollMessenger contract             |
-| \_withdrawalVerifier           | address   | Address of the PLONK verifier for withdrawal proofs    |
-| \_liquidity                    | address   | Address of the Liquidity contract on L1                |
-| \_rollup                       | address   | Address of the Rollup contract                         |
-| \_contribution                 | address   | Address of the Contribution contract                   |
-| \_directWithdrawalTokenIndices | uint256[] | Initial list of token indices for direct withdrawals   |
+| Name                         | Type    | Description                                             |
+| ---------------------------- | ------- | ------------------------------------------------------- |
+| \_admin                      | address | Address that will be granted ownership of the contract  |
+| \_scrollMessenger            | address | Address of the L2 ScrollMessenger contract              |
+| \_liquidity                  | address | Address of the Liquidity contract on L1                 |
+| \_contribution               | address | Address of the Contribution contract                    |
+| \_rateLimitThresholdInterval | uint256 | The threshold interval between block submissions        |
+| \_rateLimitAlpha             | uint256 | The smoothing factor for the exponential moving average |
+| \_rateLimitK                 | uint256 | The penalty coefficient for the rate limiter            |
 
-### updateVerifier
+### postRegistrationBlock
 
 ```solidity
-function updateVerifier(address _withdrawalVerifier) external
+function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
 ```
 
-Updates the withdrawal verifier address
+Posts a registration block for senders' first transactions
 
-_Only the contract owner can update the verifier_
+_Registration blocks include the public keys of new senders_
 
 #### Parameters
 
-| Name                 | Type    | Description                            |
-| -------------------- | ------- | -------------------------------------- |
-| \_withdrawalVerifier | address | Address of the new withdrawal verifier |
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The registration block nonce of the block builder            |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
 
-### submitWithdrawalProof
+### postNonRegistrationBlock
 
 ```solidity
-function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
 ```
 
-Submit and verify a withdrawal proof from Intmax2 L2
+Posts a non-registration block for senders' subsequent transactions
 
-_Processes the withdrawals and relays them to the Liquidity contract on L1_
+_Non-registration blocks use account IDs instead of full public keys_
 
 #### Parameters
 
-| Name         | Type                                                              | Description                                         |
-| ------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
-| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | Array of chained withdrawals to process             |
-| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
-| proof        | bytes                                                             | The zero-knowledge proof data                       |
+| Name                | Type       | Description                                                  |
+| ------------------- | ---------- | ------------------------------------------------------------ |
+| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
+| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
+| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
+| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
+| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
+| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
+| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
+| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
 
-### getDirectWithdrawalTokenIndices
+### processDeposits
 
 ```solidity
-function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
 ```
 
-Get the list of token indices that can be withdrawn directly
+### setRateLimitConstants
 
-_Returns the current set of direct withdrawal token indices_
+```solidity
+function setRateLimitConstants(uint256 targetInterval, uint256 alpha, uint256 k) external
+```
+
+Sets the rate limiter constants for the rollup chain
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name           | Type    | Description                                        |
+| -------------- | ------- | -------------------------------------------------- |
+| targetInterval | uint256 | The target block submission interval in seconds    |
+| alpha          | uint256 | The alpha value for the exponential moving average |
+| k              | uint256 | The penalty coefficient for the rate limiter       |
+
+### withdrawPenaltyFee
+
+```solidity
+function withdrawPenaltyFee(address to) external
+```
+
+Withdraws accumulated penalty fees from the Rollup contract
+
+_Only the contract owner can call this function_
+
+#### Parameters
+
+| Name | Type    | Description                                               |
+| ---- | ------- | --------------------------------------------------------- |
+| to   | address | The address to which the penalty fees will be transferred |
+
+### getLatestBlockNumber
+
+```solidity
+function getLatestBlockNumber() external view returns (uint32)
+```
+
+Gets the block number of the latest posted block
+
+_Returns the highest block number in the rollup chain_
 
 #### Return Values
 
-| Name | Type      | Description                                              |
-| ---- | --------- | -------------------------------------------------------- |
-| [0]  | uint256[] | An array of token indices that can be withdrawn directly |
+| Name | Type   | Description                          |
+| ---- | ------ | ------------------------------------ |
+| [0]  | uint32 | The latest block number (zero-based) |
 
-### addDirectWithdrawalTokenIndices
+### getBlockHash
 
 ```solidity
-function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+function getBlockHash(uint32 blockNumber) external view returns (bytes32)
 ```
 
-Add token indices to the list of direct withdrawal token indices
-ERC721 and ERC1155 tokens are not supported for direct withdrawal.
-When transferred to the liquidity contract, they will be converted to claimable withdrawals.
+Gets the block hash for a specific block number
 
-_Can only be called by the contract owner_
+_Reverts if the block number is out of range_
 
 #### Parameters
 
-| Name         | Type      | Description                                            |
-| ------------ | --------- | ------------------------------------------------------ |
-| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+| Name        | Type   | Description               |
+| ----------- | ------ | ------------------------- |
+| blockNumber | uint32 | The block number to query |
 
-### removeDirectWithdrawalTokenIndices
+#### Return Values
+
+| Name | Type    | Description                     |
+| ---- | ------- | ------------------------------- |
+| [0]  | bytes32 | The hash of the specified block |
+
+### getPenalty
 
 ```solidity
-function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
+function getPenalty() external view returns (uint256)
 ```
 
-Remove token indices from the list of direct withdrawal token indices
+Gets the current penalty fee required by the rate limiter
 
-_Can only be called by the contract owner_
+_Calculated based on the exponential moving average of block intervals_
 
-#### Parameters
+#### Return Values
 
-| Name         | Type      | Description                                                 |
-| ------------ | --------- | ----------------------------------------------------------- |
-| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+| Name | Type    | Description                                                   |
+| ---- | ------- | ------------------------------------------------------------- |
+| [0]  | uint256 | The penalty fee in wei required for the next block submission |
 
 ### \_authorizeUpgrade
 
@@ -2696,18 +2541,130 @@ _Can only be called by the contract owner_
 | ----------------- | ------- | ------------------------------------------ |
 | newImplementation | address | Address of the new implementation contract |
 
-## ChainedWithdrawalLib
+## BlockHashLib
 
-Library for handling chained withdrawals in a hash chain
+Library for managing block hashes in the Intmax2 rollup chain
 
-_Provides utilities for creating and verifying a chain of withdrawal hashes
-used in zero-knowledge proof verification_
+_Provides utilities for calculating, storing, and retrieving block hashes_
 
-### ChainedWithdrawal
+### pushGenesisBlockHash
 
-Represents a withdrawal linked in a hash chain
+```solidity
+function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
+```
 
-_Contains all necessary information for processing a withdrawal and verifying its inclusion in a block_
+Pushes the genesis block hash to the block hashes array
+
+_Creates the first block hash with special parameters for the genesis block_
+
+#### Parameters
+
+| Name                   | Type      | Description                                         |
+| ---------------------- | --------- | --------------------------------------------------- |
+| blockHashes            | bytes32[] | The storage array of block hashes                   |
+| initialDepositTreeRoot | bytes32   | The initial deposit tree root for the genesis block |
+
+### getBlockNumber
+
+```solidity
+function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
+```
+
+Gets the current block number based on the number of block hashes
+
+_The block number is equal to the length of the blockHashes array_
+
+#### Parameters
+
+| Name        | Type      | Description                       |
+| ----------- | --------- | --------------------------------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type   | Description                                                |
+| ---- | ------ | ---------------------------------------------------------- |
+| [0]  | uint32 | The current block number (length of the blockHashes array) |
+
+### getPrevHash
+
+```solidity
+function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
+```
+
+Gets the hash of the previous block
+
+_Returns the last element in the blockHashes array_
+
+#### Parameters
+
+| Name        | Type      | Description                       |
+| ----------- | --------- | --------------------------------- |
+| blockHashes | bytes32[] | The storage array of block hashes |
+
+#### Return Values
+
+| Name | Type    | Description                    |
+| ---- | ------- | ------------------------------ |
+| [0]  | bytes32 | The hash of the previous block |
+
+### pushBlockHash
+
+```solidity
+function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
+```
+
+Pushes a new block hash to the block hashes array
+
+_Calculates the block hash based on inputs and appends it to the array_
+
+#### Parameters
+
+| Name            | Type      | Description                             |
+| --------------- | --------- | --------------------------------------- |
+| blockHashes     | bytes32[] | The storage array of block hashes       |
+| depositTreeRoot | bytes32   | The deposit tree root for the new block |
+| signatureHash   | bytes32   | The signature hash for the new block    |
+| timestamp       | uint64    | The timestamp of the new block          |
+
+#### Return Values
+
+| Name      | Type    | Description                                |
+| --------- | ------- | ------------------------------------------ |
+| blockHash | bytes32 | The newly calculated and pushed block hash |
+
+## DepositTreeLib
+
+Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
+
+_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
+Implements an incremental Merkle tree for efficiently tracking deposits_
+
+### MerkleTreeFull
+
+```solidity
+error MerkleTreeFull()
+```
+
+Error thrown when the Merkle tree is full
+
+_Thrown when attempting to add a deposit to a tree that has reached its maximum capacity_
+
+### \_DEPOSIT_CONTRACT_TREE_DEPTH
+
+```solidity
+uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
+```
+
+Depth of the Merkle tree
+
+_The tree has a maximum of 2^32 - 1 leaves_
+
+### DepositTree
+
+Structure representing the deposit tree
+
+_Contains the branch nodes, deposit count, and default hash for empty nodes_
 
 #### Parameters
 
@@ -2715,50 +2672,191 @@ _Contains all necessary information for processing a withdrawal and verifying it
 | ---- | ---- | ----------- |
 
 ```solidity
-struct ChainedWithdrawal {
-	address recipient;
-	uint32 tokenIndex;
-	uint256 amount;
-	bytes32 nullifier;
-	bytes32 blockHash;
-	uint32 blockNumber;
+struct DepositTree {
+	bytes32[32] _branch;
+	uint256 depositCount;
+	bytes32 defaultHash;
 }
 ```
 
-### verifyWithdrawalChain
+### \_MAX_DEPOSIT_COUNT
 
 ```solidity
-function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
+uint256 _MAX_DEPOSIT_COUNT
 ```
 
-Verifies the integrity of a withdrawal hash chain
+Maximum number of deposits allowed in the tree
 
-_Computes the hash chain from the provided withdrawals and compares it to the expected final hash_
+_Ensures depositCount fits into 32 bits (2^32 - 1)_
+
+### initialize
+
+```solidity
+function initialize(struct DepositTreeLib.DepositTree depositTree) internal
+```
+
+Initializes the deposit tree with default values
+
+_Sets up the default hash using an empty Deposit struct_
 
 #### Parameters
 
-| Name               | Type                                            | Description                                                                      |
-| ------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------- |
-| withdrawals        | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify                                            |
-| lastWithdrawalHash | bytes32                                         | The expected hash of the last withdrawal in the chain (from proof public inputs) |
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+### getRoot
+
+```solidity
+function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
+```
+
+Computes and returns the current Merkle root
+
+_Calculates the root by combining branch nodes with zero hashes_
+
+#### Parameters
+
+| Name        | Type                              | Description                                    |
+| ----------- | --------------------------------- | ---------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
 
 #### Return Values
 
-| Name | Type | Description                                                                           |
-| ---- | ---- | ------------------------------------------------------------------------------------- |
-| [0]  | bool | bool True if the computed hash chain matches the expected final hash, false otherwise |
+| Name | Type    | Description                   |
+| ---- | ------- | ----------------------------- |
+| [0]  | bytes32 | The computed Merkle root hash |
 
-## WithdrawalProofPublicInputsLib
+### deposit
 
-Library for handling public inputs of withdrawal zero-knowledge proofs
+```solidity
+function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
+```
 
-_Provides utilities for working with the public inputs that are part of withdrawal proof verification_
+Adds a new leaf to the Merkle tree
 
-### WithdrawalProofPublicInputs
+_Updates the appropriate branch node and increments the deposit count_
 
-Represents the public inputs for a withdrawal zero-knowledge proof
+#### Parameters
 
-_Contains the final hash of the withdrawal chain and the aggregator address_
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+| leafHash    | bytes32                           | The hash of the new deposit leaf to be added    |
+
+### getBranch
+
+```solidity
+function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
+```
+
+Retrieves the current branch nodes of the Merkle tree
+
+_Used for generating Merkle proofs or debugging_
+
+#### Parameters
+
+| Name        | Type                              | Description                                     |
+| ----------- | --------------------------------- | ----------------------------------------------- |
+| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
+
+#### Return Values
+
+| Name | Type        | Description                                            |
+| ---- | ----------- | ------------------------------------------------------ |
+| [0]  | bytes32[32] | Array of branch node hashes at each height of the tree |
+
+## PairingLib
+
+Library for elliptic curve pairing operations used in signature verification
+
+_Provides utilities for verifying BLS signatures using the precompiled pairing contract_
+
+### PairingOpCodeFailed
+
+```solidity
+error PairingOpCodeFailed()
+```
+
+Error thrown when the elliptic curve pairing operation fails
+
+_This can happen if the precompiled contract call fails or returns an invalid result_
+
+### NEG_G1_X
+
+```solidity
+uint256 NEG_G1_X
+```
+
+X-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### NEG_G1_Y
+
+```solidity
+uint256 NEG_G1_Y
+```
+
+Y-coordinate of the negated generator point G1
+
+_Used in the pairing check to verify signatures_
+
+### pairing
+
+```solidity
+function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
+```
+
+Performs an elliptic curve pairing operation to verify a BLS signature
+
+_Uses the precompiled contract at address 8 to perform the pairing check_
+
+#### Parameters
+
+| Name                | Type       | Description                                                            |
+| ------------------- | ---------- | ---------------------------------------------------------------------- |
+| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements representing a G1 point) |
+| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements representing a G2 point)  |
+| messagePoint        | bytes32[4] | The message point (4 32-byte elements representing a G2 point)         |
+
+#### Return Values
+
+| Name | Type | Description                                                                 |
+| ---- | ---- | --------------------------------------------------------------------------- |
+| [0]  | bool | bool True if the signature is valid (pairing check passes), false otherwise |
+
+## RateLimiterLib
+
+A library for implementing a rate limiting mechanism with exponential moving average (EMA)
+
+_Uses fixed-point arithmetic to calculate penalties for rapid block submissions_
+
+### InvalidConstants
+
+```solidity
+error InvalidConstants()
+```
+
+Error thrown when trying to set the rate limiter constants to invalid values
+
+### RateLimitConstantsSet
+
+```solidity
+event RateLimitConstantsSet(uint256 thresholdInterval, uint256 alpha, uint256 k)
+```
+
+Constants for the rate limiter
+
+_thresholdInterval Threshold interval between calls (fixed-point)
+alpha Smoothing factor for EMA (fixed-point)
+k Scaling factor for the penalty calculation_
+
+### RateLimitState
+
+Struct to store the state of the rate limiter
+
+_Holds constants and variables for the rate limiting mechanism_
 
 #### Parameters
 
@@ -2766,33 +2864,204 @@ _Contains the final hash of the withdrawal chain and the aggregator address_
 | ---- | ---- | ----------- |
 
 ```solidity
-struct WithdrawalProofPublicInputs {
-	bytes32 lastWithdrawalHash;
-	address withdrawalAggregator;
+struct RateLimitState {
+	UD60x18 thresholdInterval;
+	UD60x18 alpha;
+	UD60x18 k;
+	uint256 lastCallTime;
+	UD60x18 emaInterval;
 }
 ```
 
-### getHash
+### setConstants
 
 ```solidity
-function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
+function setConstants(struct RateLimiterLib.RateLimitState state, uint256 thresholdInterval, uint256 alpha, uint256 k) internal
 ```
 
-Computes the hash of the WithdrawalProofPublicInputs
+Sets the constants for the rate limiter
 
-_This hash is used as input to the zero-knowledge proof verification_
+_Initializes the threshold interval, smoothing factor, and penalty scaling factor_
 
 #### Parameters
 
-| Name   | Type                                                              | Description                                         |
-| ------ | ----------------------------------------------------------------- | --------------------------------------------------- |
-| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs struct to be hashed |
+| Name              | Type                                 | Description                                    |
+| ----------------- | ------------------------------------ | ---------------------------------------------- |
+| state             | struct RateLimiterLib.RateLimitState | The current state of the rate limiter          |
+| thresholdInterval | uint256                              | Threshold interval between calls (fixed-point) |
+| alpha             | uint256                              | Smoothing factor for EMA (fixed-point)         |
+| k                 | uint256                              | Scaling factor for the penalty calculation     |
+
+### update
+
+```solidity
+function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
+```
+
+Updates the rate limiter state and calculates the penalty
+
+_Updates lastCallTime and emaInterval, then returns the penalty_
+
+#### Parameters
+
+| Name  | Type                                 | Description                           |
+| ----- | ------------------------------------ | ------------------------------------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
 
 #### Return Values
 
-| Name | Type    | Description                                                                       |
-| ---- | ------- | --------------------------------------------------------------------------------- |
-| [0]  | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
+| Name | Type    | Description                       |
+| ---- | ------- | --------------------------------- |
+| [0]  | uint256 | The calculated penalty fee in wei |
+
+### getPenalty
+
+```solidity
+function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
+```
+
+Computes the penalty that would be applied by update, without changing state
+
+_Useful for checking the penalty before actually updating the state_
+
+#### Parameters
+
+| Name  | Type                                 | Description                           |
+| ----- | ------------------------------------ | ------------------------------------- |
+| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+
+#### Return Values
+
+| Name | Type    | Description                       |
+| ---- | ------- | --------------------------------- |
+| [0]  | uint256 | The calculated penalty fee in wei |
+
+## Contribution
+
+Contract for tracking user contributions across different time periods
+
+### CONTRIBUTOR
+
+```solidity
+bytes32 CONTRIBUTOR
+```
+
+Role identifier for contracts that can record contributions
+
+_Addresses with this role can call the recordContribution function_
+
+### startTimestamp
+
+```solidity
+uint256 startTimestamp
+```
+
+Start timestamp of the contribution period tracking
+
+_Used as the reference point for calculating period numbers_
+
+### periodInterval
+
+```solidity
+uint256 periodInterval
+```
+
+Duration of each contribution period in seconds
+
+_Used to calculate the current period number_
+
+### totalContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
+```
+
+Maps periods and tags to total contributions
+
+_Mapping structure: period => tag => total contribution amount_
+
+### userContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
+```
+
+Maps periods, tags, and users to their individual contributions
+
+_Mapping structure: period => tag => user address => contribution amount_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin, uint256 _periodInterval) external
+```
+
+Initializes the contract with an admin and period interval
+
+_Sets up the initial state of the contract and aligns the start timestamp_
+
+#### Parameters
+
+| Name             | Type    | Description                                           |
+| ---------------- | ------- | ----------------------------------------------------- |
+| admin            | address | Address that will be granted the DEFAULT_ADMIN_ROLE   |
+| \_periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
+
+### getCurrentPeriod
+
+```solidity
+function getCurrentPeriod() public view returns (uint256)
+```
+
+Calculates the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - startTimestamp) / periodInterval_
+
+#### Return Values
+
+| Name | Type    | Description               |
+| ---- | ------- | ------------------------- |
+| [0]  | uint256 | The current period number |
+
+### recordContribution
+
+```solidity
+function recordContribution(bytes32 tag, address user, uint256 amount) external
+```
+
+Records a contribution for a specific tag and user
+
+_Updates both total and user-specific contribution amounts for the current period_
+
+#### Parameters
+
+| Name   | Type    | Description                                                        |
+| ------ | ------- | ------------------------------------------------------------------ |
+| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
+| user   | address | The address of the user making the contribution                    |
+| amount | uint256 | The amount of contribution to record                               |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
+
+#### Parameters
+
+| Name              | Type    | Description                                |
+| ----------------- | ------- | ------------------------------------------ |
+| newImplementation | address | Address of the new implementation contract |
 
 ## ITokenData
 
@@ -3833,105 +4102,280 @@ _This function is called to check permissions before executing protected operati
 | ---------- | ---- | ----------------------------------------------------------------------------- |
 | authorized | bool | Returns true if the user is authorized to perform the action, false otherwise |
 
-## ClaimPlonkVerifier
+## IWithdrawal
 
-### Verify
+Interface for the Withdrawal contract that processes withdrawals from L2 to L1
+
+_Defines the functions, events, and errors for handling withdrawal proofs and token management_
+
+### AddressZero
 
 ```solidity
-function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
+error AddressZero()
 ```
 
-Verify a Plonk proof.
-Reverts if the proof or the public inputs are malformed.
+Error thrown when a required address parameter is the zero address
+
+_Used in initialize function to validate address parameters_
+
+### WithdrawalChainVerificationFailed
+
+```solidity
+error WithdrawalChainVerificationFailed()
+```
+
+Error thrown when the verification of the withdrawal proof's public input hash chain fails
+
+_Indicates that the chain of withdrawal hashes doesn't match the expected final hash_
+
+### WithdrawalAggregatorMismatch
+
+```solidity
+error WithdrawalAggregatorMismatch()
+```
+
+Error thrown when the aggregator in the withdrawal proof's public input doesn't match the actual contract executor
+
+_Ensures that only the designated aggregator can submit the proof_
+
+### BlockHashNotExists
+
+```solidity
+error BlockHashNotExists(bytes32 blockHash)
+```
+
+Error thrown when the block hash in the withdrawal proof's public input doesn't exist
+
+_Ensures that withdrawals reference valid blocks in the rollup chain_
 
 #### Parameters
 
-| Name          | Type      | Description                                            |
-| ------------- | --------- | ------------------------------------------------------ |
-| proof         | bytes     | serialised plonk proof (using gnark's MarshalSolidity) |
-| public_inputs | uint256[] | (must be reduced)                                      |
+| Name      | Type    | Description                                       |
+| --------- | ------- | ------------------------------------------------- |
+| blockHash | bytes32 | The non-existent block hash that caused the error |
+
+### WithdrawalProofVerificationFailed
+
+```solidity
+error WithdrawalProofVerificationFailed()
+```
+
+Error thrown when the zero-knowledge proof verification fails
+
+_Indicates an invalid or malformed withdrawal proof_
+
+### TokenAlreadyExist
+
+```solidity
+error TokenAlreadyExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to add a token to direct withdrawal tokens that already exists
+
+_Prevents duplicate entries in the direct withdrawal token list_
+
+#### Parameters
+
+| Name       | Type    | Description                                                              |
+| ---------- | ------- | ------------------------------------------------------------------------ |
+| tokenIndex | uint256 | The index of the token that already exists in the direct withdrawal list |
+
+### TokenNotExist
+
+```solidity
+error TokenNotExist(uint256 tokenIndex)
+```
+
+Error thrown when attempting to remove a non-existent token from direct withdrawal tokens
+
+_Ensures that only tokens in the direct withdrawal list can be removed_
+
+#### Parameters
+
+| Name       | Type    | Description                                                       |
+| ---------- | ------- | ----------------------------------------------------------------- |
+| tokenIndex | uint256 | The index of the non-existent token in the direct withdrawal list |
+
+### RelayLimitExceeded
+
+```solidity
+error RelayLimitExceeded()
+```
+
+Error when trying to relay too many claims at once
+
+_To prevent transaction failure on L1 due to large gas consumption_
+
+### VerifierUpdated
+
+```solidity
+event VerifierUpdated(address withdrawalVerifier)
+```
+
+Emitted when new withdrawal verifier is set
+
+### ClaimableWithdrawalQueued
+
+```solidity
+event ClaimableWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a claimable withdrawal is queued
+
+_Triggered for withdrawals of tokens not in the direct withdrawal list_
+
+#### Parameters
+
+| Name           | Type                            | Description                                       |
+| -------------- | ------------------------------- | ------------------------------------------------- |
+| withdrawalHash | bytes32                         | The hash of the withdrawal, used as an identifier |
+| recipient      | address                         | The L1 address of the recipient                   |
+| withdrawal     | struct WithdrawalLib.Withdrawal | The complete withdrawal details                   |
+
+### DirectWithdrawalQueued
+
+```solidity
+event DirectWithdrawalQueued(bytes32 withdrawalHash, address recipient, struct WithdrawalLib.Withdrawal withdrawal)
+```
+
+Emitted when a direct withdrawal is queued
+
+_Triggered for withdrawals of tokens in the direct withdrawal list_
+
+#### Parameters
+
+| Name           | Type                            | Description                                       |
+| -------------- | ------------------------------- | ------------------------------------------------- |
+| withdrawalHash | bytes32                         | The hash of the withdrawal, used as an identifier |
+| recipient      | address                         | The L1 address of the recipient                   |
+| withdrawal     | struct WithdrawalLib.Withdrawal | The complete withdrawal details                   |
+
+### DirectWithdrawalTokenIndicesAdded
+
+```solidity
+event DirectWithdrawalTokenIndicesAdded(uint256[] tokenIndices)
+```
+
+Emitted when token indices are added to the direct withdrawal list
+
+_Triggered by the addDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name         | Type      | Description                                                          |
+| ------------ | --------- | -------------------------------------------------------------------- |
+| tokenIndices | uint256[] | Array of token indices that were added to the direct withdrawal list |
+
+### DirectWithdrawalTokenIndicesRemoved
+
+```solidity
+event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices)
+```
+
+Emitted when token indices are removed from the direct withdrawal list
+
+_Triggered by the removeDirectWithdrawalTokenIndices function_
+
+#### Parameters
+
+| Name         | Type      | Description                                                              |
+| ------------ | --------- | ------------------------------------------------------------------------ |
+| tokenIndices | uint256[] | Array of token indices that were removed from the direct withdrawal list |
+
+### submitWithdrawalProof
+
+```solidity
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
+```
+
+Submit and verify a withdrawal proof from Intmax2 L2
+
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
+
+#### Parameters
+
+| Name         | Type                                                              | Description                                         |
+| ------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
+| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | Array of chained withdrawals to process             |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof        | bytes                                                             | The zero-knowledge proof data                       |
+
+### getDirectWithdrawalTokenIndices
+
+```solidity
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
+```
+
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
 
 #### Return Values
 
-| Name    | Type | Description                              |
-| ------- | ---- | ---------------------------------------- |
-| success | bool | true if the proof passes false otherwise |
+| Name | Type      | Description                                              |
+| ---- | --------- | -------------------------------------------------------- |
+| [0]  | uint256[] | An array of token indices that can be withdrawn directly |
 
-## Rollup
-
-Implementation of the Intmax2 L2 rollup contract
-
-_Manages block submission, deposit processing, and maintains the state of the rollup chain_
-
-### NUM_SENDERS_IN_BLOCK
+### addDirectWithdrawalTokenIndices
 
 ```solidity
-uint256 NUM_SENDERS_IN_BLOCK
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
 ```
 
-The maximum number of senders in a block
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
 
-_Used to limit the size of blocks and for padding sender arrays_
+_Can only be called by the contract owner_
 
-### FULL_ACCOUNT_IDS_BYTES
+#### Parameters
+
+| Name         | Type      | Description                                            |
+| ------------ | --------- | ------------------------------------------------------ |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
+
+### removeDirectWithdrawalTokenIndices
 
 ```solidity
-uint256 FULL_ACCOUNT_IDS_BYTES
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
 ```
 
-The number of bytes required to represent the account IDs of all senders in a block
+Remove token indices from the list of direct withdrawal token indices
 
-_Each account ID uses 5 bytes, so 128 senders require 640 bytes_
+_Can only be called by the contract owner_
 
-### liquidity
+#### Parameters
+
+| Name         | Type      | Description                                                 |
+| ------------ | --------- | ----------------------------------------------------------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
+
+## Withdrawal
+
+Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
+
+_Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1_
+
+### RELAY_LIMIT
 
 ```solidity
-address liquidity
+uint256 RELAY_LIMIT
 ```
 
-Address of the Liquidity contract on L1
+Maximum number of withdrawals that can be relayed in a single transaction
 
-_Used to verify cross-chain messages from the Liquidity contract_
+_This limit prevents situations where too many withdrawals are relayed to L1 simultaneously,
+which could exceed the L1 block gas limit and cause transaction failures._
 
-### lastProcessedDepositId
+### withdrawalVerifier
 
 ```solidity
-uint256 lastProcessedDepositId
+contract IPlonkVerifier withdrawalVerifier
 ```
 
-The ID of the last processed deposit from the Liquidity contract
+Reference to the PLONK verifier contract for withdrawal proofs
 
-_Used to track which deposits have been included in the deposit tree_
-
-### blockHashes
-
-```solidity
-bytes32[] blockHashes
-```
-
-Array of block hashes in the rollup chain
-
-_Index 0 contains the genesis block hash_
-
-### builderRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderRegistrationNonce
-```
-
-Mapping of block builder addresses to their current nonce for registration blocks
-
-_Used to prevent replay attacks and ensure block ordering_
-
-### builderNonRegistrationNonce
-
-```solidity
-mapping(address => uint32) builderNonRegistrationNonce
-```
-
-Mapping of block builder addresses to their current nonce for non-registration blocks
-
-_Used to prevent replay attacks and ensure block ordering_
+_Used to verify zero-knowledge proofs of withdrawals_
 
 ### l2ScrollMessenger
 
@@ -3943,6 +4387,26 @@ Reference to the L2 ScrollMessenger contract
 
 _Used for cross-chain communication with L1_
 
+### rollup
+
+```solidity
+contract IRollup rollup
+```
+
+Reference to the Rollup contract
+
+_Used to verify block hashes for withdrawals_
+
+### liquidity
+
+```solidity
+address liquidity
+```
+
+Address of the Liquidity contract on L1
+
+_Target for cross-chain messages about withdrawals_
+
 ### contribution
 
 ```solidity
@@ -3951,37 +4415,27 @@ contract IContribution contribution
 
 Reference to the Contribution contract
 
-_Used to record block builder contributions_
+_Used to record withdrawal contributions_
 
-### depositTreeRoot
-
-```solidity
-bytes32 depositTreeRoot
-```
-
-Current root of the deposit Merkle tree
-
-_Updated whenever new deposits are processed_
-
-### depositIndex
+### nullifiers
 
 ```solidity
-uint32 depositIndex
+mapping(bytes32 => bool) nullifiers
 ```
 
-Current index for the next deposit in the deposit tree
+Mapping of nullifiers to their used status
 
-_Incremented for each processed deposit_
+_Prevents double-spending of withdrawals_
 
-### onlyLiquidityContract
+### directWithdrawalTokenIndices
 
 ```solidity
-modifier onlyLiquidityContract()
+struct EnumerableSet.UintSet directWithdrawalTokenIndices
 ```
 
-Modifier to restrict function access to the Liquidity contract via ScrollMessenger
+Set of token indices that can be withdrawn directly
 
-_Verifies that the message sender is the ScrollMessenger and the xDomain sender is the Liquidity contract_
+_Tokens not in this set will be processed as claimable withdrawals_
 
 ### constructor
 
@@ -3992,165 +4446,108 @@ constructor() public
 ### initialize
 
 ```solidity
-function initialize(address _admin, address _scrollMessenger, address _liquidity, address _contribution, uint256 _rateLimitThresholdInterval, uint256 _rateLimitAlpha, uint256 _rateLimitK) external
+function initialize(address _admin, address _scrollMessenger, address _withdrawalVerifier, address _liquidity, address _rollup, address _contribution, uint256[] _directWithdrawalTokenIndices) external
 ```
 
-Initializes the Rollup contract
+Initializes the Withdrawal contract
 
-_Sets up the initial state with admin, ScrollMessenger, Liquidity, and Contribution contracts_
+_Sets up the initial state with required contract references and token indices_
 
 #### Parameters
 
-| Name                         | Type    | Description                                             |
-| ---------------------------- | ------- | ------------------------------------------------------- |
-| \_admin                      | address | Address that will be granted ownership of the contract  |
-| \_scrollMessenger            | address | Address of the L2 ScrollMessenger contract              |
-| \_liquidity                  | address | Address of the Liquidity contract on L1                 |
-| \_contribution               | address | Address of the Contribution contract                    |
-| \_rateLimitThresholdInterval | uint256 | The threshold interval between block submissions        |
-| \_rateLimitAlpha             | uint256 | The smoothing factor for the exponential moving average |
-| \_rateLimitK                 | uint256 | The penalty coefficient for the rate limiter            |
+| Name                           | Type      | Description                                            |
+| ------------------------------ | --------- | ------------------------------------------------------ |
+| \_admin                        | address   | Address that will be granted ownership of the contract |
+| \_scrollMessenger              | address   | Address of the L2 ScrollMessenger contract             |
+| \_withdrawalVerifier           | address   | Address of the PLONK verifier for withdrawal proofs    |
+| \_liquidity                    | address   | Address of the Liquidity contract on L1                |
+| \_rollup                       | address   | Address of the Rollup contract                         |
+| \_contribution                 | address   | Address of the Contribution contract                   |
+| \_directWithdrawalTokenIndices | uint256[] | Initial list of token indices for direct withdrawals   |
 
-### postRegistrationBlock
+### updateVerifier
 
 ```solidity
-function postRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, uint256[] senderPublicKeys) external payable
+function updateVerifier(address _withdrawalVerifier) external
 ```
 
-Posts a registration block for senders' first transactions
+Updates the withdrawal verifier address
 
-_Registration blocks include the public keys of new senders_
+_Only the contract owner can update the verifier_
 
 #### Parameters
 
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The registration block nonce of the block builder            |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| senderPublicKeys    | uint256[]  | Array of public keys for new senders (max 128)               |
+| Name                 | Type    | Description                            |
+| -------------------- | ------- | -------------------------------------- |
+| \_withdrawalVerifier | address | Address of the new withdrawal verifier |
 
-### postNonRegistrationBlock
+### submitWithdrawalProof
 
 ```solidity
-function postNonRegistrationBlock(bytes32 txTreeRoot, uint64 expiry, uint32 builderNonce, bytes16 senderFlags, bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint, bytes32 publicKeysHash, bytes senderAccountIds) external payable
+function submitWithdrawalProof(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs publicInputs, bytes proof) external
 ```
 
-Posts a non-registration block for senders' subsequent transactions
+Submit and verify a withdrawal proof from Intmax2 L2
 
-_Non-registration blocks use account IDs instead of full public keys_
+_Processes the withdrawals and relays them to the Liquidity contract on L1_
 
 #### Parameters
 
-| Name                | Type       | Description                                                  |
-| ------------------- | ---------- | ------------------------------------------------------------ |
-| txTreeRoot          | bytes32    | The root of the transaction Merkle tree                      |
-| expiry              | uint64     | The expiry timestamp of the tx tree root (0 means no expiry) |
-| builderNonce        | uint32     | The non-registration block nonce of the block builder        |
-| senderFlags         | bytes16    | Flags indicating which senders' signatures are included      |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key for signature verification         |
-| aggregatedSignature | bytes32[4] | The aggregated signature of all participating senders        |
-| messagePoint        | bytes32[4] | The hash of the tx tree root mapped to G2 curve point        |
-| publicKeysHash      | bytes32    | The hash of the public keys used in this block               |
-| senderAccountIds    | bytes      | Byte array of account IDs (5 bytes per account)              |
+| Name         | Type                                                              | Description                                         |
+| ------------ | ----------------------------------------------------------------- | --------------------------------------------------- |
+| withdrawals  | struct ChainedWithdrawalLib.ChainedWithdrawal[]                   | Array of chained withdrawals to process             |
+| publicInputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | Public inputs for the withdrawal proof verification |
+| proof        | bytes                                                             | The zero-knowledge proof data                       |
 
-### processDeposits
+### getDirectWithdrawalTokenIndices
 
 ```solidity
-function processDeposits(uint256 _lastProcessedDepositId, bytes32[] depositHashes) external
+function getDirectWithdrawalTokenIndices() external view returns (uint256[])
 ```
 
-### setRateLimitConstants
+Get the list of token indices that can be withdrawn directly
+
+_Returns the current set of direct withdrawal token indices_
+
+#### Return Values
+
+| Name | Type      | Description                                              |
+| ---- | --------- | -------------------------------------------------------- |
+| [0]  | uint256[] | An array of token indices that can be withdrawn directly |
+
+### addDirectWithdrawalTokenIndices
 
 ```solidity
-function setRateLimitConstants(uint256 targetInterval, uint256 alpha, uint256 k) external
+function addDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
 ```
 
-Sets the rate limiter constants for the rollup chain
+Add token indices to the list of direct withdrawal token indices
+ERC721 and ERC1155 tokens are not supported for direct withdrawal.
+When transferred to the liquidity contract, they will be converted to claimable withdrawals.
 
 _Can only be called by the contract owner_
 
 #### Parameters
 
-| Name           | Type    | Description                                        |
-| -------------- | ------- | -------------------------------------------------- |
-| targetInterval | uint256 | The target block submission interval in seconds    |
-| alpha          | uint256 | The alpha value for the exponential moving average |
-| k              | uint256 | The penalty coefficient for the rate limiter       |
+| Name         | Type      | Description                                            |
+| ------------ | --------- | ------------------------------------------------------ |
+| tokenIndices | uint256[] | The token indices to add to the direct withdrawal list |
 
-### withdrawPenaltyFee
+### removeDirectWithdrawalTokenIndices
 
 ```solidity
-function withdrawPenaltyFee(address to) external
+function removeDirectWithdrawalTokenIndices(uint256[] tokenIndices) external
 ```
 
-Withdraws accumulated penalty fees from the Rollup contract
+Remove token indices from the list of direct withdrawal token indices
 
-_Only the contract owner can call this function_
+_Can only be called by the contract owner_
 
 #### Parameters
 
-| Name | Type    | Description                                               |
-| ---- | ------- | --------------------------------------------------------- |
-| to   | address | The address to which the penalty fees will be transferred |
-
-### getLatestBlockNumber
-
-```solidity
-function getLatestBlockNumber() external view returns (uint32)
-```
-
-Gets the block number of the latest posted block
-
-_Returns the highest block number in the rollup chain_
-
-#### Return Values
-
-| Name | Type   | Description                          |
-| ---- | ------ | ------------------------------------ |
-| [0]  | uint32 | The latest block number (zero-based) |
-
-### getBlockHash
-
-```solidity
-function getBlockHash(uint32 blockNumber) external view returns (bytes32)
-```
-
-Gets the block hash for a specific block number
-
-_Reverts if the block number is out of range_
-
-#### Parameters
-
-| Name        | Type   | Description               |
-| ----------- | ------ | ------------------------- |
-| blockNumber | uint32 | The block number to query |
-
-#### Return Values
-
-| Name | Type    | Description                     |
-| ---- | ------- | ------------------------------- |
-| [0]  | bytes32 | The hash of the specified block |
-
-### getPenalty
-
-```solidity
-function getPenalty() external view returns (uint256)
-```
-
-Gets the current penalty fee required by the rate limiter
-
-_Calculated based on the exponential moving average of block intervals_
-
-#### Return Values
-
-| Name | Type    | Description                                                   |
-| ---- | ------- | ------------------------------------------------------------- |
-| [0]  | uint256 | The penalty fee in wei required for the next block submission |
+| Name         | Type      | Description                                                 |
+| ------------ | --------- | ----------------------------------------------------------- |
+| tokenIndices | uint256[] | The token indices to remove from the direct withdrawal list |
 
 ### \_authorizeUpgrade
 
@@ -4168,130 +4565,18 @@ _Can only be called by the contract owner_
 | ----------------- | ------- | ------------------------------------------ |
 | newImplementation | address | Address of the new implementation contract |
 
-## BlockHashLib
+## ChainedWithdrawalLib
 
-Library for managing block hashes in the Intmax2 rollup chain
+Library for handling chained withdrawals in a hash chain
 
-_Provides utilities for calculating, storing, and retrieving block hashes_
+_Provides utilities for creating and verifying a chain of withdrawal hashes
+used in zero-knowledge proof verification_
 
-### pushGenesisBlockHash
+### ChainedWithdrawal
 
-```solidity
-function pushGenesisBlockHash(bytes32[] blockHashes, bytes32 initialDepositTreeRoot) internal
-```
+Represents a withdrawal linked in a hash chain
 
-Pushes the genesis block hash to the block hashes array
-
-_Creates the first block hash with special parameters for the genesis block_
-
-#### Parameters
-
-| Name                   | Type      | Description                                         |
-| ---------------------- | --------- | --------------------------------------------------- |
-| blockHashes            | bytes32[] | The storage array of block hashes                   |
-| initialDepositTreeRoot | bytes32   | The initial deposit tree root for the genesis block |
-
-### getBlockNumber
-
-```solidity
-function getBlockNumber(bytes32[] blockHashes) internal view returns (uint32)
-```
-
-Gets the current block number based on the number of block hashes
-
-_The block number is equal to the length of the blockHashes array_
-
-#### Parameters
-
-| Name        | Type      | Description                       |
-| ----------- | --------- | --------------------------------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-
-#### Return Values
-
-| Name | Type   | Description                                                |
-| ---- | ------ | ---------------------------------------------------------- |
-| [0]  | uint32 | The current block number (length of the blockHashes array) |
-
-### getPrevHash
-
-```solidity
-function getPrevHash(bytes32[] blockHashes) internal view returns (bytes32)
-```
-
-Gets the hash of the previous block
-
-_Returns the last element in the blockHashes array_
-
-#### Parameters
-
-| Name        | Type      | Description                       |
-| ----------- | --------- | --------------------------------- |
-| blockHashes | bytes32[] | The storage array of block hashes |
-
-#### Return Values
-
-| Name | Type    | Description                    |
-| ---- | ------- | ------------------------------ |
-| [0]  | bytes32 | The hash of the previous block |
-
-### pushBlockHash
-
-```solidity
-function pushBlockHash(bytes32[] blockHashes, bytes32 depositTreeRoot, bytes32 signatureHash, uint64 timestamp) internal returns (bytes32 blockHash)
-```
-
-Pushes a new block hash to the block hashes array
-
-_Calculates the block hash based on inputs and appends it to the array_
-
-#### Parameters
-
-| Name            | Type      | Description                             |
-| --------------- | --------- | --------------------------------------- |
-| blockHashes     | bytes32[] | The storage array of block hashes       |
-| depositTreeRoot | bytes32   | The deposit tree root for the new block |
-| signatureHash   | bytes32   | The signature hash for the new block    |
-| timestamp       | uint64    | The timestamp of the new block          |
-
-#### Return Values
-
-| Name      | Type    | Description                                |
-| --------- | ------- | ------------------------------------------ |
-| blockHash | bytes32 | The newly calculated and pushed block hash |
-
-## DepositTreeLib
-
-Library for managing a sparse Merkle tree for deposits in the Intmax2 protocol
-
-_Based on https://github.com/0xPolygonHermez/zkevm-contracts/blob/main/contracts/lib/DepositContract.sol
-Implements an incremental Merkle tree for efficiently tracking deposits_
-
-### MerkleTreeFull
-
-```solidity
-error MerkleTreeFull()
-```
-
-Error thrown when the Merkle tree is full
-
-_Thrown when attempting to add a deposit to a tree that has reached its maximum capacity_
-
-### \_DEPOSIT_CONTRACT_TREE_DEPTH
-
-```solidity
-uint256 _DEPOSIT_CONTRACT_TREE_DEPTH
-```
-
-Depth of the Merkle tree
-
-_The tree has a maximum of 2^32 - 1 leaves_
-
-### DepositTree
-
-Structure representing the deposit tree
-
-_Contains the branch nodes, deposit count, and default hash for empty nodes_
+_Contains all necessary information for processing a withdrawal and verifying its inclusion in a block_
 
 #### Parameters
 
@@ -4299,191 +4584,50 @@ _Contains the branch nodes, deposit count, and default hash for empty nodes_
 | ---- | ---- | ----------- |
 
 ```solidity
-struct DepositTree {
-	bytes32[32] _branch;
-	uint256 depositCount;
-	bytes32 defaultHash;
+struct ChainedWithdrawal {
+	address recipient;
+	uint32 tokenIndex;
+	uint256 amount;
+	bytes32 nullifier;
+	bytes32 blockHash;
+	uint32 blockNumber;
 }
 ```
 
-### \_MAX_DEPOSIT_COUNT
+### verifyWithdrawalChain
 
 ```solidity
-uint256 _MAX_DEPOSIT_COUNT
+function verifyWithdrawalChain(struct ChainedWithdrawalLib.ChainedWithdrawal[] withdrawals, bytes32 lastWithdrawalHash) internal pure returns (bool)
 ```
 
-Maximum number of deposits allowed in the tree
+Verifies the integrity of a withdrawal hash chain
 
-_Ensures depositCount fits into 32 bits (2^32 - 1)_
-
-### initialize
-
-```solidity
-function initialize(struct DepositTreeLib.DepositTree depositTree) internal
-```
-
-Initializes the deposit tree with default values
-
-_Sets up the default hash using an empty Deposit struct_
+_Computes the hash chain from the provided withdrawals and compares it to the expected final hash_
 
 #### Parameters
 
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-### getRoot
-
-```solidity
-function getRoot(struct DepositTreeLib.DepositTree depositTree) internal pure returns (bytes32)
-```
-
-Computes and returns the current Merkle root
-
-_Calculates the root by combining branch nodes with zero hashes_
-
-#### Parameters
-
-| Name        | Type                              | Description                                    |
-| ----------- | --------------------------------- | ---------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The memory reference to the DepositTree struct |
+| Name               | Type                                            | Description                                                                      |
+| ------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| withdrawals        | struct ChainedWithdrawalLib.ChainedWithdrawal[] | Array of ChainedWithdrawals to verify                                            |
+| lastWithdrawalHash | bytes32                                         | The expected hash of the last withdrawal in the chain (from proof public inputs) |
 
 #### Return Values
 
-| Name | Type    | Description                   |
-| ---- | ------- | ----------------------------- |
-| [0]  | bytes32 | The computed Merkle root hash |
+| Name | Type | Description                                                                           |
+| ---- | ---- | ------------------------------------------------------------------------------------- |
+| [0]  | bool | bool True if the computed hash chain matches the expected final hash, false otherwise |
 
-### deposit
+## WithdrawalProofPublicInputsLib
 
-```solidity
-function deposit(struct DepositTreeLib.DepositTree depositTree, bytes32 leafHash) internal
-```
+Library for handling public inputs of withdrawal zero-knowledge proofs
 
-Adds a new leaf to the Merkle tree
+_Provides utilities for working with the public inputs that are part of withdrawal proof verification_
 
-_Updates the appropriate branch node and increments the deposit count_
+### WithdrawalProofPublicInputs
 
-#### Parameters
+Represents the public inputs for a withdrawal zero-knowledge proof
 
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-| leafHash    | bytes32                           | The hash of the new deposit leaf to be added    |
-
-### getBranch
-
-```solidity
-function getBranch(struct DepositTreeLib.DepositTree depositTree) internal view returns (bytes32[32])
-```
-
-Retrieves the current branch nodes of the Merkle tree
-
-_Used for generating Merkle proofs or debugging_
-
-#### Parameters
-
-| Name        | Type                              | Description                                     |
-| ----------- | --------------------------------- | ----------------------------------------------- |
-| depositTree | struct DepositTreeLib.DepositTree | The storage reference to the DepositTree struct |
-
-#### Return Values
-
-| Name | Type        | Description                                            |
-| ---- | ----------- | ------------------------------------------------------ |
-| [0]  | bytes32[32] | Array of branch node hashes at each height of the tree |
-
-## PairingLib
-
-Library for elliptic curve pairing operations used in signature verification
-
-_Provides utilities for verifying BLS signatures using the precompiled pairing contract_
-
-### PairingOpCodeFailed
-
-```solidity
-error PairingOpCodeFailed()
-```
-
-Error thrown when the elliptic curve pairing operation fails
-
-_This can happen if the precompiled contract call fails or returns an invalid result_
-
-### NEG_G1_X
-
-```solidity
-uint256 NEG_G1_X
-```
-
-X-coordinate of the negated generator point G1
-
-_Used in the pairing check to verify signatures_
-
-### NEG_G1_Y
-
-```solidity
-uint256 NEG_G1_Y
-```
-
-Y-coordinate of the negated generator point G1
-
-_Used in the pairing check to verify signatures_
-
-### pairing
-
-```solidity
-function pairing(bytes32[2] aggregatedPublicKey, bytes32[4] aggregatedSignature, bytes32[4] messagePoint) internal view returns (bool)
-```
-
-Performs an elliptic curve pairing operation to verify a BLS signature
-
-_Uses the precompiled contract at address 8 to perform the pairing check_
-
-#### Parameters
-
-| Name                | Type       | Description                                                            |
-| ------------------- | ---------- | ---------------------------------------------------------------------- |
-| aggregatedPublicKey | bytes32[2] | The aggregated public key (2 32-byte elements representing a G1 point) |
-| aggregatedSignature | bytes32[4] | The aggregated signature (4 32-byte elements representing a G2 point)  |
-| messagePoint        | bytes32[4] | The message point (4 32-byte elements representing a G2 point)         |
-
-#### Return Values
-
-| Name | Type | Description                                                                 |
-| ---- | ---- | --------------------------------------------------------------------------- |
-| [0]  | bool | bool True if the signature is valid (pairing check passes), false otherwise |
-
-## RateLimiterLib
-
-A library for implementing a rate limiting mechanism with exponential moving average (EMA)
-
-_Uses fixed-point arithmetic to calculate penalties for rapid block submissions_
-
-### InvalidConstants
-
-```solidity
-error InvalidConstants()
-```
-
-Error thrown when trying to set the rate limiter constants to invalid values
-
-### RateLimitConstantsSet
-
-```solidity
-event RateLimitConstantsSet(uint256 thresholdInterval, uint256 alpha, uint256 k)
-```
-
-Constants for the rate limiter
-
-_thresholdInterval Threshold interval between calls (fixed-point)
-alpha Smoothing factor for EMA (fixed-point)
-k Scaling factor for the penalty calculation_
-
-### RateLimitState
-
-Struct to store the state of the rate limiter
-
-_Holds constants and variables for the rate limiting mechanism_
+_Contains the final hash of the withdrawal chain and the aggregator address_
 
 #### Parameters
 
@@ -4491,325 +4635,33 @@ _Holds constants and variables for the rate limiting mechanism_
 | ---- | ---- | ----------- |
 
 ```solidity
-struct RateLimitState {
-	UD60x18 thresholdInterval;
-	UD60x18 alpha;
-	UD60x18 k;
-	uint256 lastCallTime;
-	UD60x18 emaInterval;
+struct WithdrawalProofPublicInputs {
+	bytes32 lastWithdrawalHash;
+	address withdrawalAggregator;
 }
 ```
 
-### setConstants
+### getHash
 
 ```solidity
-function setConstants(struct RateLimiterLib.RateLimitState state, uint256 thresholdInterval, uint256 alpha, uint256 k) internal
+function getHash(struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs inputs) internal pure returns (bytes32)
 ```
 
-Sets the constants for the rate limiter
+Computes the hash of the WithdrawalProofPublicInputs
 
-_Initializes the threshold interval, smoothing factor, and penalty scaling factor_
+_This hash is used as input to the zero-knowledge proof verification_
 
 #### Parameters
 
-| Name              | Type                                 | Description                                    |
-| ----------------- | ------------------------------------ | ---------------------------------------------- |
-| state             | struct RateLimiterLib.RateLimitState | The current state of the rate limiter          |
-| thresholdInterval | uint256                              | Threshold interval between calls (fixed-point) |
-| alpha             | uint256                              | Smoothing factor for EMA (fixed-point)         |
-| k                 | uint256                              | Scaling factor for the penalty calculation     |
-
-### update
-
-```solidity
-function update(struct RateLimiterLib.RateLimitState state) internal returns (uint256)
-```
-
-Updates the rate limiter state and calculates the penalty
-
-_Updates lastCallTime and emaInterval, then returns the penalty_
-
-#### Parameters
-
-| Name  | Type                                 | Description                           |
-| ----- | ------------------------------------ | ------------------------------------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
+| Name   | Type                                                              | Description                                         |
+| ------ | ----------------------------------------------------------------- | --------------------------------------------------- |
+| inputs | struct WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs | The WithdrawalProofPublicInputs struct to be hashed |
 
 #### Return Values
 
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| [0]  | uint256 | The calculated penalty fee in wei |
-
-### getPenalty
-
-```solidity
-function getPenalty(struct RateLimiterLib.RateLimitState state) internal view returns (uint256)
-```
-
-Computes the penalty that would be applied by update, without changing state
-
-_Useful for checking the penalty before actually updating the state_
-
-#### Parameters
-
-| Name  | Type                                 | Description                           |
-| ----- | ------------------------------------ | ------------------------------------- |
-| state | struct RateLimiterLib.RateLimitState | The current state of the rate limiter |
-
-#### Return Values
-
-| Name | Type    | Description                       |
-| ---- | ------- | --------------------------------- |
-| [0]  | uint256 | The calculated penalty fee in wei |
-
-## FasterClaimPlonkVerifier
-
-### Verify
-
-```solidity
-function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
-```
-
-Verify a Plonk proof.
-Reverts if the proof or the public inputs are malformed.
-
-#### Parameters
-
-| Name          | Type      | Description                                            |
-| ------------- | --------- | ------------------------------------------------------ |
-| proof         | bytes     | serialised plonk proof (using gnark's MarshalSolidity) |
-| public_inputs | uint256[] | (must be reduced)                                      |
-
-#### Return Values
-
-| Name    | Type | Description                              |
-| ------- | ---- | ---------------------------------------- |
-| success | bool | true if the proof passes false otherwise |
-
-## BlockBuilderRegistry
-
-Registry for block builders to signal their availability in the Intmax2 protocol
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin) external
-```
-
-Initializes the contract with an admin address
-
-_Sets up the initial owner and initializes the upgradeable functionality_
-
-#### Parameters
-
-| Name  | Type    | Description                                       |
-| ----- | ------- | ------------------------------------------------- |
-| admin | address | The address that will have admin/owner privileges |
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Allows a block builder to emit a heartbeat signaling they are online
-
-_Emits a BlockBuilderHeartbeat event with the sender's address and provided URL_
-
-#### Parameters
-
-| Name | Type   | Description                                             |
-| ---- | ------ | ------------------------------------------------------- |
-| url  | string | The URL endpoint where the block builder can be reached |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to the implementation
-
-_Only callable by the owner_
-
-#### Parameters
-
-| Name              | Type    | Description                                                                 |
-| ----------------- | ------- | --------------------------------------------------------------------------- |
-| newImplementation | address | The address of the new implementation (unused but required by UUPS pattern) |
-
-## IBlockBuilderRegistry
-
-Interface for registering and tracking block builders in the Intmax2 protocol
-
-_Block builders emit heartbeats to signal their availability and provide their URL_
-
-### BlockBuilderHeartbeat
-
-```solidity
-event BlockBuilderHeartbeat(address blockBuilder, string url)
-```
-
-Event emitted when a block builder signals they are online
-
-_Used to track active block builders and their endpoints_
-
-#### Parameters
-
-| Name         | Type    | Description                                             |
-| ------------ | ------- | ------------------------------------------------------- |
-| blockBuilder | address | The address of the block builder emitting the heartbeat |
-| url          | string  | The URL endpoint where the block builder can be reached |
-
-### emitHeartbeat
-
-```solidity
-function emitHeartbeat(string url) external
-```
-
-Allows a block builder to emit a heartbeat signaling they are online
-
-_The sender's address is automatically recorded as the block builder address_
-
-#### Parameters
-
-| Name | Type   | Description                                             |
-| ---- | ------ | ------------------------------------------------------- |
-| url  | string | The URL endpoint where the block builder can be reached |
-
-## Contribution
-
-Contract for tracking user contributions across different time periods
-
-### CONTRIBUTOR
-
-```solidity
-bytes32 CONTRIBUTOR
-```
-
-Role identifier for contracts that can record contributions
-
-_Addresses with this role can call the recordContribution function_
-
-### startTimestamp
-
-```solidity
-uint256 startTimestamp
-```
-
-Start timestamp of the contribution period tracking
-
-_Used as the reference point for calculating period numbers_
-
-### periodInterval
-
-```solidity
-uint256 periodInterval
-```
-
-Duration of each contribution period in seconds
-
-_Used to calculate the current period number_
-
-### totalContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
-```
-
-Maps periods and tags to total contributions
-
-_Mapping structure: period => tag => total contribution amount_
-
-### userContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
-```
-
-Maps periods, tags, and users to their individual contributions
-
-_Mapping structure: period => tag => user address => contribution amount_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin, uint256 _periodInterval) external
-```
-
-Initializes the contract with an admin and period interval
-
-_Sets up the initial state of the contract and aligns the start timestamp_
-
-#### Parameters
-
-| Name             | Type    | Description                                           |
-| ---------------- | ------- | ----------------------------------------------------- |
-| admin            | address | Address that will be granted the DEFAULT_ADMIN_ROLE   |
-| \_periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
-
-### getCurrentPeriod
-
-```solidity
-function getCurrentPeriod() public view returns (uint256)
-```
-
-Calculates the current period number based on the current timestamp
-
-_Calculated as (current_timestamp - startTimestamp) / periodInterval_
-
-#### Return Values
-
-| Name | Type    | Description               |
-| ---- | ------- | ------------------------- |
-| [0]  | uint256 | The current period number |
-
-### recordContribution
-
-```solidity
-function recordContribution(bytes32 tag, address user, uint256 amount) external
-```
-
-Records a contribution for a specific tag and user
-
-_Updates both total and user-specific contribution amounts for the current period_
-
-#### Parameters
-
-| Name   | Type    | Description                                                        |
-| ------ | ------- | ------------------------------------------------------------------ |
-| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
-| user   | address | The address of the user making the contribution                    |
-| amount | uint256 | The amount of contribution to record                               |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
-
-#### Parameters
-
-| Name              | Type    | Description                                |
-| ----------------- | ------- | ------------------------------------------ |
-| newImplementation | address | Address of the new implementation contract |
+| Name | Type    | Description                                                                       |
+| ---- | ------- | --------------------------------------------------------------------------------- |
+| [0]  | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
 
 ## PredicatePermitter
 
@@ -4965,6 +4817,151 @@ _Can only be called by the contract owner_
 | Name              | Type    | Description                                |
 | ----------------- | ------- | ------------------------------------------ |
 | newImplementation | address | Address of the new implementation contract |
+
+## ClaimPlonkVerifier
+
+### Verify
+
+```solidity
+function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
+```
+
+Verify a Plonk proof.
+Reverts if the proof or the public inputs are malformed.
+
+#### Parameters
+
+| Name          | Type      | Description                                            |
+| ------------- | --------- | ------------------------------------------------------ |
+| proof         | bytes     | serialised plonk proof (using gnark's MarshalSolidity) |
+| public_inputs | uint256[] | (must be reduced)                                      |
+
+#### Return Values
+
+| Name    | Type | Description                              |
+| ------- | ---- | ---------------------------------------- |
+| success | bool | true if the proof passes false otherwise |
+
+## FasterClaimPlonkVerifier
+
+### Verify
+
+```solidity
+function Verify(bytes proof, uint256[] public_inputs) public view returns (bool success)
+```
+
+Verify a Plonk proof.
+Reverts if the proof or the public inputs are malformed.
+
+#### Parameters
+
+| Name          | Type      | Description                                            |
+| ------------- | --------- | ------------------------------------------------------ |
+| proof         | bytes     | serialised plonk proof (using gnark's MarshalSolidity) |
+| public_inputs | uint256[] | (must be reduced)                                      |
+
+#### Return Values
+
+| Name    | Type | Description                              |
+| ------- | ---- | ---------------------------------------- |
+| success | bool | true if the proof passes false otherwise |
+
+## BlockBuilderRegistry
+
+Registry for block builders to signal their availability in the Intmax2 protocol
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin) external
+```
+
+Initializes the contract with an admin address
+
+_Sets up the initial owner and initializes the upgradeable functionality_
+
+#### Parameters
+
+| Name  | Type    | Description                                       |
+| ----- | ------- | ------------------------------------------------- |
+| admin | address | The address that will have admin/owner privileges |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_Emits a BlockBuilderHeartbeat event with the sender's address and provided URL_
+
+#### Parameters
+
+| Name | Type   | Description                                             |
+| ---- | ------ | ------------------------------------------------------- |
+| url  | string | The URL endpoint where the block builder can be reached |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to the implementation
+
+_Only callable by the owner_
+
+#### Parameters
+
+| Name              | Type    | Description                                                                 |
+| ----------------- | ------- | --------------------------------------------------------------------------- |
+| newImplementation | address | The address of the new implementation (unused but required by UUPS pattern) |
+
+## IBlockBuilderRegistry
+
+Interface for registering and tracking block builders in the Intmax2 protocol
+
+_Block builders emit heartbeats to signal their availability and provide their URL_
+
+### BlockBuilderHeartbeat
+
+```solidity
+event BlockBuilderHeartbeat(address blockBuilder, string url)
+```
+
+Event emitted when a block builder signals they are online
+
+_Used to track active block builders and their endpoints_
+
+#### Parameters
+
+| Name         | Type    | Description                                             |
+| ------------ | ------- | ------------------------------------------------------- |
+| blockBuilder | address | The address of the block builder emitting the heartbeat |
+| url          | string  | The URL endpoint where the block builder can be reached |
+
+### emitHeartbeat
+
+```solidity
+function emitHeartbeat(string url) external
+```
+
+Allows a block builder to emit a heartbeat signaling they are online
+
+_The sender's address is automatically recorded as the block builder address_
+
+#### Parameters
+
+| Name | Type   | Description                                             |
+| ---- | ------ | ------------------------------------------------------- |
+| url  | string | The URL endpoint where the block builder can be reached |
 
 ## WithdrawalPlonkVerifier
 
