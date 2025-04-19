@@ -11,7 +11,7 @@ interface IContribution {
 	 * @notice Error thrown when attempting to initialize with a zero period interval
 	 * @dev This error is used to prevent invalid period configurations
 	 */
-	error periodIntervalZero();
+	error PeriodIntervalZero();
 
 	/**
 	 * @notice Emitted when a contribution is recorded

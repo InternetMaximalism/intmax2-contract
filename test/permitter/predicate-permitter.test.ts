@@ -2,13 +2,17 @@ import { expect } from 'chai'
 import { ethers, upgrades } from 'hardhat'
 import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
-import { PredicatePermitter, PredicateManagerTest } from '../../typechain-types'
+import {
+	PredicateManagerTest,
+	PredicatePermitter2,
+} from '../../typechain-types'
 
 describe('PredicatePermitter', () => {
 	const POLICY = 'POLICY_ID'
 	type TestObjects = {
-		predicatePermitter: PredicatePermitter
+		predicatePermitter: PredicatePermitter2
 		predicateManager: PredicateManagerTest
+		liquidityAddress: string
 	}
 	async function setup(): Promise<TestObjects> {
 		const predicateManagerTestFactory = await ethers.getContractFactory(
@@ -20,14 +24,25 @@ describe('PredicatePermitter', () => {
 			'PredicatePermitter2',
 		)
 		const { admin } = await getSigners()
+
+		// Create a mock liquidity address
+		const liquidityAddress = ethers.Wallet.createRandom().address
+
 		const predicatePermitter = (await upgrades.deployProxy(
 			predicatePermitterFactory,
-			[admin.address, await predicateManager.getAddress(), POLICY],
+			[
+				admin.address,
+				liquidityAddress,
+				await predicateManager.getAddress(),
+				POLICY,
+			],
 			{ kind: 'uups', unsafeAllow: ['constructor'] },
-		)) as unknown as PredicatePermitter
+		)) as unknown as PredicatePermitter2
+
 		return {
 			predicatePermitter,
 			predicateManager,
+			liquidityAddress,
 		}
 	}
 	type signers = {
@@ -50,6 +65,7 @@ describe('PredicatePermitter', () => {
 			const predicatePermitter = await predicatePermitterFactory.deploy()
 			await expect(
 				predicatePermitter.initialize(
+					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					ethers.ZeroAddress,
 					'',
@@ -103,6 +119,7 @@ describe('PredicatePermitter', () => {
 					predicatePermitter.initialize(
 						ethers.ZeroAddress,
 						ethers.ZeroAddress,
+						ethers.ZeroAddress,
 						'',
 					),
 				).to.be.revertedWithCustomError(
@@ -117,7 +134,22 @@ describe('PredicatePermitter', () => {
 				await expect(
 					upgrades.deployProxy(
 						predicatePermitterFactory,
-						[ethers.ZeroAddress, tmpAddress, POLICY],
+						[ethers.ZeroAddress, tmpAddress, tmpAddress, POLICY],
+						{ kind: 'uups', unsafeAllow: ['constructor'] },
+					),
+				).to.be.revertedWithCustomError(
+					predicatePermitterFactory,
+					'AddressZero',
+				)
+			})
+			it('liquidity address is 0', async () => {
+				const predicatePermitterFactory =
+					await ethers.getContractFactory('PredicatePermitter')
+				const tmpAddress = ethers.Wallet.createRandom().address
+				await expect(
+					upgrades.deployProxy(
+						predicatePermitterFactory,
+						[tmpAddress, ethers.ZeroAddress, tmpAddress, POLICY],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(
@@ -132,7 +164,7 @@ describe('PredicatePermitter', () => {
 				await expect(
 					upgrades.deployProxy(
 						predicatePermitterFactory,
-						[tmpAddress, ethers.ZeroAddress, POLICY],
+						[tmpAddress, tmpAddress, ethers.ZeroAddress, POLICY],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(
@@ -147,7 +179,7 @@ describe('PredicatePermitter', () => {
 				await expect(
 					upgrades.deployProxy(
 						predicatePermitterFactory,
-						[tmpAddress, tmpAddress, ''],
+						[tmpAddress, tmpAddress, tmpAddress, ''],
 						{ kind: 'uups', unsafeAllow: ['constructor'] },
 					),
 				).to.be.revertedWithCustomError(
@@ -199,6 +231,158 @@ describe('PredicatePermitter', () => {
 			})
 		})
 	})
+	describe('onlyLiquidity modifier', () => {
+		it('should set liquidity address correctly during initialization', async () => {
+			const { predicatePermitter, liquidityAddress } = await loadFixture(setup)
+
+			// Check that the liquidity address was set correctly
+			expect(await predicatePermitter.getLiquidityAddress()).to.equal(
+				liquidityAddress,
+			)
+		})
+
+		it('should allow calls to permit from the liquidity address', async () => {
+			const { predicatePermitter, predicateManager, liquidityAddress } =
+				await loadFixture(setup)
+			const { user } = await getSigners()
+
+			await predicateManager.setResult(true)
+
+			const predicateMessage = {
+				taskId: 'task1',
+				expireByBlockNumber: 99999999n,
+				signerAddresses: [ethers.Wallet.createRandom().address],
+				signatures: [ethers.hexlify(ethers.randomBytes(65))],
+			}
+
+			// encode permission
+			const permission = ethers.AbiCoder.defaultAbiCoder().encode(
+				[
+					'tuple(string taskId, uint256 expireByBlockNumber, address[] signerAddresses, bytes[] signatures)',
+				],
+				[
+					[
+						predicateMessage.taskId,
+						predicateMessage.expireByBlockNumber,
+						predicateMessage.signerAddresses,
+						predicateMessage.signatures,
+					],
+				],
+			)
+
+			// encoded function call bytes
+			const encodedData = ethers.hexlify(ethers.randomBytes(32))
+
+			// This should work because permitOverride calls permit from the contract itself,
+			// which is set as the liquidity address
+			await expect(
+				predicatePermitter.permitOverride(
+					user.address,
+					0n,
+					encodedData,
+					permission,
+				),
+			)
+				.to.emit(predicatePermitter, 'LatestPermitResult')
+				.withArgs(true)
+		})
+
+		it('should revert when non-liquidity address calls permit', async () => {
+			const { predicatePermitter, predicateManager } = await loadFixture(setup)
+			const { user } = await getSigners()
+
+			await predicateManager.setResult(true)
+
+			const predicateMessage = {
+				taskId: 'task1',
+				expireByBlockNumber: 99999999n,
+				signerAddresses: [ethers.Wallet.createRandom().address],
+				signatures: [ethers.hexlify(ethers.randomBytes(65))],
+			}
+
+			// encode permission
+			const permission = ethers.AbiCoder.defaultAbiCoder().encode(
+				[
+					'tuple(string taskId, uint256 expireByBlockNumber, address[] signerAddresses, bytes[] signatures)',
+				],
+				[
+					[
+						predicateMessage.taskId,
+						predicateMessage.expireByBlockNumber,
+						predicateMessage.signerAddresses,
+						predicateMessage.signatures,
+					],
+				],
+			)
+
+			// encoded function call bytes
+			const encodedData = ethers.hexlify(ethers.randomBytes(32))
+
+			// Direct call to permit should fail with NotLiquidity error
+			await expect(
+				predicatePermitter.permit(user.address, 0n, encodedData, permission),
+			).to.be.revertedWithCustomError(predicatePermitter, 'NotLiquidity')
+		})
+
+		it('should allow permit calls after changing liquidity address', async () => {
+			const { predicatePermitter, predicateManager } = await loadFixture(setup)
+			const { user, admin } = await getSigners()
+
+			// Set a new liquidity address (user's address)
+			await predicatePermitter.setLiquidityAddress(user.address)
+
+			// Verify the liquidity address was updated
+			expect(await predicatePermitter.getLiquidityAddress()).to.equal(
+				user.address,
+			)
+
+			await predicateManager.setResult(true)
+
+			const predicateMessage = {
+				taskId: 'task1',
+				expireByBlockNumber: 99999999n,
+				signerAddresses: [ethers.Wallet.createRandom().address],
+				signatures: [ethers.hexlify(ethers.randomBytes(65))],
+			}
+
+			// encode permission
+			const permission = ethers.AbiCoder.defaultAbiCoder().encode(
+				[
+					'tuple(string taskId, uint256 expireByBlockNumber, address[] signerAddresses, bytes[] signatures)',
+				],
+				[
+					[
+						predicateMessage.taskId,
+						predicateMessage.expireByBlockNumber,
+						predicateMessage.signerAddresses,
+						predicateMessage.signatures,
+					],
+				],
+			)
+
+			// encoded function call bytes
+			const encodedData = ethers.hexlify(ethers.randomBytes(32))
+
+			// Now user should be able to call permit directly
+			// We need to await the transaction to complete
+			const tx = await predicatePermitter
+				.connect(user)
+				.permit(user.address, 0n, encodedData, permission)
+
+			// Wait for the transaction to be mined
+			await tx.wait()
+
+			// If we got here without reverting, the test passes
+
+			// Admin should not be able to call permit
+			await expect(
+				predicatePermitter
+					.connect(admin)
+					.permit(user.address, 0n, encodedData, permission),
+			).to.be.revertedWithCustomError(predicatePermitter, 'NotLiquidity')
+		})
+	})
+
 	describe('permit', () => {
 		it('should return true when validateSignatures returns true', async () => {
 			const { predicatePermitter, predicateManager } = await loadFixture(setup)

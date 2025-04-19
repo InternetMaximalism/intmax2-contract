@@ -61,7 +61,7 @@ contract Contribution is
 		uint256 _periodInterval
 	) external initializer {
 		if (_periodInterval == 0) {
-			revert periodIntervalZero();
+			revert PeriodIntervalZero();
 		}
 		__UUPSUpgradeable_init();
 		__AccessControl_init();

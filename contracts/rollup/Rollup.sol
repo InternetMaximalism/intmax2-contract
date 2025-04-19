@@ -177,7 +177,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		if (expiry != 0 && expiry <= block.timestamp) {
 			revert Expired();
 		}
-		collectPenaltyFee();
+		_collectPenaltyFee();
 		BlockPostData memory blockPostData = BlockPostData({
 			isRegistrationBlock: true,
 			txTreeRoot: txTreeRoot,
@@ -224,7 +224,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		if (expiry != 0 && expiry <= block.timestamp) {
 			revert Expired();
 		}
-		collectPenaltyFee();
+		_collectPenaltyFee();
 		BlockPostData memory blockPostData = BlockPostData({
 			isRegistrationBlock: false,
 			txTreeRoot: txTreeRoot,
@@ -371,7 +371,7 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @notice Collects the penalty fee for rate limiting
 	 * @dev Updates the rate limiter state, verifies sufficient fee, and refunds excess
 	 */
-	function collectPenaltyFee() private {
+	function _collectPenaltyFee() private {
 		uint256 penalty = rateLimitState.update();
 		if (penalty > msg.value) {
 			revert InsufficientPenaltyFee();

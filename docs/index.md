@@ -436,10 +436,10 @@ Error emitted when an attempt is made to consume allocations for the current per
 
 _Allocations can only be consumed for completed periods_
 
-### periodIntervalZero
+### PeriodIntervalZero
 
 ```solidity
-error periodIntervalZero()
+error PeriodIntervalZero()
 ```
 
 Error emitted when the period interval is zero
@@ -957,16 +957,143 @@ _Uses keccak256 to hash the packed encoding of all withdrawal fields_
 | ---- | ------- | -------------------------------------------------------------------- |
 | [0]  | bytes32 | bytes32 The calculated hash of the Withdrawal, used for verification |
 
+## Contribution
+
+Contract for tracking user contributions across different time periods
+
+### CONTRIBUTOR
+
+```solidity
+bytes32 CONTRIBUTOR
+```
+
+Role identifier for contracts that can record contributions
+
+_Addresses with this role can call the recordContribution function_
+
+### startTimestamp
+
+```solidity
+uint256 startTimestamp
+```
+
+Start timestamp of the contribution period tracking
+
+_Used as the reference point for calculating period numbers_
+
+### periodInterval
+
+```solidity
+uint256 periodInterval
+```
+
+Duration of each contribution period in seconds
+
+_Used to calculate the current period number_
+
+### totalContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
+```
+
+Maps periods and tags to total contributions
+
+_Mapping structure: period => tag => total contribution amount_
+
+### userContributions
+
+```solidity
+mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
+```
+
+Maps periods, tags, and users to their individual contributions
+
+_Mapping structure: period => tag => user address => contribution amount_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address admin, uint256 _periodInterval) external
+```
+
+Initializes the contract with an admin and period interval
+
+_Sets up the initial state of the contract and aligns the start timestamp_
+
+#### Parameters
+
+| Name             | Type    | Description                                           |
+| ---------------- | ------- | ----------------------------------------------------- |
+| admin            | address | Address that will be granted the DEFAULT_ADMIN_ROLE   |
+| \_periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
+
+### getCurrentPeriod
+
+```solidity
+function getCurrentPeriod() public view returns (uint256)
+```
+
+Calculates the current period number based on the current timestamp
+
+_Calculated as (current_timestamp - startTimestamp) / periodInterval_
+
+#### Return Values
+
+| Name | Type    | Description               |
+| ---- | ------- | ------------------------- |
+| [0]  | uint256 | The current period number |
+
+### recordContribution
+
+```solidity
+function recordContribution(bytes32 tag, address user, uint256 amount) external
+```
+
+Records a contribution for a specific tag and user
+
+_Updates both total and user-specific contribution amounts for the current period_
+
+#### Parameters
+
+| Name   | Type    | Description                                                        |
+| ------ | ------- | ------------------------------------------------------------------ |
+| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
+| user   | address | The address of the user making the contribution                    |
+| amount | uint256 | The amount of contribution to record                               |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
+
+#### Parameters
+
+| Name              | Type    | Description                                |
+| ----------------- | ------- | ------------------------------------------ |
+| newImplementation | address | Address of the new implementation contract |
+
 ## IContribution
 
 Interface for the Contribution contract that tracks user contributions across different periods
 
 _This interface defines the methods and events for recording and querying contributions_
 
-### periodIntervalZero
+### PeriodIntervalZero
 
 ```solidity
-error periodIntervalZero()
+error PeriodIntervalZero()
 ```
 
 Error thrown when attempting to initialize with a zero period interval
@@ -1741,6 +1868,979 @@ _Implements the IERC1155Receiver interface_
 | ---- | ------ | ---------------------------------------------------------------------------- |
 | [0]  | bytes4 | bytes4 The function selector to indicate support for ERC1155 token receiving |
 
+## ITokenData
+
+Interface for managing token information and indices in the Intmax2 protocol
+
+_Provides functions to store, retrieve, and manage different token types (Native, ERC20, ERC721, ERC1155)_
+
+### TokenAddressIsZero
+
+```solidity
+error TokenAddressIsZero()
+```
+
+Error thrown when attempting to use a zero address for a non-native token
+
+_Native tokens use address(0), but other token types must have a valid contract address_
+
+### TokenType
+
+Enum representing different token types supported by the protocol
+
+_Used to determine how to handle each token type during deposits and withdrawals_
+
+```solidity
+enum TokenType {
+	NATIVE,
+	ERC20,
+	ERC721,
+	ERC1155
+}
+```
+
+### TokenInfo
+
+Struct containing information about a token
+
+_Used to store all necessary information to identify and handle a token_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+
+```solidity
+struct TokenInfo {
+  enum ITokenData.TokenType tokenType;
+  address tokenAddress;
+  uint256 tokenId;
+}
+```
+
+### getTokenInfo
+
+```solidity
+function getTokenInfo(uint32 tokenIndex) external view returns (struct ITokenData.TokenInfo)
+```
+
+Retrieves token information for a given token index
+
+_Token indices are assigned sequentially as new tokens are added to the system_
+
+#### Parameters
+
+| Name       | Type   | Description                                        |
+| ---------- | ------ | -------------------------------------------------- |
+| tokenIndex | uint32 | The index of the token to retrieve information for |
+
+#### Return Values
+
+| Name | Type                        | Description                                                   |
+| ---- | --------------------------- | ------------------------------------------------------------- |
+| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
+
+### getTokenIndex
+
+```solidity
+function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) external view returns (bool, uint32)
+```
+
+Retrieves the token index for given token parameters
+
+_Used to look up a token's index based on its identifying information_
+
+#### Parameters
+
+| Name         | Type                      | Description                                                                     |
+| ------------ | ------------------------- | ------------------------------------------------------------------------------- |
+| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)                          |
+| tokenAddress | address                   | The address of the token contract (zero address for native tokens)              |
+| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155, ignored for NATIVE and ERC20) |
+
+#### Return Values
+
+| Name | Type   | Description                                                             |
+| ---- | ------ | ----------------------------------------------------------------------- |
+| [0]  | bool   | bool Indicating whether the token index was found (true) or not (false) |
+| [1]  | uint32 | uint32 The index of the token if found, 0 if not found                  |
+
+### getNativeTokenIndex
+
+```solidity
+function getNativeTokenIndex() external view returns (uint32)
+```
+
+Retrieves the index of the native token (ETH)
+
+_The native token is always at index 0 in the system_
+
+#### Return Values
+
+| Name | Type   | Description                                     |
+| ---- | ------ | ----------------------------------------------- |
+| [0]  | uint32 | uint32 The index of the native token (always 0) |
+
+## Liquidity
+
+### RELAYER
+
+```solidity
+bytes32 RELAYER
+```
+
+Relayer role constant
+
+### WITHDRAWAL
+
+```solidity
+bytes32 WITHDRAWAL
+```
+
+Withdrawal role constant
+
+### WITHDRAWAL_FEE_RATIO_LIMIT
+
+```solidity
+uint256 WITHDRAWAL_FEE_RATIO_LIMIT
+```
+
+Withdrawal fee ratio limit
+
+_1bp = 0.01%_
+
+### RELAY_LIMIT
+
+```solidity
+uint256 RELAY_LIMIT
+```
+
+Maximum number of deposits that can be relayed in a single transaction
+
+_This limit prevents situations where too many deposits are relayed to L2 simultaneously,
+which could exceed the L2 block gas limit and cause transaction failures._
+
+### deploymentTime
+
+```solidity
+uint256 deploymentTime
+```
+
+Deployment time which is used to calculate the deposit limit
+
+### l1ScrollMessenger
+
+```solidity
+contract IL1ScrollMessenger l1ScrollMessenger
+```
+
+Address of the L1 ScrollMessenger contract
+
+### contribution
+
+```solidity
+contract IContribution contribution
+```
+
+Address of the Contribution contract
+
+### rollup
+
+```solidity
+address rollup
+```
+
+Address of the Rollup contract
+
+### amlPermitter
+
+```solidity
+contract IPermitter amlPermitter
+```
+
+Address of the AML Permitter contract
+
+_If not set, we skip AML check_
+
+### eligibilityPermitter
+
+```solidity
+contract IPermitter eligibilityPermitter
+```
+
+Address of the Circulation Permitter contract
+
+_If not set, we skip eligibility permission check_
+
+### claimableWithdrawals
+
+```solidity
+mapping(bytes32 => uint256) claimableWithdrawals
+```
+
+Mapping of withdrawal hashes to their timestamp when they became claimable
+
+_A value of 0 means the withdrawal is not claimable_
+
+### withdrawalFeeRatio
+
+```solidity
+mapping(uint32 => uint256) withdrawalFeeRatio
+```
+
+Withdrawal fee ratio for each token index
+
+_1bp = 0.01%_
+
+### collectedWithdrawalFees
+
+```solidity
+mapping(uint32 => uint256) collectedWithdrawalFees
+```
+
+Mapping of token index to the total amount of withdrawal fees collected
+
+_Used to track fees that can be withdrawn by the admin_
+
+### doesDepositHashExist
+
+```solidity
+mapping(bytes32 => bool) doesDepositHashExist
+```
+
+Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
+
+_Used to prevent duplicate deposits with the same parameters_
+
+### onlyWithdrawalRole
+
+```solidity
+modifier onlyWithdrawalRole()
+```
+
+Modifier to restrict access to only the withdrawal role through the L1ScrollMessenger
+
+_Ensures the function is called via the L1ScrollMessenger and the cross-domain sender has the WITHDRAWAL role_
+
+### canCancelDeposit
+
+```solidity
+modifier canCancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit)
+```
+
+Modifier to check if a deposit can be canceled
+
+_Verifies the caller is the original sender, the deposit hash matches, and the deposit hasn't been relayed_
+
+#### Parameters
+
+| Name      | Type                      | Description                     |
+| --------- | ------------------------- | ------------------------------- |
+| depositId | uint256                   | The ID of the deposit to cancel |
+| deposit   | struct DepositLib.Deposit | The deposit data structure      |
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _l1ScrollMessenger, address _rollup, address _withdrawal, address _claim, address _relayer, address _contribution, address[] initialERC20Tokens) external
+```
+
+Initializes the contract with required addresses and parameters
+
+#### Parameters
+
+| Name                | Type      | Description                                      |
+| ------------------- | --------- | ------------------------------------------------ |
+| \_admin             | address   | The address that will have admin privileges      |
+| \_l1ScrollMessenger | address   | The address of the L1ScrollMessenger contract    |
+| \_rollup            | address   | The address of the Rollup contract               |
+| \_withdrawal        | address   | The address that will have withdrawal privileges |
+| \_claim             | address   | The address that will have claim privileges      |
+| \_relayer           | address   | The address that will have relayer privileges    |
+| \_contribution      | address   | The address of the Contribution contract         |
+| initialERC20Tokens  | address[] | Initial list of ERC20 token addresses to support |
+
+### setPermitter
+
+```solidity
+function setPermitter(address _amlPermitter, address _eligibilityPermitter) external
+```
+
+Sets the AML and eligibility permitter contract addresses
+
+_Only callable by the admin role_
+
+#### Parameters
+
+| Name                   | Type    | Description                                       |
+| ---------------------- | ------- | ------------------------------------------------- |
+| \_amlPermitter         | address | The address of the AML permitter contract         |
+| \_eligibilityPermitter | address | The address of the eligibility permitter contract |
+
+### setWithdrawalFeeRatio
+
+```solidity
+function setWithdrawalFeeRatio(uint32 tokenIndex, uint256 feeRatio) external
+```
+
+Sets the withdrawal fee ratio for a specific token
+
+_Only callable by the admin role. Fee ratio is in basis points (1bp = 0.01%)_
+
+#### Parameters
+
+| Name       | Type    | Description                                            |
+| ---------- | ------- | ------------------------------------------------------ |
+| tokenIndex | uint32  | The index of the token to set the fee ratio for        |
+| feeRatio   | uint256 | The fee ratio to set (in basis points, max 1500 = 15%) |
+
+### withdrawCollectedFees
+
+```solidity
+function withdrawCollectedFees(address recipient, uint32[] tokenIndices) external
+```
+
+Withdraws collected fees for specified tokens to a recipient address
+
+_Only callable by the admin role. Skips tokens with zero fees_
+
+#### Parameters
+
+| Name         | Type     | Description                                 |
+| ------------ | -------- | ------------------------------------------- |
+| recipient    | address  | The address to receive the withdrawn fees   |
+| tokenIndices | uint32[] | Array of token indices to withdraw fees for |
+
+### pauseDeposits
+
+```solidity
+function pauseDeposits() external
+```
+
+Pauses all deposit operations
+
+_Only callable by the admin role_
+
+### unpauseDeposits
+
+```solidity
+function unpauseDeposits() external
+```
+
+Unpauses all deposit operations
+
+_Only callable by the admin role_
+
+### depositNativeToken
+
+```solidity
+function depositNativeToken(bytes32 recipientSaltHash, bytes amlPermission, bytes eligibilityPermission) external payable
+```
+
+Deposit native token (ETH) to Intmax
+
+_The deposit amount is taken from msg.value, recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
+
+#### Parameters
+
+| Name                  | Type    | Description                                                   |
+| --------------------- | ------- | ------------------------------------------------------------- |
+| recipientSaltHash     | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
+| amlPermission         | bytes   | The data to verify AML check                                  |
+| eligibilityPermission | bytes   | The data to verify eligibility check                          |
+
+### depositERC20
+
+```solidity
+function depositERC20(address tokenAddress, bytes32 recipientSaltHash, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
+```
+
+Deposit a specified amount of ERC20 token to Intmax
+
+_Requires prior approval for this contract to spend the tokens
+recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
+
+#### Parameters
+
+| Name                  | Type    | Description                                           |
+| --------------------- | ------- | ----------------------------------------------------- |
+| tokenAddress          | address | The address of the ERC20 token contract               |
+| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
+| amount                | uint256 | The amount of tokens to deposit                       |
+| amlPermission         | bytes   | The data to verify AML check                          |
+| eligibilityPermission | bytes   | The data to verify eligibility check                  |
+
+### depositERC721
+
+```solidity
+function depositERC721(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, bytes amlPermission, bytes eligibilityPermission) external
+```
+
+Deposit an ERC721 token to Intmax
+
+_Requires prior approval for this contract to transfer the token_
+
+#### Parameters
+
+| Name                  | Type    | Description                                           |
+| --------------------- | ------- | ----------------------------------------------------- |
+| tokenAddress          | address | The address of the ERC721 token contract              |
+| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
+| tokenId               | uint256 | The ID of the token to deposit                        |
+| amlPermission         | bytes   | The data to verify AML check                          |
+| eligibilityPermission | bytes   | The data to verify eligibility check                  |
+
+### depositERC1155
+
+```solidity
+function depositERC1155(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
+```
+
+Deposit a specified amount of ERC1155 tokens to Intmax
+
+_Requires prior approval for this contract to transfer the tokens_
+
+#### Parameters
+
+| Name                  | Type    | Description                                           |
+| --------------------- | ------- | ----------------------------------------------------- |
+| tokenAddress          | address | The address of the ERC1155 token contract             |
+| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
+| tokenId               | uint256 | The ID of the token to deposit                        |
+| amount                | uint256 | The amount of tokens to deposit                       |
+| amlPermission         | bytes   | The data to verify AML check                          |
+| eligibilityPermission | bytes   | The data to verify eligibility check                  |
+
+### relayDeposits
+
+```solidity
+function relayDeposits(uint256 upToDepositId, uint256 gasLimit) external payable
+```
+
+Relays deposits from Layer 1 to Intmax
+
+_Only callable by addresses with the RELAYER role. The msg.value is used to pay for the L2 gas_
+
+#### Parameters
+
+| Name          | Type    | Description                                            |
+| ------------- | ------- | ------------------------------------------------------ |
+| upToDepositId | uint256 | The upper limit of the Deposit ID that will be relayed |
+| gasLimit      | uint256 | The gas limit for the L2 transaction                   |
+
+### claimWithdrawals
+
+```solidity
+function claimWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals) external
+```
+
+Claim withdrawals for tokens that couldn't be processed through direct withdrawals
+
+_Used for ERC721, ERC1155, or failed direct withdrawals of native/ERC20 tokens_
+
+#### Parameters
+
+| Name        | Type                              | Description                   |
+| ----------- | --------------------------------- | ----------------------------- |
+| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to claim |
+
+### cancelDeposit
+
+```solidity
+function cancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit) external
+```
+
+Cancels a deposit that hasn't been relayed yet
+
+_Only the original sender can cancel their deposit, and only if it hasn't been relayed_
+
+#### Parameters
+
+| Name      | Type                      | Description                                                        |
+| --------- | ------------------------- | ------------------------------------------------------------------ |
+| depositId | uint256                   | The ID of the deposit to cancel                                    |
+| deposit   | struct DepositLib.Deposit | The deposit data structure containing the original deposit details |
+
+### processWithdrawals
+
+```solidity
+function processWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals, bytes32[] withdrawalHashes) external
+```
+
+Processes both direct withdrawals and claimable withdrawals
+
+_Only callable by addresses with the WITHDRAWAL role through the L1ScrollMessenger_
+
+#### Parameters
+
+| Name             | Type                              | Description                                     |
+| ---------------- | --------------------------------- | ----------------------------------------------- |
+| withdrawals      | struct WithdrawalLib.Withdrawal[] | Array of direct withdrawals to process          |
+| withdrawalHashes | bytes32[]                         | Array of withdrawal hashes to mark as claimable |
+
+### \_processDirectWithdrawal
+
+```solidity
+function _processDirectWithdrawal(struct WithdrawalLib.Withdrawal withdrawal_) internal
+```
+
+Processes a single direct withdrawal
+
+_Attempts to send tokens directly to the recipient, collects fees, and handles failures_
+
+#### Parameters
+
+| Name         | Type                            | Description               |
+| ------------ | ------------------------------- | ------------------------- |
+| withdrawal\_ | struct WithdrawalLib.Withdrawal | The withdrawal to process |
+
+### onERC1155Received
+
+```solidity
+function onERC1155Received(address, address, uint256, uint256, bytes) external pure returns (bytes4)
+```
+
+ERC1155 token receiver function required for this contract to receive ERC1155 tokens
+
+_Implements the IERC1155Receiver interface_
+
+#### Return Values
+
+| Name | Type   | Description                                                                  |
+| ---- | ------ | ---------------------------------------------------------------------------- |
+| [0]  | bytes4 | bytes4 The function selector to indicate support for ERC1155 token receiving |
+
+### isDepositValid
+
+```solidity
+function isDepositValid(uint256 depositId, bytes32 recipientSaltHash, uint32 tokenIndex, uint256 amount, bool isEligible, address sender) external view returns (bool)
+```
+
+Check if a deposit is valid by comparing its parameters with stored data
+
+#### Parameters
+
+| Name              | Type    | Description                                                   |
+| ----------------- | ------- | ------------------------------------------------------------- |
+| depositId         | uint256 | The ID of the deposit to validate                             |
+| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
+| tokenIndex        | uint32  | The index of the token being deposited                        |
+| amount            | uint256 | The amount of tokens deposited                                |
+| isEligible        | bool    | Whether the deposit is eligible for mining rewards            |
+| sender            | address | The address that made the deposit                             |
+
+#### Return Values
+
+| Name | Type | Description                                   |
+| ---- | ---- | --------------------------------------------- |
+| [0]  | bool | True if the deposit is valid, false otherwise |
+
+### getDepositData
+
+```solidity
+function getDepositData(uint256 depositId) external view returns (struct DepositQueueLib.DepositData)
+```
+
+Get deposit data for a given deposit ID
+
+#### Parameters
+
+| Name      | Type    | Description                    |
+| --------- | ------- | ------------------------------ |
+| depositId | uint256 | The ID of the deposit to query |
+
+#### Return Values
+
+| Name | Type                               | Description                                                   |
+| ---- | ---------------------------------- | ------------------------------------------------------------- |
+| [0]  | struct DepositQueueLib.DepositData | The deposit data structure containing sender and deposit hash |
+
+### getDepositDataBatch
+
+```solidity
+function getDepositDataBatch(uint256[] depositIds) external view returns (struct DepositQueueLib.DepositData[])
+```
+
+Get deposit data for multiple deposit IDs in a single call
+
+#### Parameters
+
+| Name       | Type      | Description                   |
+| ---------- | --------- | ----------------------------- |
+| depositIds | uint256[] | Array of deposit IDs to query |
+
+#### Return Values
+
+| Name | Type                                 | Description                                                         |
+| ---- | ------------------------------------ | ------------------------------------------------------------------- |
+| [0]  | struct DepositQueueLib.DepositData[] | Array of deposit data structures corresponding to the requested IDs |
+
+### getDepositDataHash
+
+```solidity
+function getDepositDataHash(uint256 depositId) external view returns (bytes32)
+```
+
+Get the deposit hash for a given deposit ID
+
+#### Parameters
+
+| Name      | Type    | Description                    |
+| --------- | ------- | ------------------------------ |
+| depositId | uint256 | The ID of the deposit to query |
+
+#### Return Values
+
+| Name | Type    | Description                  |
+| ---- | ------- | ---------------------------- |
+| [0]  | bytes32 | The hash of the deposit data |
+
+### getLastRelayedDepositId
+
+```solidity
+function getLastRelayedDepositId() public view returns (uint256)
+```
+
+Get the ID of the last deposit relayed to Layer 2
+
+_This ID represents the highest deposit that has been successfully relayed_
+
+#### Return Values
+
+| Name | Type    | Description                        |
+| ---- | ------- | ---------------------------------- |
+| [0]  | uint256 | The ID of the last relayed deposit |
+
+### getLastDepositId
+
+```solidity
+function getLastDepositId() external view returns (uint256)
+```
+
+Get the ID of the last deposit made to Layer 2
+
+_This ID represents the highest deposit that has been created, whether relayed or not_
+
+#### Return Values
+
+| Name | Type    | Description                |
+| ---- | ------- | -------------------------- |
+| [0]  | uint256 | The ID of the last deposit |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to the implementation
+
+_Only callable by the admin role_
+
+#### Parameters
+
+| Name              | Type    | Description                           |
+| ----------------- | ------- | ------------------------------------- |
+| newImplementation | address | The address of the new implementation |
+
+## TokenData
+
+Abstract contract for managing token information and indices in the Intmax2 protocol
+
+_Implements the ITokenData interface and provides storage and functionality for tracking
+different token types (Native, ERC20, ERC721, ERC1155)_
+
+### \_\_TokenData_init
+
+```solidity
+function __TokenData_init(address[] initialERC20Tokens) internal
+```
+
+Initializes the TokenData contract with native token and initial ERC20 tokens
+
+_Called during contract initialization to set up the token indices_
+
+#### Parameters
+
+| Name               | Type      | Description                                       |
+| ------------------ | --------- | ------------------------------------------------- |
+| initialERC20Tokens | address[] | Array of ERC20 token addresses to initialize with |
+
+### \_getOrCreateTokenIndex
+
+```solidity
+function _getOrCreateTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) internal returns (uint32)
+```
+
+Gets the token index for a token, creating a new index if it doesn't exist
+
+_Used during deposit operations to ensure all tokens have an index_
+
+#### Parameters
+
+| Name         | Type                      | Description                                                        |
+| ------------ | ------------------------- | ------------------------------------------------------------------ |
+| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
+| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
+| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
+
+#### Return Values
+
+| Name | Type   | Description                                                      |
+| ---- | ------ | ---------------------------------------------------------------- |
+| [0]  | uint32 | uint32 The index of the token (either existing or newly created) |
+
+### getNativeTokenIndex
+
+```solidity
+function getNativeTokenIndex() public pure returns (uint32)
+```
+
+Retrieves the index of the native token (ETH)
+
+_The native token is always at index 0 in the system_
+
+#### Return Values
+
+| Name | Type   | Description                                     |
+| ---- | ------ | ----------------------------------------------- |
+| [0]  | uint32 | uint32 The index of the native token (always 0) |
+
+### getTokenIndex
+
+```solidity
+function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) public view returns (bool, uint32)
+```
+
+Retrieves the token index for given token parameters
+
+_Checks the appropriate mapping based on token type_
+
+#### Parameters
+
+| Name         | Type                      | Description                                                        |
+| ------------ | ------------------------- | ------------------------------------------------------------------ |
+| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
+| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
+| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
+
+#### Return Values
+
+| Name | Type   | Description                                                             |
+| ---- | ------ | ----------------------------------------------------------------------- |
+| [0]  | bool   | bool Indicating whether the token index was found (true) or not (false) |
+| [1]  | uint32 | uint32 The index of the token if found, 0 if not found                  |
+
+### getTokenInfo
+
+```solidity
+function getTokenInfo(uint32 tokenIndex) public view returns (struct ITokenData.TokenInfo)
+```
+
+Retrieves token information for a given token index
+
+_Returns the TokenInfo struct from the tokenInfoList array_
+
+#### Parameters
+
+| Name       | Type   | Description                                        |
+| ---------- | ------ | -------------------------------------------------- |
+| tokenIndex | uint32 | The index of the token to retrieve information for |
+
+#### Return Values
+
+| Name | Type                        | Description                                                   |
+| ---- | --------------------------- | ------------------------------------------------------------- |
+| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
+
+## DepositLimit
+
+A library for managing deposit limits for different tokens over time
+
+_Implements a time-based deposit limit system that increases limits for specific tokens
+as time passes from the deployment date_
+
+### ETH_INDEX
+
+```solidity
+uint8 ETH_INDEX
+```
+
+Token index constants for supported tokens
+
+_These indices must match the indices used in the TokenData contract_
+
+### WBTC_INDEX
+
+```solidity
+uint8 WBTC_INDEX
+```
+
+### USDC_INDEX
+
+```solidity
+uint8 USDC_INDEX
+```
+
+### PERIOD_1
+
+```solidity
+uint16 PERIOD_1
+```
+
+Time period constants in days from deployment
+
+_Used to determine which deposit limit applies based on elapsed time_
+
+### PERIOD_2
+
+```solidity
+uint16 PERIOD_2
+```
+
+### PERIOD_3
+
+```solidity
+uint16 PERIOD_3
+```
+
+### PERIOD_4
+
+```solidity
+uint16 PERIOD_4
+```
+
+### ETH_LIMIT_0
+
+```solidity
+uint256 ETH_LIMIT_0
+```
+
+ETH deposit limits for different time periods
+
+_Values in wei (1 ether = 10^18 wei)_
+
+### ETH_LIMIT_1
+
+```solidity
+uint256 ETH_LIMIT_1
+```
+
+### ETH_LIMIT_2
+
+```solidity
+uint256 ETH_LIMIT_2
+```
+
+### ETH_LIMIT_3
+
+```solidity
+uint256 ETH_LIMIT_3
+```
+
+### ETH_LIMIT_4
+
+```solidity
+uint256 ETH_LIMIT_4
+```
+
+### WBTC_LIMIT_0
+
+```solidity
+uint256 WBTC_LIMIT_0
+```
+
+WBTC deposit limits for different time periods
+
+_Values in satoshi (1 BTC = 10^8 satoshi)_
+
+### WBTC_LIMIT_1
+
+```solidity
+uint256 WBTC_LIMIT_1
+```
+
+### WBTC_LIMIT_2
+
+```solidity
+uint256 WBTC_LIMIT_2
+```
+
+### WBTC_LIMIT_3
+
+```solidity
+uint256 WBTC_LIMIT_3
+```
+
+### WBTC_LIMIT_4
+
+```solidity
+uint256 WBTC_LIMIT_4
+```
+
+### USDC_LIMIT_0
+
+```solidity
+uint256 USDC_LIMIT_0
+```
+
+USDC deposit limits for different time periods
+
+_Values in USDC atomic units (1 USDC = 10^6 units)_
+
+### USDC_LIMIT_1
+
+```solidity
+uint256 USDC_LIMIT_1
+```
+
+### USDC_LIMIT_2
+
+```solidity
+uint256 USDC_LIMIT_2
+```
+
+### USDC_LIMIT_3
+
+```solidity
+uint256 USDC_LIMIT_3
+```
+
+### USDC_LIMIT_4
+
+```solidity
+uint256 USDC_LIMIT_4
+```
+
+### getDepositLimit
+
+```solidity
+function getDepositLimit(uint32 tokenIndex, uint256 deploymentTime) internal view returns (uint256 limit)
+```
+
+Returns the current deposit limit for a token based on time elapsed since deployment
+
+_For tokens other than ETH, WBTC, and USDC, returns the maximum possible uint256 value_
+
+#### Parameters
+
+| Name           | Type    | Description                                                               |
+| -------------- | ------- | ------------------------------------------------------------------------- |
+| tokenIndex     | uint32  | The index of the token to get the deposit limit for                       |
+| deploymentTime | uint256 | The timestamp when the contract was deployed (used as the starting point) |
+
+#### Return Values
+
+| Name  | Type    | Description                                       |
+| ----- | ------- | ------------------------------------------------- |
+| limit | uint256 | The current deposit limit for the specified token |
+
 ## DepositQueueLib
 
 A library for managing a queue of pending deposits in the Liquidity contract
@@ -1884,6 +2984,258 @@ Skips deposits that have been deleted (sender address is zero)_
 | Name | Type      | Description                                         |
 | ---- | --------- | --------------------------------------------------- |
 | [0]  | bytes32[] | An array of deposit hashes to be relayed to Layer 2 |
+
+## ERC20CallOptionalLib
+
+A library for safely handling ERC20 token transfers that may not conform to the ERC20 standard
+
+_Some ERC20 tokens don't revert on failure or don't return a boolean value as specified in the standard.
+This library handles these non-standard implementations safely._
+
+### callOptionalReturnBool
+
+```solidity
+function callOptionalReturnBool(contract IERC20 token, bytes data) internal returns (bool)
+```
+
+Makes a low-level call to an ERC20 token contract and safely handles various return value scenarios
+
+\_Inspired by OpenZeppelin's SafeERC20 \_callOptionalReturnBool function
+Handles three cases:
+
+1.  Token returns true/false as per ERC20 spec
+2.  Token returns nothing (empty return data)
+3.  Token doesn't revert but returns non-boolean data\_
+
+#### Parameters
+
+| Name  | Type            | Description                                                        |
+| ----- | --------------- | ------------------------------------------------------------------ |
+| token | contract IERC20 | The ERC20 token contract to call                                   |
+| data  | bytes           | The call data (typically a transfer or transferFrom function call) |
+
+#### Return Values
+
+| Name | Type | Description                                           |
+| ---- | ---- | ----------------------------------------------------- |
+| [0]  | bool | bool True if the call was successful, false otherwise |
+
+## IPermitter
+
+Interface for permission validation contracts that authorize user actions
+
+_This interface defines the method for validating if a user has permission to execute a specific action_
+
+### permit
+
+```solidity
+function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool authorized)
+```
+
+Validates if a user has the right to execute a specified action
+
+_This function is called to check permissions before executing protected operations_
+
+#### Parameters
+
+| Name        | Type    | Description                                                                           |
+| ----------- | ------- | ------------------------------------------------------------------------------------- |
+| user        | address | The address of the user attempting the action                                         |
+| value       | uint256 | The msg.value of the transaction being authorized                                     |
+| encodedData | bytes   | The encoded function call data of the action that user wants to execute               |
+| permission  | bytes   | The permission data that proves user authorization (format depends on implementation) |
+
+#### Return Values
+
+| Name       | Type | Description                                                                   |
+| ---------- | ---- | ----------------------------------------------------------------------------- |
+| authorized | bool | Returns true if the user is authorized to perform the action, false otherwise |
+
+## PredicatePermitter
+
+Implementation of IPermitter that uses Predicate Protocol for permission validation
+
+_Leverages Predicate Protocol's policy-based authorization system to validate user permissions_
+
+### AddressZero
+
+```solidity
+error AddressZero()
+```
+
+Error thrown when an address parameter is the zero address
+
+_Used in initialize function to validate admin and predicateManager addresses_
+
+### PolicyIDEmpty
+
+```solidity
+error PolicyIDEmpty()
+```
+
+Error thrown when the policy ID string is empty
+
+_Used in initialize function to validate the policyID parameter_
+
+### NotLiquidity
+
+```solidity
+error NotLiquidity()
+```
+
+Error thrown when the caller is not the liquidity contract
+
+_Used in permit function to restrict access to the liquidity contract_
+
+### PolicySet
+
+```solidity
+event PolicySet(string policyID)
+```
+
+Emitted when the Predicate policy ID is set or updated
+
+_Triggered in initialize and setPolicy functions_
+
+#### Parameters
+
+| Name     | Type   | Description                    |
+| -------- | ------ | ------------------------------ |
+| policyID | string | The new policy ID that was set |
+
+### PredicateManagerSet
+
+```solidity
+event PredicateManagerSet(address predicateManager)
+```
+
+Emitted when the Predicate manager address is set or updated
+
+_Triggered in initialize and setPredicateManager functions_
+
+#### Parameters
+
+| Name             | Type    | Description                       |
+| ---------------- | ------- | --------------------------------- |
+| predicateManager | address | The new Predicate manager address |
+
+### liquidity
+
+```solidity
+address liquidity
+```
+
+Address of the liquidity contract
+
+_Used to restrict access to certain functions_
+
+### onlyLiquidity
+
+```solidity
+modifier onlyLiquidity()
+```
+
+Modifier to restrict access to the liquidity contract
+
+_Ensures that only the liquidity contract can call the function_
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address _admin, address _liquidity, address _predicateManager, string policyID) external
+```
+
+Initializes the PredicatePermitter contract
+
+_Sets up the initial state with admin, Predicate manager, and policy ID_
+
+#### Parameters
+
+| Name               | Type    | Description                                                             |
+| ------------------ | ------- | ----------------------------------------------------------------------- |
+| \_admin            | address | Address that will be granted ownership of the contract                  |
+| \_liquidity        | address | Address of the liquidity contract that will interact with this contract |
+| \_predicateManager | address | Address of the Predicate Protocol manager contract                      |
+| policyID           | string  | The policy ID string used for permission validation                     |
+
+### permit
+
+```solidity
+function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool)
+```
+
+Validates if a user has permission to execute a specified action
+
+_Decodes the permission data as a PredicateMessage and uses Predicate Protocol for validation_
+
+#### Parameters
+
+| Name        | Type    | Description                                       |
+| ----------- | ------- | ------------------------------------------------- |
+| user        | address | The address of the user attempting the action     |
+| value       | uint256 | The msg.value of the transaction being authorized |
+| encodedData | bytes   | The encoded function call data of the action      |
+| permission  | bytes   | The permission data containing a PredicateMessage |
+
+#### Return Values
+
+| Name | Type | Description                                       |
+| ---- | ---- | ------------------------------------------------- |
+| [0]  | bool | Boolean indicating whether the user is authorized |
+
+### setPolicy
+
+```solidity
+function setPolicy(string policyID) external
+```
+
+Set the policy ID of Predicate
+
+_Only the owner can call this function_
+
+#### Parameters
+
+| Name     | Type   | Description          |
+| -------- | ------ | -------------------- |
+| policyID | string | The policy ID to set |
+
+### setPredicateManager
+
+```solidity
+function setPredicateManager(address serviceManager) external
+```
+
+Set the Predicate Manager
+
+_Only the owner can call this function_
+
+#### Parameters
+
+| Name           | Type    | Description                          |
+| -------------- | ------- | ------------------------------------ |
+| serviceManager | address | The Predicate Manager address to set |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorizes an upgrade to a new implementation
+
+_Can only be called by the contract owner_
+
+#### Parameters
+
+| Name              | Type    | Description                                |
+| ----------------- | ------- | ------------------------------------------ |
+| newImplementation | address | Address of the new implementation contract |
 
 ## IRollup
 
@@ -2936,1172 +4288,6 @@ _Useful for checking the penalty before actually updating the state_
 | ---- | ------- | --------------------------------- |
 | [0]  | uint256 | The calculated penalty fee in wei |
 
-## Contribution
-
-Contract for tracking user contributions across different time periods
-
-### CONTRIBUTOR
-
-```solidity
-bytes32 CONTRIBUTOR
-```
-
-Role identifier for contracts that can record contributions
-
-_Addresses with this role can call the recordContribution function_
-
-### startTimestamp
-
-```solidity
-uint256 startTimestamp
-```
-
-Start timestamp of the contribution period tracking
-
-_Used as the reference point for calculating period numbers_
-
-### periodInterval
-
-```solidity
-uint256 periodInterval
-```
-
-Duration of each contribution period in seconds
-
-_Used to calculate the current period number_
-
-### totalContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => uint256)) totalContributions
-```
-
-Maps periods and tags to total contributions
-
-_Mapping structure: period => tag => total contribution amount_
-
-### userContributions
-
-```solidity
-mapping(uint256 => mapping(bytes32 => mapping(address => uint256))) userContributions
-```
-
-Maps periods, tags, and users to their individual contributions
-
-_Mapping structure: period => tag => user address => contribution amount_
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address admin, uint256 _periodInterval) external
-```
-
-Initializes the contract with an admin and period interval
-
-_Sets up the initial state of the contract and aligns the start timestamp_
-
-#### Parameters
-
-| Name             | Type    | Description                                           |
-| ---------------- | ------- | ----------------------------------------------------- |
-| admin            | address | Address that will be granted the DEFAULT_ADMIN_ROLE   |
-| \_periodInterval | uint256 | Duration of each period in seconds (must be non-zero) |
-
-### getCurrentPeriod
-
-```solidity
-function getCurrentPeriod() public view returns (uint256)
-```
-
-Calculates the current period number based on the current timestamp
-
-_Calculated as (current_timestamp - startTimestamp) / periodInterval_
-
-#### Return Values
-
-| Name | Type    | Description               |
-| ---- | ------- | ------------------------- |
-| [0]  | uint256 | The current period number |
-
-### recordContribution
-
-```solidity
-function recordContribution(bytes32 tag, address user, uint256 amount) external
-```
-
-Records a contribution for a specific tag and user
-
-_Updates both total and user-specific contribution amounts for the current period_
-
-#### Parameters
-
-| Name   | Type    | Description                                                        |
-| ------ | ------- | ------------------------------------------------------------------ |
-| tag    | bytes32 | The tag associated with the contribution (used for categorization) |
-| user   | address | The address of the user making the contribution                    |
-| amount | uint256 | The amount of contribution to record                               |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by an account with the DEFAULT_ADMIN_ROLE_
-
-#### Parameters
-
-| Name              | Type    | Description                                |
-| ----------------- | ------- | ------------------------------------------ |
-| newImplementation | address | Address of the new implementation contract |
-
-## ITokenData
-
-Interface for managing token information and indices in the Intmax2 protocol
-
-_Provides functions to store, retrieve, and manage different token types (Native, ERC20, ERC721, ERC1155)_
-
-### TokenAddressIsZero
-
-```solidity
-error TokenAddressIsZero()
-```
-
-Error thrown when attempting to use a zero address for a non-native token
-
-_Native tokens use address(0), but other token types must have a valid contract address_
-
-### TokenType
-
-Enum representing different token types supported by the protocol
-
-_Used to determine how to handle each token type during deposits and withdrawals_
-
-```solidity
-enum TokenType {
-	NATIVE,
-	ERC20,
-	ERC721,
-	ERC1155
-}
-```
-
-### TokenInfo
-
-Struct containing information about a token
-
-_Used to store all necessary information to identify and handle a token_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-
-```solidity
-struct TokenInfo {
-  enum ITokenData.TokenType tokenType;
-  address tokenAddress;
-  uint256 tokenId;
-}
-```
-
-### getTokenInfo
-
-```solidity
-function getTokenInfo(uint32 tokenIndex) external view returns (struct ITokenData.TokenInfo)
-```
-
-Retrieves token information for a given token index
-
-_Token indices are assigned sequentially as new tokens are added to the system_
-
-#### Parameters
-
-| Name       | Type   | Description                                        |
-| ---------- | ------ | -------------------------------------------------- |
-| tokenIndex | uint32 | The index of the token to retrieve information for |
-
-#### Return Values
-
-| Name | Type                        | Description                                                   |
-| ---- | --------------------------- | ------------------------------------------------------------- |
-| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
-
-### getTokenIndex
-
-```solidity
-function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) external view returns (bool, uint32)
-```
-
-Retrieves the token index for given token parameters
-
-_Used to look up a token's index based on its identifying information_
-
-#### Parameters
-
-| Name         | Type                      | Description                                                                     |
-| ------------ | ------------------------- | ------------------------------------------------------------------------------- |
-| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)                          |
-| tokenAddress | address                   | The address of the token contract (zero address for native tokens)              |
-| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155, ignored for NATIVE and ERC20) |
-
-#### Return Values
-
-| Name | Type   | Description                                                             |
-| ---- | ------ | ----------------------------------------------------------------------- |
-| [0]  | bool   | bool Indicating whether the token index was found (true) or not (false) |
-| [1]  | uint32 | uint32 The index of the token if found, 0 if not found                  |
-
-### getNativeTokenIndex
-
-```solidity
-function getNativeTokenIndex() external view returns (uint32)
-```
-
-Retrieves the index of the native token (ETH)
-
-_The native token is always at index 0 in the system_
-
-#### Return Values
-
-| Name | Type   | Description                                     |
-| ---- | ------ | ----------------------------------------------- |
-| [0]  | uint32 | uint32 The index of the native token (always 0) |
-
-## Liquidity
-
-### RELAYER
-
-```solidity
-bytes32 RELAYER
-```
-
-Relayer role constant
-
-### WITHDRAWAL
-
-```solidity
-bytes32 WITHDRAWAL
-```
-
-Withdrawal role constant
-
-### WITHDRAWAL_FEE_RATIO_LIMIT
-
-```solidity
-uint256 WITHDRAWAL_FEE_RATIO_LIMIT
-```
-
-Withdrawal fee ratio limit
-
-_1bp = 0.01%_
-
-### RELAY_LIMIT
-
-```solidity
-uint256 RELAY_LIMIT
-```
-
-Maximum number of deposits that can be relayed in a single transaction
-
-_This limit prevents situations where too many deposits are relayed to L2 simultaneously,
-which could exceed the L2 block gas limit and cause transaction failures._
-
-### deploymentTime
-
-```solidity
-uint256 deploymentTime
-```
-
-Deployment time which is used to calculate the deposit limit
-
-### l1ScrollMessenger
-
-```solidity
-contract IL1ScrollMessenger l1ScrollMessenger
-```
-
-Address of the L1 ScrollMessenger contract
-
-### contribution
-
-```solidity
-contract IContribution contribution
-```
-
-Address of the Contribution contract
-
-### rollup
-
-```solidity
-address rollup
-```
-
-Address of the Rollup contract
-
-### amlPermitter
-
-```solidity
-contract IPermitter amlPermitter
-```
-
-Address of the AML Permitter contract
-
-_If not set, we skip AML check_
-
-### eligibilityPermitter
-
-```solidity
-contract IPermitter eligibilityPermitter
-```
-
-Address of the Circulation Permitter contract
-
-_If not set, we skip eligibility permission check_
-
-### claimableWithdrawals
-
-```solidity
-mapping(bytes32 => uint256) claimableWithdrawals
-```
-
-Mapping of withdrawal hashes to their timestamp when they became claimable
-
-_A value of 0 means the withdrawal is not claimable_
-
-### withdrawalFeeRatio
-
-```solidity
-mapping(uint32 => uint256) withdrawalFeeRatio
-```
-
-Withdrawal fee ratio for each token index
-
-_1bp = 0.01%_
-
-### collectedWithdrawalFees
-
-```solidity
-mapping(uint32 => uint256) collectedWithdrawalFees
-```
-
-Mapping of token index to the total amount of withdrawal fees collected
-
-_Used to track fees that can be withdrawn by the admin_
-
-### doesDepositHashExist
-
-```solidity
-mapping(bytes32 => bool) doesDepositHashExist
-```
-
-Mapping of deposit hashes to a boolean indicating whether the deposit hash exists
-
-_Used to prevent duplicate deposits with the same parameters_
-
-### onlyWithdrawalRole
-
-```solidity
-modifier onlyWithdrawalRole()
-```
-
-Modifier to restrict access to only the withdrawal role through the L1ScrollMessenger
-
-_Ensures the function is called via the L1ScrollMessenger and the cross-domain sender has the WITHDRAWAL role_
-
-### canCancelDeposit
-
-```solidity
-modifier canCancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit)
-```
-
-Modifier to check if a deposit can be canceled
-
-_Verifies the caller is the original sender, the deposit hash matches, and the deposit hasn't been relayed_
-
-#### Parameters
-
-| Name      | Type                      | Description                     |
-| --------- | ------------------------- | ------------------------------- |
-| depositId | uint256                   | The ID of the deposit to cancel |
-| deposit   | struct DepositLib.Deposit | The deposit data structure      |
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _l1ScrollMessenger, address _rollup, address _withdrawal, address _claim, address _relayer, address _contribution, address[] initialERC20Tokens) external
-```
-
-Initializes the contract with required addresses and parameters
-
-#### Parameters
-
-| Name                | Type      | Description                                      |
-| ------------------- | --------- | ------------------------------------------------ |
-| \_admin             | address   | The address that will have admin privileges      |
-| \_l1ScrollMessenger | address   | The address of the L1ScrollMessenger contract    |
-| \_rollup            | address   | The address of the Rollup contract               |
-| \_withdrawal        | address   | The address that will have withdrawal privileges |
-| \_claim             | address   | The address that will have claim privileges      |
-| \_relayer           | address   | The address that will have relayer privileges    |
-| \_contribution      | address   | The address of the Contribution contract         |
-| initialERC20Tokens  | address[] | Initial list of ERC20 token addresses to support |
-
-### setPermitter
-
-```solidity
-function setPermitter(address _amlPermitter, address _eligibilityPermitter) external
-```
-
-Sets the AML and eligibility permitter contract addresses
-
-_Only callable by the admin role_
-
-#### Parameters
-
-| Name                   | Type    | Description                                       |
-| ---------------------- | ------- | ------------------------------------------------- |
-| \_amlPermitter         | address | The address of the AML permitter contract         |
-| \_eligibilityPermitter | address | The address of the eligibility permitter contract |
-
-### setWithdrawalFeeRatio
-
-```solidity
-function setWithdrawalFeeRatio(uint32 tokenIndex, uint256 feeRatio) external
-```
-
-Sets the withdrawal fee ratio for a specific token
-
-_Only callable by the admin role. Fee ratio is in basis points (1bp = 0.01%)_
-
-#### Parameters
-
-| Name       | Type    | Description                                            |
-| ---------- | ------- | ------------------------------------------------------ |
-| tokenIndex | uint32  | The index of the token to set the fee ratio for        |
-| feeRatio   | uint256 | The fee ratio to set (in basis points, max 1500 = 15%) |
-
-### withdrawCollectedFees
-
-```solidity
-function withdrawCollectedFees(address recipient, uint32[] tokenIndices) external
-```
-
-Withdraws collected fees for specified tokens to a recipient address
-
-_Only callable by the admin role. Skips tokens with zero fees_
-
-#### Parameters
-
-| Name         | Type     | Description                                 |
-| ------------ | -------- | ------------------------------------------- |
-| recipient    | address  | The address to receive the withdrawn fees   |
-| tokenIndices | uint32[] | Array of token indices to withdraw fees for |
-
-### pauseDeposits
-
-```solidity
-function pauseDeposits() external
-```
-
-Pauses all deposit operations
-
-_Only callable by the admin role_
-
-### unpauseDeposits
-
-```solidity
-function unpauseDeposits() external
-```
-
-Unpauses all deposit operations
-
-_Only callable by the admin role_
-
-### depositNativeToken
-
-```solidity
-function depositNativeToken(bytes32 recipientSaltHash, bytes amlPermission, bytes eligibilityPermission) external payable
-```
-
-Deposit native token (ETH) to Intmax
-
-_The deposit amount is taken from msg.value, recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
-
-#### Parameters
-
-| Name                  | Type    | Description                                                   |
-| --------------------- | ------- | ------------------------------------------------------------- |
-| recipientSaltHash     | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
-| amlPermission         | bytes   | The data to verify AML check                                  |
-| eligibilityPermission | bytes   | The data to verify eligibility check                          |
-
-### depositERC20
-
-```solidity
-function depositERC20(address tokenAddress, bytes32 recipientSaltHash, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
-```
-
-Deposit a specified amount of ERC20 token to Intmax
-
-_Requires prior approval for this contract to spend the tokens
-recipientSaltHash is the Poseidon hash of the intmax2 address (32 bytes) and a secret salt_
-
-#### Parameters
-
-| Name                  | Type    | Description                                           |
-| --------------------- | ------- | ----------------------------------------------------- |
-| tokenAddress          | address | The address of the ERC20 token contract               |
-| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
-| amount                | uint256 | The amount of tokens to deposit                       |
-| amlPermission         | bytes   | The data to verify AML check                          |
-| eligibilityPermission | bytes   | The data to verify eligibility check                  |
-
-### depositERC721
-
-```solidity
-function depositERC721(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, bytes amlPermission, bytes eligibilityPermission) external
-```
-
-Deposit an ERC721 token to Intmax
-
-_Requires prior approval for this contract to transfer the token_
-
-#### Parameters
-
-| Name                  | Type    | Description                                           |
-| --------------------- | ------- | ----------------------------------------------------- |
-| tokenAddress          | address | The address of the ERC721 token contract              |
-| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId               | uint256 | The ID of the token to deposit                        |
-| amlPermission         | bytes   | The data to verify AML check                          |
-| eligibilityPermission | bytes   | The data to verify eligibility check                  |
-
-### depositERC1155
-
-```solidity
-function depositERC1155(address tokenAddress, bytes32 recipientSaltHash, uint256 tokenId, uint256 amount, bytes amlPermission, bytes eligibilityPermission) external
-```
-
-Deposit a specified amount of ERC1155 tokens to Intmax
-
-_Requires prior approval for this contract to transfer the tokens_
-
-#### Parameters
-
-| Name                  | Type    | Description                                           |
-| --------------------- | ------- | ----------------------------------------------------- |
-| tokenAddress          | address | The address of the ERC1155 token contract             |
-| recipientSaltHash     | bytes32 | The hash of the recipient's address and a secret salt |
-| tokenId               | uint256 | The ID of the token to deposit                        |
-| amount                | uint256 | The amount of tokens to deposit                       |
-| amlPermission         | bytes   | The data to verify AML check                          |
-| eligibilityPermission | bytes   | The data to verify eligibility check                  |
-
-### relayDeposits
-
-```solidity
-function relayDeposits(uint256 upToDepositId, uint256 gasLimit) external payable
-```
-
-Relays deposits from Layer 1 to Intmax
-
-_Only callable by addresses with the RELAYER role. The msg.value is used to pay for the L2 gas_
-
-#### Parameters
-
-| Name          | Type    | Description                                            |
-| ------------- | ------- | ------------------------------------------------------ |
-| upToDepositId | uint256 | The upper limit of the Deposit ID that will be relayed |
-| gasLimit      | uint256 | The gas limit for the L2 transaction                   |
-
-### claimWithdrawals
-
-```solidity
-function claimWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals) external
-```
-
-Claim withdrawals for tokens that couldn't be processed through direct withdrawals
-
-_Used for ERC721, ERC1155, or failed direct withdrawals of native/ERC20 tokens_
-
-#### Parameters
-
-| Name        | Type                              | Description                   |
-| ----------- | --------------------------------- | ----------------------------- |
-| withdrawals | struct WithdrawalLib.Withdrawal[] | Array of withdrawals to claim |
-
-### cancelDeposit
-
-```solidity
-function cancelDeposit(uint256 depositId, struct DepositLib.Deposit deposit) external
-```
-
-Cancels a deposit that hasn't been relayed yet
-
-_Only the original sender can cancel their deposit, and only if it hasn't been relayed_
-
-#### Parameters
-
-| Name      | Type                      | Description                                                        |
-| --------- | ------------------------- | ------------------------------------------------------------------ |
-| depositId | uint256                   | The ID of the deposit to cancel                                    |
-| deposit   | struct DepositLib.Deposit | The deposit data structure containing the original deposit details |
-
-### processWithdrawals
-
-```solidity
-function processWithdrawals(struct WithdrawalLib.Withdrawal[] withdrawals, bytes32[] withdrawalHashes) external
-```
-
-Processes both direct withdrawals and claimable withdrawals
-
-_Only callable by addresses with the WITHDRAWAL role through the L1ScrollMessenger_
-
-#### Parameters
-
-| Name             | Type                              | Description                                     |
-| ---------------- | --------------------------------- | ----------------------------------------------- |
-| withdrawals      | struct WithdrawalLib.Withdrawal[] | Array of direct withdrawals to process          |
-| withdrawalHashes | bytes32[]                         | Array of withdrawal hashes to mark as claimable |
-
-### \_processDirectWithdrawal
-
-```solidity
-function _processDirectWithdrawal(struct WithdrawalLib.Withdrawal withdrawal_) internal
-```
-
-Processes a single direct withdrawal
-
-_Attempts to send tokens directly to the recipient, collects fees, and handles failures_
-
-#### Parameters
-
-| Name         | Type                            | Description               |
-| ------------ | ------------------------------- | ------------------------- |
-| withdrawal\_ | struct WithdrawalLib.Withdrawal | The withdrawal to process |
-
-### onERC1155Received
-
-```solidity
-function onERC1155Received(address, address, uint256, uint256, bytes) external pure returns (bytes4)
-```
-
-ERC1155 token receiver function required for this contract to receive ERC1155 tokens
-
-_Implements the IERC1155Receiver interface_
-
-#### Return Values
-
-| Name | Type   | Description                                                                  |
-| ---- | ------ | ---------------------------------------------------------------------------- |
-| [0]  | bytes4 | bytes4 The function selector to indicate support for ERC1155 token receiving |
-
-### isDepositValid
-
-```solidity
-function isDepositValid(uint256 depositId, bytes32 recipientSaltHash, uint32 tokenIndex, uint256 amount, bool isEligible, address sender) external view returns (bool)
-```
-
-Check if a deposit is valid by comparing its parameters with stored data
-
-#### Parameters
-
-| Name              | Type    | Description                                                   |
-| ----------------- | ------- | ------------------------------------------------------------- |
-| depositId         | uint256 | The ID of the deposit to validate                             |
-| recipientSaltHash | bytes32 | The hash of the recipient's intmax2 address and a secret salt |
-| tokenIndex        | uint32  | The index of the token being deposited                        |
-| amount            | uint256 | The amount of tokens deposited                                |
-| isEligible        | bool    | Whether the deposit is eligible for mining rewards            |
-| sender            | address | The address that made the deposit                             |
-
-#### Return Values
-
-| Name | Type | Description                                   |
-| ---- | ---- | --------------------------------------------- |
-| [0]  | bool | True if the deposit is valid, false otherwise |
-
-### getDepositData
-
-```solidity
-function getDepositData(uint256 depositId) external view returns (struct DepositQueueLib.DepositData)
-```
-
-Get deposit data for a given deposit ID
-
-#### Parameters
-
-| Name      | Type    | Description                    |
-| --------- | ------- | ------------------------------ |
-| depositId | uint256 | The ID of the deposit to query |
-
-#### Return Values
-
-| Name | Type                               | Description                                                   |
-| ---- | ---------------------------------- | ------------------------------------------------------------- |
-| [0]  | struct DepositQueueLib.DepositData | The deposit data structure containing sender and deposit hash |
-
-### getDepositDataBatch
-
-```solidity
-function getDepositDataBatch(uint256[] depositIds) external view returns (struct DepositQueueLib.DepositData[])
-```
-
-Get deposit data for multiple deposit IDs in a single call
-
-#### Parameters
-
-| Name       | Type      | Description                   |
-| ---------- | --------- | ----------------------------- |
-| depositIds | uint256[] | Array of deposit IDs to query |
-
-#### Return Values
-
-| Name | Type                                 | Description                                                         |
-| ---- | ------------------------------------ | ------------------------------------------------------------------- |
-| [0]  | struct DepositQueueLib.DepositData[] | Array of deposit data structures corresponding to the requested IDs |
-
-### getDepositDataHash
-
-```solidity
-function getDepositDataHash(uint256 depositId) external view returns (bytes32)
-```
-
-Get the deposit hash for a given deposit ID
-
-#### Parameters
-
-| Name      | Type    | Description                    |
-| --------- | ------- | ------------------------------ |
-| depositId | uint256 | The ID of the deposit to query |
-
-#### Return Values
-
-| Name | Type    | Description                  |
-| ---- | ------- | ---------------------------- |
-| [0]  | bytes32 | The hash of the deposit data |
-
-### getLastRelayedDepositId
-
-```solidity
-function getLastRelayedDepositId() public view returns (uint256)
-```
-
-Get the ID of the last deposit relayed to Layer 2
-
-_This ID represents the highest deposit that has been successfully relayed_
-
-#### Return Values
-
-| Name | Type    | Description                        |
-| ---- | ------- | ---------------------------------- |
-| [0]  | uint256 | The ID of the last relayed deposit |
-
-### getLastDepositId
-
-```solidity
-function getLastDepositId() external view returns (uint256)
-```
-
-Get the ID of the last deposit made to Layer 2
-
-_This ID represents the highest deposit that has been created, whether relayed or not_
-
-#### Return Values
-
-| Name | Type    | Description                |
-| ---- | ------- | -------------------------- |
-| [0]  | uint256 | The ID of the last deposit |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to the implementation
-
-_Only callable by the admin role_
-
-#### Parameters
-
-| Name              | Type    | Description                           |
-| ----------------- | ------- | ------------------------------------- |
-| newImplementation | address | The address of the new implementation |
-
-## TokenData
-
-Abstract contract for managing token information and indices in the Intmax2 protocol
-
-_Implements the ITokenData interface and provides storage and functionality for tracking
-different token types (Native, ERC20, ERC721, ERC1155)_
-
-### \_\_TokenData_init
-
-```solidity
-function __TokenData_init(address[] initialERC20Tokens) internal
-```
-
-Initializes the TokenData contract with native token and initial ERC20 tokens
-
-_Called during contract initialization to set up the token indices_
-
-#### Parameters
-
-| Name               | Type      | Description                                       |
-| ------------------ | --------- | ------------------------------------------------- |
-| initialERC20Tokens | address[] | Array of ERC20 token addresses to initialize with |
-
-### \_getOrCreateTokenIndex
-
-```solidity
-function _getOrCreateTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) internal returns (uint32)
-```
-
-Gets the token index for a token, creating a new index if it doesn't exist
-
-_Used during deposit operations to ensure all tokens have an index_
-
-#### Parameters
-
-| Name         | Type                      | Description                                                        |
-| ------------ | ------------------------- | ------------------------------------------------------------------ |
-| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
-| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
-| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
-
-#### Return Values
-
-| Name | Type   | Description                                                      |
-| ---- | ------ | ---------------------------------------------------------------- |
-| [0]  | uint32 | uint32 The index of the token (either existing or newly created) |
-
-### getNativeTokenIndex
-
-```solidity
-function getNativeTokenIndex() public pure returns (uint32)
-```
-
-Retrieves the index of the native token (ETH)
-
-_The native token is always at index 0 in the system_
-
-#### Return Values
-
-| Name | Type   | Description                                     |
-| ---- | ------ | ----------------------------------------------- |
-| [0]  | uint32 | uint32 The index of the native token (always 0) |
-
-### getTokenIndex
-
-```solidity
-function getTokenIndex(enum ITokenData.TokenType tokenType, address tokenAddress, uint256 tokenId) public view returns (bool, uint32)
-```
-
-Retrieves the token index for given token parameters
-
-_Checks the appropriate mapping based on token type_
-
-#### Parameters
-
-| Name         | Type                      | Description                                                        |
-| ------------ | ------------------------- | ------------------------------------------------------------------ |
-| tokenType    | enum ITokenData.TokenType | The type of the token (NATIVE, ERC20, ERC721, ERC1155)             |
-| tokenAddress | address                   | The address of the token contract (zero address for native tokens) |
-| tokenId      | uint256                   | The ID of the token (used for ERC721 and ERC1155)                  |
-
-#### Return Values
-
-| Name | Type   | Description                                                             |
-| ---- | ------ | ----------------------------------------------------------------------- |
-| [0]  | bool   | bool Indicating whether the token index was found (true) or not (false) |
-| [1]  | uint32 | uint32 The index of the token if found, 0 if not found                  |
-
-### getTokenInfo
-
-```solidity
-function getTokenInfo(uint32 tokenIndex) public view returns (struct ITokenData.TokenInfo)
-```
-
-Retrieves token information for a given token index
-
-_Returns the TokenInfo struct from the tokenInfoList array_
-
-#### Parameters
-
-| Name       | Type   | Description                                        |
-| ---------- | ------ | -------------------------------------------------- |
-| tokenIndex | uint32 | The index of the token to retrieve information for |
-
-#### Return Values
-
-| Name | Type                        | Description                                                   |
-| ---- | --------------------------- | ------------------------------------------------------------- |
-| [0]  | struct ITokenData.TokenInfo | TokenInfo struct containing the token's type, address, and ID |
-
-## DepositLimit
-
-A library for managing deposit limits for different tokens over time
-
-_Implements a time-based deposit limit system that increases limits for specific tokens
-as time passes from the deployment date_
-
-### ETH_INDEX
-
-```solidity
-uint8 ETH_INDEX
-```
-
-Token index constants for supported tokens
-
-_These indices must match the indices used in the TokenData contract_
-
-### WBTC_INDEX
-
-```solidity
-uint8 WBTC_INDEX
-```
-
-### USDC_INDEX
-
-```solidity
-uint8 USDC_INDEX
-```
-
-### PERIOD_1
-
-```solidity
-uint16 PERIOD_1
-```
-
-Time period constants in days from deployment
-
-_Used to determine which deposit limit applies based on elapsed time_
-
-### PERIOD_2
-
-```solidity
-uint16 PERIOD_2
-```
-
-### PERIOD_3
-
-```solidity
-uint16 PERIOD_3
-```
-
-### PERIOD_4
-
-```solidity
-uint16 PERIOD_4
-```
-
-### ETH_LIMIT_0
-
-```solidity
-uint256 ETH_LIMIT_0
-```
-
-ETH deposit limits for different time periods
-
-_Values in wei (1 ether = 10^18 wei)_
-
-### ETH_LIMIT_1
-
-```solidity
-uint256 ETH_LIMIT_1
-```
-
-### ETH_LIMIT_2
-
-```solidity
-uint256 ETH_LIMIT_2
-```
-
-### ETH_LIMIT_3
-
-```solidity
-uint256 ETH_LIMIT_3
-```
-
-### ETH_LIMIT_4
-
-```solidity
-uint256 ETH_LIMIT_4
-```
-
-### WBTC_LIMIT_0
-
-```solidity
-uint256 WBTC_LIMIT_0
-```
-
-WBTC deposit limits for different time periods
-
-_Values in satoshi (1 BTC = 10^8 satoshi)_
-
-### WBTC_LIMIT_1
-
-```solidity
-uint256 WBTC_LIMIT_1
-```
-
-### WBTC_LIMIT_2
-
-```solidity
-uint256 WBTC_LIMIT_2
-```
-
-### WBTC_LIMIT_3
-
-```solidity
-uint256 WBTC_LIMIT_3
-```
-
-### WBTC_LIMIT_4
-
-```solidity
-uint256 WBTC_LIMIT_4
-```
-
-### USDC_LIMIT_0
-
-```solidity
-uint256 USDC_LIMIT_0
-```
-
-USDC deposit limits for different time periods
-
-_Values in USDC atomic units (1 USDC = 10^6 units)_
-
-### USDC_LIMIT_1
-
-```solidity
-uint256 USDC_LIMIT_1
-```
-
-### USDC_LIMIT_2
-
-```solidity
-uint256 USDC_LIMIT_2
-```
-
-### USDC_LIMIT_3
-
-```solidity
-uint256 USDC_LIMIT_3
-```
-
-### USDC_LIMIT_4
-
-```solidity
-uint256 USDC_LIMIT_4
-```
-
-### getDepositLimit
-
-```solidity
-function getDepositLimit(uint32 tokenIndex, uint256 deploymentTime) internal view returns (uint256 limit)
-```
-
-Returns the current deposit limit for a token based on time elapsed since deployment
-
-_For tokens other than ETH, WBTC, and USDC, returns the maximum possible uint256 value_
-
-#### Parameters
-
-| Name           | Type    | Description                                                               |
-| -------------- | ------- | ------------------------------------------------------------------------- |
-| tokenIndex     | uint32  | The index of the token to get the deposit limit for                       |
-| deploymentTime | uint256 | The timestamp when the contract was deployed (used as the starting point) |
-
-#### Return Values
-
-| Name  | Type    | Description                                       |
-| ----- | ------- | ------------------------------------------------- |
-| limit | uint256 | The current deposit limit for the specified token |
-
-## ERC20CallOptionalLib
-
-A library for safely handling ERC20 token transfers that may not conform to the ERC20 standard
-
-_Some ERC20 tokens don't revert on failure or don't return a boolean value as specified in the standard.
-This library handles these non-standard implementations safely._
-
-### callOptionalReturnBool
-
-```solidity
-function callOptionalReturnBool(contract IERC20 token, bytes data) internal returns (bool)
-```
-
-Makes a low-level call to an ERC20 token contract and safely handles various return value scenarios
-
-\_Inspired by OpenZeppelin's SafeERC20 \_callOptionalReturnBool function
-Handles three cases:
-
-1.  Token returns true/false as per ERC20 spec
-2.  Token returns nothing (empty return data)
-3.  Token doesn't revert but returns non-boolean data\_
-
-#### Parameters
-
-| Name  | Type            | Description                                                        |
-| ----- | --------------- | ------------------------------------------------------------------ |
-| token | contract IERC20 | The ERC20 token contract to call                                   |
-| data  | bytes           | The call data (typically a transfer or transferFrom function call) |
-
-#### Return Values
-
-| Name | Type | Description                                           |
-| ---- | ---- | ----------------------------------------------------- |
-| [0]  | bool | bool True if the call was successful, false otherwise |
-
-## IPermitter
-
-Interface for permission validation contracts that authorize user actions
-
-_This interface defines the method for validating if a user has permission to execute a specific action_
-
-### permit
-
-```solidity
-function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool authorized)
-```
-
-Validates if a user has the right to execute a specified action
-
-_This function is called to check permissions before executing protected operations_
-
-#### Parameters
-
-| Name        | Type    | Description                                                                           |
-| ----------- | ------- | ------------------------------------------------------------------------------------- |
-| user        | address | The address of the user attempting the action                                         |
-| value       | uint256 | The msg.value of the transaction being authorized                                     |
-| encodedData | bytes   | The encoded function call data of the action that user wants to execute               |
-| permission  | bytes   | The permission data that proves user authorization (format depends on implementation) |
-
-#### Return Values
-
-| Name       | Type | Description                                                                   |
-| ---------- | ---- | ----------------------------------------------------------------------------- |
-| authorized | bool | Returns true if the user is authorized to perform the action, false otherwise |
-
 ## IWithdrawal
 
 Interface for the Withdrawal contract that processes withdrawals from L2 to L1
@@ -4662,161 +4848,6 @@ _This hash is used as input to the zero-knowledge proof verification_
 | Name | Type    | Description                                                                       |
 | ---- | ------- | --------------------------------------------------------------------------------- |
 | [0]  | bytes32 | bytes32 The resulting hash that will be split into uint256 array for the verifier |
-
-## PredicatePermitter
-
-Implementation of IPermitter that uses Predicate Protocol for permission validation
-
-_Leverages Predicate Protocol's policy-based authorization system to validate user permissions_
-
-### AddressZero
-
-```solidity
-error AddressZero()
-```
-
-Error thrown when an address parameter is the zero address
-
-_Used in initialize function to validate admin and predicateManager addresses_
-
-### PolicyIDEmpty
-
-```solidity
-error PolicyIDEmpty()
-```
-
-Error thrown when the policy ID string is empty
-
-_Used in initialize function to validate the policyID parameter_
-
-### PolicySet
-
-```solidity
-event PolicySet(string policyID)
-```
-
-Emitted when the Predicate policy ID is set or updated
-
-_Triggered in initialize and setPolicy functions_
-
-#### Parameters
-
-| Name     | Type   | Description                    |
-| -------- | ------ | ------------------------------ |
-| policyID | string | The new policy ID that was set |
-
-### PredicateManagerSet
-
-```solidity
-event PredicateManagerSet(address predicateManager)
-```
-
-Emitted when the Predicate manager address is set or updated
-
-_Triggered in initialize and setPredicateManager functions_
-
-#### Parameters
-
-| Name             | Type    | Description                       |
-| ---------------- | ------- | --------------------------------- |
-| predicateManager | address | The new Predicate manager address |
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address _admin, address _predicateManager, string policyID) external
-```
-
-Initializes the PredicatePermitter contract
-
-_Sets up the initial state with admin, Predicate manager, and policy ID_
-
-#### Parameters
-
-| Name               | Type    | Description                                            |
-| ------------------ | ------- | ------------------------------------------------------ |
-| \_admin            | address | Address that will be granted ownership of the contract |
-| \_predicateManager | address | Address of the Predicate Protocol manager contract     |
-| policyID           | string  | The policy ID string used for permission validation    |
-
-### permit
-
-```solidity
-function permit(address user, uint256 value, bytes encodedData, bytes permission) external returns (bool)
-```
-
-Validates if a user has permission to execute a specified action
-
-_Decodes the permission data as a PredicateMessage and uses Predicate Protocol for validation_
-
-#### Parameters
-
-| Name        | Type    | Description                                       |
-| ----------- | ------- | ------------------------------------------------- |
-| user        | address | The address of the user attempting the action     |
-| value       | uint256 | The msg.value of the transaction being authorized |
-| encodedData | bytes   | The encoded function call data of the action      |
-| permission  | bytes   | The permission data containing a PredicateMessage |
-
-#### Return Values
-
-| Name | Type | Description                                       |
-| ---- | ---- | ------------------------------------------------- |
-| [0]  | bool | Boolean indicating whether the user is authorized |
-
-### setPolicy
-
-```solidity
-function setPolicy(string policyID) external
-```
-
-Set the policy ID of Predicate
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name     | Type   | Description          |
-| -------- | ------ | -------------------- |
-| policyID | string | The policy ID to set |
-
-### setPredicateManager
-
-```solidity
-function setPredicateManager(address serviceManager) external
-```
-
-Set the Predicate Manager
-
-_Only the owner can call this function_
-
-#### Parameters
-
-| Name           | Type    | Description                          |
-| -------------- | ------- | ------------------------------------ |
-| serviceManager | address | The Predicate Manager address to set |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorizes an upgrade to a new implementation
-
-_Can only be called by the contract owner_
-
-#### Parameters
-
-| Name              | Type    | Description                                |
-| ----------------- | ------- | ------------------------------------------ |
-| newImplementation | address | Address of the new implementation contract |
 
 ## ClaimPlonkVerifier
 

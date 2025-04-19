@@ -98,7 +98,7 @@ describe('Contribution', function () {
 			})
 		})
 		describe('fail', () => {
-			it('revert periodIntervalZero', async () => {
+			it('revert PeriodIntervalZero', async () => {
 				const contributionFactory =
 					await ethers.getContractFactory('Contribution')
 				const signers = await getSigners()
@@ -113,7 +113,7 @@ describe('Contribution', function () {
 					)
 				} catch (error) {
 					expect(error.message).to.equal(
-						"VM Exception while processing transaction: reverted with custom error 'periodIntervalZero()'",
+						"VM Exception while processing transaction: reverted with custom error 'PeriodIntervalZero()'",
 					)
 					return
 				}

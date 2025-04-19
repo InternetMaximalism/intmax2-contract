@@ -32,6 +32,12 @@ contract PredicatePermitter is
 	error PolicyIDEmpty();
 
 	/**
+	 * @notice Error thrown when the caller is not the liquidity contract
+	 * @dev Used in permit function to restrict access to the liquidity contract
+	 */
+	error NotLiquidity();
+
+	/**
 	 * @notice Emitted when the Predicate policy ID is set or updated
 	 * @dev Triggered in initialize and setPolicy functions
 	 * @param policyID The new policy ID that was set
@@ -45,6 +51,23 @@ contract PredicatePermitter is
 	 */
 	event PredicateManagerSet(address predicateManager);
 
+	/**
+	 * @notice Address of the liquidity contract
+	 * @dev Used to restrict access to certain functions
+	 */
+	address public liquidity;
+
+	/**
+	 * @notice Modifier to restrict access to the liquidity contract
+	 * @dev Ensures that only the liquidity contract can call the function
+	 */
+	modifier onlyLiquidity() {
+		if (msg.sender != liquidity) {
+			revert NotLiquidity();
+		}
+		_;
+	}
+
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
@@ -54,20 +77,27 @@ contract PredicatePermitter is
 	 * @notice Initializes the PredicatePermitter contract
 	 * @dev Sets up the initial state with admin, Predicate manager, and policy ID
 	 * @param _admin Address that will be granted ownership of the contract
+	 * @param _liquidity Address of the liquidity contract that will interact with this contract
 	 * @param _predicateManager Address of the Predicate Protocol manager contract
 	 * @param policyID The policy ID string used for permission validation
 	 */
 	function initialize(
 		address _admin,
+		address _liquidity,
 		address _predicateManager,
 		string calldata policyID
 	) external initializer {
-		if (_admin == address(0) || _predicateManager == address(0)) {
+		if (
+			_admin == address(0) ||
+			_liquidity == address(0) ||
+			_predicateManager == address(0)
+		) {
 			revert AddressZero();
 		}
 		if (bytes(policyID).length == 0) {
 			revert PolicyIDEmpty();
 		}
+		liquidity = _liquidity;
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
 		_initPredicateClient(_predicateManager, policyID);
@@ -89,7 +119,7 @@ contract PredicatePermitter is
 		uint256 value,
 		bytes calldata encodedData,
 		bytes calldata permission
-	) external returns (bool) {
+	) external onlyLiquidity returns (bool) {
 		PredicateMessage memory predicateMessage = abi.decode(
 			permission,
 			(PredicateMessage)
