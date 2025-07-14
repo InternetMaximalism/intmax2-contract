@@ -1,7 +1,7 @@
 import { str } from 'envalid'
 import { cleanEnv } from 'envalid/dist/envalid'
 import { ethers } from 'hardhat'
-import { Rollup } from '../../typechain-types/contracts/Rollup'
+import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
 const env = cleanEnv(process.env, {
@@ -10,13 +10,13 @@ const env = cleanEnv(process.env, {
 
 async function main() {
 	let deployedL2Contracts = await readDeployedContracts()
-	if (!deployedL2Contracts.rollup) {
-		throw new Error('Rollup contract is not deployed on L2')
+	if (!deployedL2Contracts.claim) {
+		throw new Error('Claim contract is not deployed on L2')
 	}
-	const rollup = (await ethers.getContractAt(
-		'Rollup',
-		deployedL2Contracts.rollup,
-	)) as unknown as Rollup
+	const claim = (await ethers.getContractAt(
+		'Claim',
+		deployedL2Contracts.claim,
+	)) as unknown as Claim
 }
 
 main().catch((error) => {
