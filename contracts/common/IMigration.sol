@@ -18,11 +18,6 @@ interface IMigration {
 	error AlreadyMigrated();
 
 	/**
-	 * @notice Emitted when step of migration is completed
-	 */
-	event MigrationStepCompleted();
-
-	/**
 	 * @notice Emitted when the contract is migrated to a new version
 	 */
 	event MigrationCompleted();

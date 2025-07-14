@@ -91,10 +91,7 @@ library AllocationLib {
 	 * @dev Sets up the start timestamp aligned to period boundaries
 	 * @param state The allocation state to initialize
 	 */
-	function initialize(
-		State storage state,
-		uint256 periodInterval
-	) internal {
+	function initialize(State storage state, uint256 periodInterval) internal {
 		if (periodInterval == 0) {
 			revert PeriodIntervalZero();
 		}

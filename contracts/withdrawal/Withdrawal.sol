@@ -348,7 +348,6 @@ contract Withdrawal is
 		for (uint256 i = 0; i < _nullifiers.length; i++) {
 			nullifiers[_nullifiers[i]] = true;
 		}
-		emit MigrationStepCompleted();
 	}
 
 	function migrateWithdrawals(
@@ -378,7 +377,6 @@ contract Withdrawal is
 				);
 			}
 		}
-		emit MigrationStepCompleted();
 	}
 
 	function finishMigration() external onlyOwner {

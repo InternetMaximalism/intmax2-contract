@@ -116,10 +116,7 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
-		AllocationLib.initialize(
-			allocationState,
-			periodInterval
-		);
+		AllocationLib.initialize(allocationState, periodInterval);
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		claimVerifier = IPlonkVerifier(_claimVerifier);
 		rollup = IRollup(_rollup);
@@ -318,14 +315,11 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		return allocationState.getAllocationConstants();
 	}
 
-	function migrateStartTimestamp(
-		uint256 _startTimestamp
-	) external onlyOwner {
+	function migrateStartTimestamp(uint256 _startTimestamp) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
 		allocationState.startTimestamp = _startTimestamp;
-		emit MigrationStepCompleted();
 	}
 
 	function migrateNullifiers(
@@ -337,7 +331,6 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		for (uint256 i = 0; i < _nullifiers.length; i++) {
 			nullifiers[_nullifiers[i]] = true;
 		}
-		emit MigrationStepCompleted();
 	}
 
 	function migrateContributions(
@@ -360,7 +353,6 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 			uint256 depositAmount = depositAmounts[i];
 			allocationState.migrateContribution(period, user, depositAmount);
 		}
-		emit MigrationStepCompleted();
 	}
 
 	function migrateComsumeUserAllocation(
@@ -375,12 +367,9 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 		for (uint256 i = 0; i < periodNumbers.length; i++) {
 			uint256 period = periodNumbers[i];
-			for (uint256 j = 0; j < users.length; j++) {
-				address user = users[j];
-				allocationState.consumeUserAllocation(period, user);
-			}
+			address user = users[i];
+			allocationState.consumeUserAllocation(period, user);
 		}
-		emit MigrationStepCompleted();
 	}
 
 	/**
