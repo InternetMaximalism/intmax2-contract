@@ -809,6 +809,16 @@ contract Liquidity is
 		return depositQueue.depositData.length - 1;
 	}
 
+	function updateRollupContract(
+		address _rollup
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		if (_rollup == address(0)) {
+			revert AddressZero();
+		}
+		rollup = _rollup;
+		emit RollupUpdated(_rollup);
+	}
+
 	/**
 	 * @notice Authorizes an upgrade to the implementation
 	 * @dev Only callable by the admin role
