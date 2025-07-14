@@ -313,6 +313,18 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	}
 
 	/**
+	 * @notice Migrates the contract to a new version
+	 * @dev Can only be called by the contract owner
+	 * @param _nullifiers Array of nullifiers of the old version to mark as used
+	 */
+	function migration(bytes32[] calldata _nullifiers) external onlyOwner() {
+		for (uint256 i = 0; i < _nullifiers.length; i++) {
+			nullifiers[_nullifiers[i]] = true;
+		}
+		emit Migrated();
+	}
+
+	/**
 	 * @notice Authorizes an upgrade to a new implementation
 	 * @dev Only the owner can authorize upgrades
 	 * @param newImplementation Address of the new implementation

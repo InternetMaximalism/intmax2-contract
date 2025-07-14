@@ -115,6 +115,11 @@ interface IRollup {
 	);
 
 	/**
+	 * @notice Emitted when the contract is migrated to a new version
+	 */
+	event Migrated();
+
+	/**
 	 * @notice Struct to store block data to avoid stack too deep errors
 	 * @dev Used in the internal _postBlock function to organize block parameters
 	 * @param isRegistrationBlock Whether the block is a registration block (true) or non-registration block (false)

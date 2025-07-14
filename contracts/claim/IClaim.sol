@@ -62,6 +62,11 @@ interface IClaim {
 	);
 
 	/**
+	 * @notice Emitted when the contract is migrated to a new version
+	 */
+	event Migrated();
+
+	/**
 	 * @notice Updates the claim verifier address
 	 * @dev Only the contract owner can update the verifier
 	 * @param _claimVerifier Address of the new claim verifier

@@ -418,6 +418,18 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	}
 
 	/**
+	 * @notice Migrates the contract to a new version
+	 * @dev Can only be called by the contract owner
+	 * @param _blockHashes Array of block hashes of the old version
+	 */
+	function migration(bytes32[] calldata _blockHashes) external onlyOwner() {
+		for (uint256 i = 0; i < _blockHashes.length; i++) {
+			blockHashes.push(_blockHashes[i]);
+		}
+		emit Migrated();
+	}
+
+	/**
 	 * @notice Authorizes an upgrade to a new implementation
 	 * @dev Can only be called by the contract owner
 	 * @param newImplementation Address of the new implementation contract
