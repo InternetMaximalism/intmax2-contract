@@ -7,6 +7,7 @@ import {ILiquidity} from "../liquidity/ILiquidity.sol";
 import {IRollup} from "../rollup/IRollup.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
+import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -22,7 +23,7 @@ import {Byte32Lib} from "../common/Byte32Lib.sol";
  * @notice Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
  * @dev Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1
  */
-contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
+contract Withdrawal is IWithdrawal, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 	using EnumerableSet for EnumerableSet.UintSet;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using ChainedWithdrawalLib for ChainedWithdrawalLib.ChainedWithdrawal[];
@@ -75,6 +76,8 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	 * @dev Tokens not in this set will be processed as claimable withdrawals
 	 */
 	EnumerableSet.UintSet internal directWithdrawalTokenIndices;
+
+	bool public isMigrationCompleted = false;
 
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
@@ -331,16 +334,22 @@ contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
 	}
 
-	/**
-	 * @notice Migrates the contract to a new version
-	 * @dev Can only be called by the contract owner
-	 * @param _nullifiers Array of nullifiers of the old version to mark as used
-	 */
 	function migration(bytes32[] calldata _nullifiers) external onlyOwner() {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
 		for (uint256 i = 0; i < _nullifiers.length; i++) {
 			nullifiers[_nullifiers[i]] = true;
 		}
-		emit Migrated();
+		emit MigrationStepCompleted();
+	}
+
+	function finishMigration() external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		isMigrationCompleted = true;
+		emit MigrationCompleted();
 	}
 
 	/**

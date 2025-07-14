@@ -68,11 +68,6 @@ interface IWithdrawal {
 	event VerifierUpdated(address indexed withdrawalVerifier);
 
 	/**
-	 * @notice Emitted when the contract is migrated to a new version
-	 */
-	event Migrated();
-
-	/**
 	 * @notice Emitted when a claimable withdrawal is queued
 	 * @dev Triggered for withdrawals of tokens not in the direct withdrawal list
 	 * @param withdrawalHash The hash of the withdrawal, used as an identifier

@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import {IRollup} from "./IRollup.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
 import {IContribution} from "../contribution/IContribution.sol";
+import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -13,12 +14,13 @@ import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
 import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
 
+
 /**
  * @title Rollup
  * @notice Implementation of the Intmax2 L2 rollup contract
  * @dev Manages block submission, deposit processing, and maintains the state of the rollup chain
  */
-contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
+contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
 	using RateLimiterLib for RateLimiterLib.RateLimitState;
@@ -99,6 +101,8 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	 * @dev Incremented for each processed deposit
 	 */
 	uint32 public depositIndex;
+
+	bool public isMigrationCompleted = false;
 
 	/**
 	 * @notice Modifier to restrict function access to the Liquidity contract via ScrollMessenger
@@ -417,16 +421,28 @@ contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 		return rateLimitState.getPenalty();
 	}
 
-	/**
-	 * @notice Migrates the contract to a new version
-	 * @dev Can only be called by the contract owner
-	 * @param _blockHashes Array of block hashes of the old version
-	 */
-	function migration(bytes32[] calldata _blockHashes) external onlyOwner() {
+	function migration(bytes32[] calldata _blockHashes, bytes32[] calldata _depositHashes, uint256 _lastProcessedDepositId) external onlyOwner() {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
 		for (uint256 i = 0; i < _blockHashes.length; i++) {
 			blockHashes.push(_blockHashes[i]);
 		}
-		emit Migrated();
+		for (uint256 i = 0; i < _depositHashes.length; i++) {
+			depositTree.deposit(_depositHashes[i]);
+		}
+		depositIndex = uint32(_depositHashes.length);
+		lastProcessedDepositId = _lastProcessedDepositId;
+		depositTreeRoot = depositTree.getRoot();
+		emit MigrationStepCompleted();
+	}
+
+	function finishMigration() external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		isMigrationCompleted = true;
+		emit MigrationCompleted();
 	}
 
 	/**

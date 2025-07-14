@@ -12,6 +12,7 @@ import {ILiquidity} from "../liquidity/ILiquidity.sol";
 import {IRollup} from "../rollup/IRollup.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
+import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -22,7 +23,7 @@ import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {Byte32Lib} from "../common/Byte32Lib.sol";
 import {AllocationLib} from "./lib/AllocationLib.sol";
 
-contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
+contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using ChainedClaimLib for ChainedClaimLib.ChainedClaim[];
 	using ClaimProofPublicInputsLib for ClaimProofPublicInputsLib.ClaimProofPublicInputs;
@@ -73,6 +74,8 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	 * @notice nullifiers
 	 */
 	mapping(bytes32 => bool) public nullifiers;
+
+	bool public isMigrationCompleted = false;
 
 	uint32 public constant REWARD_TOKEN_INDEX = 1;
 
@@ -317,11 +320,20 @@ contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	 * @dev Can only be called by the contract owner
 	 * @param _nullifiers Array of nullifiers of the old version to mark as used
 	 */
-	function migration(bytes32[] calldata _nullifiers) external onlyOwner() {
+	function migration(bytes32[] calldata _nullifiers, uint256 startTimestamp) external onlyOwner() {
 		for (uint256 i = 0; i < _nullifiers.length; i++) {
 			nullifiers[_nullifiers[i]] = true;
 		}
-		emit Migrated();
+		allocationState.startTimestamp = startTimestamp;
+		emit MigrationStepCompleted();
+	}
+
+	function finishMigration() external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		isMigrationCompleted = true;
+		emit MigrationCompleted();
 	}
 
 	/**
