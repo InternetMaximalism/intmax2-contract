@@ -14,7 +14,6 @@ import {BlockHashLib} from "./lib/BlockHashLib.sol";
 import {PairingLib} from "./lib/PairingLib.sol";
 import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
 
-
 /**
  * @title Rollup
  * @notice Implementation of the Intmax2 L2 rollup contract
@@ -102,7 +101,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 	 */
 	uint32 public depositIndex;
 
-	bool public isMigrationCompleted = false;
+	bool public isMigrationCompleted;
 
 	/**
 	 * @notice Modifier to restrict function access to the Liquidity contract via ScrollMessenger
@@ -421,20 +420,50 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		return rateLimitState.getPenalty();
 	}
 
-	function migration(bytes32[] calldata _blockHashes, bytes32[] calldata _depositHashes, uint32 _depositIndex, uint256 _lastProcessedDepositId) external onlyOwner() {
+	function migrateDeposits(
+		bytes32[] calldata _depositHashes,
+		uint256 _lastProcessedDepositId
+	) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
-		for (uint256 i = 0; i < _blockHashes.length; i++) {
-			blockHashes.push(_blockHashes[i]);
-		}
 		for (uint256 i = 0; i < _depositHashes.length; i++) {
 			depositTree.deposit(_depositHashes[i]);
+			emit DepositLeafInserted(depositIndex, _depositHashes[i]);
+			depositIndex++;
 		}
-		depositIndex = _depositIndex;
 		lastProcessedDepositId = _lastProcessedDepositId;
 		depositTreeRoot = depositTree.getRoot();
-		emit MigrationStepCompleted();
+		emit DepositsProcessed(_lastProcessedDepositId, depositTreeRoot);
+	}
+
+	function migrateBlockPost(
+		bytes32 _prevBlockHash,
+		address _sender,
+		uint64 _timestamp,
+		uint32 _blockNumber,
+		bytes32 _depositTreeRoot,
+		bytes32 _signatureHash
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		if (
+			_blockNumber != blockHashes.getBlockNumber() ||
+			_prevBlockHash != blockHashes.getPrevHash() ||
+			_depositTreeRoot != depositTreeRoot
+		) {
+			revert InvalidInput();
+		}
+		blockHashes.pushBlockHash(_depositTreeRoot, _signatureHash, _timestamp);
+		emit BlockPosted(
+			_prevBlockHash,
+			_sender,
+			_timestamp,
+			_blockNumber,
+			_depositTreeRoot,
+			_signatureHash
+		);
 	}
 
 	function finishMigration() external onlyOwner {

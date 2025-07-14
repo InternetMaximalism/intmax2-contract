@@ -23,7 +23,12 @@ import {Byte32Lib} from "../common/Byte32Lib.sol";
  * @notice Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
  * @dev Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1
  */
-contract Withdrawal is IWithdrawal, IMigration, UUPSUpgradeable, OwnableUpgradeable {
+contract Withdrawal is
+	IWithdrawal,
+	IMigration,
+	UUPSUpgradeable,
+	OwnableUpgradeable
+{
 	using EnumerableSet for EnumerableSet.UintSet;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using ChainedWithdrawalLib for ChainedWithdrawalLib.ChainedWithdrawal[];
@@ -77,7 +82,7 @@ contract Withdrawal is IWithdrawal, IMigration, UUPSUpgradeable, OwnableUpgradea
 	 */
 	EnumerableSet.UintSet internal directWithdrawalTokenIndices;
 
-	bool public isMigrationCompleted = false;
+	bool public isMigrationCompleted;
 
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
@@ -334,12 +339,44 @@ contract Withdrawal is IWithdrawal, IMigration, UUPSUpgradeable, OwnableUpgradea
 		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
 	}
 
-	function migration(bytes32[] calldata _nullifiers) external onlyOwner() {
+	function migrateNullifiers(
+		bytes32[] calldata _nullifiers
+	) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
 		for (uint256 i = 0; i < _nullifiers.length; i++) {
 			nullifiers[_nullifiers[i]] = true;
+		}
+		emit MigrationStepCompleted();
+	}
+
+	function migrateWithdrawals(
+		WithdrawalLib.Withdrawal[] memory withdrawals
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		for (uint256 i = 0; i < withdrawals.length; i++) {
+			WithdrawalLib.Withdrawal memory withdrawal = withdrawals[i];
+			if (nullifiers[withdrawal.nullifier]) {
+				continue; // already withdrawn
+			}
+			nullifiers[withdrawal.nullifier] = true;
+			if (_isDirectWithdrawalToken(withdrawal.tokenIndex)) {
+				emit DirectWithdrawalQueued(
+					withdrawal.getHash(),
+					withdrawal.recipient,
+					withdrawal
+				);
+			} else {
+				bytes32 withdrawalHash = withdrawal.getHash();
+				emit ClaimableWithdrawalQueued(
+					withdrawalHash,
+					withdrawal.recipient,
+					withdrawal
+				);
+			}
 		}
 		emit MigrationStepCompleted();
 	}

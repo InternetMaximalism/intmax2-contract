@@ -8,6 +8,11 @@ pragma solidity 0.8.27;
  */
 interface IMigration {
 	/**
+	 * @notice Error thrown when an invalid input is provided
+	 */
+	error InvalidInput();
+
+	/**
 	 * @notice Error when trying to migrate already migrated contract
 	 */
 	error AlreadyMigrated();

@@ -75,7 +75,7 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 	 */
 	mapping(bytes32 => bool) public nullifiers;
 
-	bool public isMigrationCompleted = false;
+	bool public isMigrationCompleted;
 
 	uint32 public constant REWARD_TOKEN_INDEX = 1;
 
@@ -116,7 +116,10 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
-		AllocationLib.initialize(allocationState, periodInterval);
+		AllocationLib.initialize(
+			allocationState,
+			periodInterval
+		);
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		claimVerifier = IPlonkVerifier(_claimVerifier);
 		rollup = IRollup(_rollup);
@@ -315,25 +318,69 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		return allocationState.getAllocationConstants();
 	}
 
-	/**
-	 * @notice Migrates the contract to a new version
-	 * @dev Can only be called by the contract owner
-	 * @param _nullifiers Array of nullifiers of the old version to mark as used
-	 */
-	function migration(bytes32[] calldata _nullifiers, uint256 startTimestamp) external onlyOwner() {
-		for (uint256 i = 0; i < _nullifiers.length; i++) {
-			nullifiers[_nullifiers[i]] = true;
-		}
-		allocationState.startTimestamp = startTimestamp;
-		emit MigrationStepCompleted();
-	}
-
-	function finishMigration() external onlyOwner {
+	function migrateStartTimestamp(
+		uint256 _startTimestamp
+	) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
-		isMigrationCompleted = true;
-		emit MigrationCompleted();
+		allocationState.startTimestamp = _startTimestamp;
+		emit MigrationStepCompleted();
+	}
+
+	function migrateNullifiers(
+		bytes32[] calldata _nullifiers
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		for (uint256 i = 0; i < _nullifiers.length; i++) {
+			nullifiers[_nullifiers[i]] = true;
+		}
+		emit MigrationStepCompleted();
+	}
+
+	function migrateContributions(
+		uint256[] calldata periodNumbers,
+		address[] calldata users,
+		uint256[] calldata depositAmounts
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		if (
+			periodNumbers.length != users.length ||
+			periodNumbers.length != depositAmounts.length
+		) {
+			revert InvalidInput();
+		}
+		for (uint256 i = 0; i < periodNumbers.length; i++) {
+			uint256 period = periodNumbers[i];
+			address user = users[i];
+			uint256 depositAmount = depositAmounts[i];
+			allocationState.migrateContribution(period, user, depositAmount);
+		}
+		emit MigrationStepCompleted();
+	}
+
+	function migrateComsumeUserAllocation(
+		uint256[] calldata periodNumbers,
+		address[] calldata users
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		if (periodNumbers.length != users.length) {
+			revert InvalidInput();
+		}
+		for (uint256 i = 0; i < periodNumbers.length; i++) {
+			uint256 period = periodNumbers[i];
+			for (uint256 j = 0; j < users.length; j++) {
+				address user = users[j];
+				allocationState.consumeUserAllocation(period, user);
+			}
+		}
+		emit MigrationStepCompleted();
 	}
 
 	/**
