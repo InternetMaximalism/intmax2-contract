@@ -17,6 +17,8 @@ async function main() {
 		'Withdrawal',
 		deployedL2Contracts.withdrawal,
 	)) as unknown as Withdrawal
+
+	
 }
 
 main().catch((error) => {
