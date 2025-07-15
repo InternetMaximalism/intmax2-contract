@@ -372,6 +372,15 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 	}
 
+	function migrateNullifierNonce(
+		uint256 _nullifierNonce
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		nullifierNonce = _nullifierNonce;
+	}
+
 	function finishMigration() external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();

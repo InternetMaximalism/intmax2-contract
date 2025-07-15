@@ -51,7 +51,6 @@ async function main() {
 		`📦 relayClaimChunks.json  (${chunkIds.length} chunks, ${total} pairs)`,
 	)
 
-	const gasLimit = 600_000
 	let nonce = await ethers.provider.getTransactionCount(
 		await signer.getAddress(),
 	)
@@ -66,7 +65,6 @@ async function main() {
 		)
 
 		const tx = await claim.migrateConsumeUserAllocation(periods, users, {
-			gasLimit,
 			nonce: nonce++,
 		})
 		await tx.wait()

@@ -25,13 +25,12 @@ async function main() {
 		signer,
 	)) as unknown as Claim
 
-	const startTimestamp = 1750464000
-	// const startTimestamp = 1748052000
+	const nullifierNonce = 952
 
-	const tx = await claim.migrateStartTimestamp(startTimestamp)
+	const tx = await claim.migrateNullifierNonce(nullifierNonce)
 	await tx.wait()
 	console.log(
-		`✅ migrateClaimStartTimestamp: completed (startTimestamp: ${startTimestamp})`,
+		`✅ migrateNullifierNonce: completed (startTimestamp: ${nullifierNonce})`,
 	)
 }
 

@@ -34,7 +34,7 @@ async function main() {
 		signer,
 	)) as unknown as Rollup
 
-	const JSON_FILE = join(DATA_DIR, 'bockBuilderNonce.json')
+	const JSON_FILE = join(DATA_DIR, 'blockBuilderNonce.json')
 	const rows: BuilderNonceRow[] = JSON.parse(await readFile(JSON_FILE, 'utf8'))
 
 	const builders: string[] = []
