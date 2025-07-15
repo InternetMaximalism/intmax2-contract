@@ -5,7 +5,7 @@ const DATA_DIR = resolve(
 	process.cwd(),
 	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
 )
-const IN_FILE = join(DATA_DIR, 'allClaimNullifiers.json')
+const IN_FILE = join(DATA_DIR, 'submitClaimProofCalldataAnalysis.json')
 const OUT_FILE = join(DATA_DIR, 'claimChunks.json')
 const CHUNK_SIZE = 100
 

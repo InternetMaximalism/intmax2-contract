@@ -1,0 +1,1013 @@
+[
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x415be8be2d550868953847c2a1b1077e78a2c85ccafb27ed131283fa7e9a4f71",
+    "args": {
+      "period": 11,
+      "users": [
+        "0x53928cad6fbb2c9656682c00991e4c72dd8a11b7"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x1febd8714f70d18d0f0631b983db46fbf31d95e6e7dd7b2b968541df2996bd63",
+    "args": {
+      "period": 30,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x84a37e2788bfd9c03497e4410d297f7524f2f35799f262f5c2dda75f6ac7d69f",
+    "args": {
+      "period": 31,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf8558f96c02f2dc17fa3a3e607d664a0185ef238931c483937767f75120b2afc",
+    "args": {
+      "period": 33,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b",
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xc39446b6559c2dc2fa546203fb898f4987321586450351aa318f49cb1f89bef4",
+    "args": {
+      "period": 34,
+      "users": [
+        "0x9fa732b331a5455125c57f9db2e54e03c1cbba5e",
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xd8a24d3296844ec35004ec085cb29accd8032fb932c30dae6f2f57cfd46a3ece",
+    "args": {
+      "period": 36,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x7a6484227f647cd464b3f743a29885323ce404d5808020a28ee796d98d323d14",
+    "args": {
+      "period": 40,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x4fcbc1c1648b4c322a8fb71fe345f098a1dd9b81e22181abfbe15aeed838817a",
+    "args": {
+      "period": 42,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x407f57efe96e3dc077a1dcbb586a117cc8765d0e901f382cab00f0961a292954",
+    "args": {
+      "period": 45,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x4d56f7847a5a05a8c63a7150ac11e7a3477bffb4b4af83390f20d6550f3bf409",
+    "args": {
+      "period": 47,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd",
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xcd492a5c6fb7de6674dfa1f52c60c31dc499e8b1d01816848f0fce815601f9fd",
+    "args": {
+      "period": 51,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x99ff5673fc7f839a27756f637511d53589a20977e1b3672e046a735eef957066",
+    "args": {
+      "period": 56,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x26ee4ba56adb99c2c7681f8cf8f743582a007e5ba38f6ea96e0f875ae3ec8eed",
+    "args": {
+      "period": 69,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x1b2ee58c63d603c2590c825dee6a9ea9a4501b322f2c693005c8141d532e7b6a",
+    "args": {
+      "period": 71,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x55f17c28b1497488a5bc471c5b6d4abb3d31f192ca141474c2d9048a5cdadcc9",
+    "args": {
+      "period": 75,
+      "users": [
+        "0xffe96f2959dbe4ba767d048e6d6bc0dedf4d3224",
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xc1fe8658596c857855195e505792787756a8ae71db39861df75dfcfa6bd58e84",
+    "args": {
+      "period": 81,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe5a7a5adbe7a83a06a57ab5da25c922a05b9ac6b5e20ee5f67fa1eeabbe8bac0",
+    "args": {
+      "period": 82,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x9c35f228cf0d155620ea1148c52d910171efec08e7922de73f0e8e996a897b4d",
+    "args": {
+      "period": 84,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd",
+        "0xffe96f2959dbe4ba767d048e6d6bc0dedf4d3224"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x135e395af9a65b47da7ac49de726711a35d0330da4036076c6623f1cfa25daa6",
+    "args": {
+      "period": 93,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x4b63ef0d33b0382f39123fb0857f2202946b58c72ec0e8cd8a25d0eddea148b4",
+    "args": {
+      "period": 97,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xa914efa2603c51ce4bac6ee1dc0848f79acf66a068cc8be66f7b2859978467ce",
+    "args": {
+      "period": 101,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x7f2959ba3feb6bc5bf420186d8b7bbe9b534bfc85621e81de9fc83acc0b0701b",
+    "args": {
+      "period": 103,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x832f124259d7ec1c0abccd38e3c4e3c748db66eb0c0851ad418867edd64e160e",
+    "args": {
+      "period": 104,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x356ef8c12b006d7b8f427fbea7fba24a4039928703267165738e85c1d1f9cc49",
+    "args": {
+      "period": 106,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb221452919d38cb0ec68ad034f2a774d04d8c23ce17fd88093d9b11948e7f3cc",
+    "args": {
+      "period": 108,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd",
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xdb4cfeeca5be69267c46028249161632f30dc90326f3b42832c6a3d34f045660",
+    "args": {
+      "period": 121,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x8e66bfad9a2cd9b1823039456cbab45f63643673512fa926342dbaeba383b68f",
+    "args": {
+      "period": 124,
+      "users": [
+        "0x0974f3c2dbd7646a54fe12edfad256185269ee36"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x076f4de4faf570f472f3c944a178ad5af6edf262d061947780da10977295333f",
+    "args": {
+      "period": 128,
+      "users": [
+        "0xf66bfd2c1ce904b495a92c23f36a8d036035c96b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe3316274795943facbb70941fbb541796620d12da06b7e9174964f8a7a83ba2b",
+    "args": {
+      "period": 129,
+      "users": [
+        "0x6639edb90ba4407a36e0d8ce2d9168a0d4844776"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x5cf696ed7af68011adfcb3def1645e70767dbfb17ad14b3ee3c668e44f051e83",
+    "args": {
+      "period": 131,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x097d21d02a139b46109717ec269f52945aa9ca3f98dfd0501ea4e94b5b9331de",
+    "args": {
+      "period": 146,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xaeb16070db46c9fc645f550496f3fe71c137a2f5f47ecd2755cfe74f62ca1539",
+    "args": {
+      "period": 151,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x079378ace73497d13dc269b8d0e05168f0c03f86145b73cd48d2466eeb41d15d",
+    "args": {
+      "period": 154,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x489e5ecb1ffda116d240b560bb3fd5c1210b9c63cab8ca54cbfe2d6dbf024042",
+    "args": {
+      "period": 168,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6",
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xa9d541dd9b8082c6df7af0dec2e258b7f2dd6500dabc00af8bcf1643b552708a",
+    "args": {
+      "period": 169,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x70fdaa3e686502c503bdd413e4cafce25af9d25f9ef772b9069cb87b4f2590e6",
+    "args": {
+      "period": 170,
+      "users": [
+        "0x0974f3c2dbd7646a54fe12edfad256185269ee36"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf99f289553ac572c5a054d4081bac0567f9e563f17e7886f30926a27c9d7652f",
+    "args": {
+      "period": 190,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x391365de254fd637da7b9e51f9d3ea39954618bfc7988db200c40c0b1bf748ea",
+    "args": {
+      "period": 247,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x88708f8e53cb1852eeab388df2b6702f8dd01aba200ed41401fd1378b1583f3b",
+    "args": {
+      "period": 251,
+      "users": [
+        "0x251e698647c37b9fde7cc2b0168ec69896ba1423",
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x8a85ae4043c965ac03eef0d20cbc0a60c794d9d77c1f4f6f019df544f909550e",
+    "args": {
+      "period": 268,
+      "users": [
+        "0x53928cad6fbb2c9656682c00991e4c72dd8a11b7"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x1ce56d2e479c8d1cf0b2931f50030f365ba96537012dd8de72f606f0d27d7267",
+    "args": {
+      "period": 270,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe00f1c16adbb13172f641aaa600697c8d2061116b646fb0cace48eca454f6381",
+    "args": {
+      "period": 273,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x987d795b711b1f8f5981318cd035f1eef2c2ba4c19e78851dc60b3c04e470f5f",
+    "args": {
+      "period": 274,
+      "users": [
+        "0x4c75fcdbd0bcb12662d8c24899dd6267332235da"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x607ab616beaba330872dfb47d3418e48b2aeedcf57585dbfe5bb28f0e8957e25",
+    "args": {
+      "period": 275,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb6f048c0b3dd706ecb571ec7fda757a4985ba4d7e7c832afed8df132e713e751",
+    "args": {
+      "period": 317,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe56cd65eaaff72015e20337edeecb386cc34d4c8c4ba6357a0289db438cad102",
+    "args": {
+      "period": 318,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x9fb3c824a412ce0e5451a8946df2367f64677444ba90e4bcdf2923e4006d0a4b",
+    "args": {
+      "period": 351,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x3de7cb2da1be846b80a0bd911f53678f93490eaa73ec1878bbbd0b39c4b92df7",
+    "args": {
+      "period": 372,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x08b1d637b6791278d2090e5af820b5691169f3a89a70553699c2d0bc365ed1f5",
+    "args": {
+      "period": 381,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf57a914964c69a84151a9206955a19dac19f649c678348be4da5a2fbd505c4cf",
+    "args": {
+      "period": 388,
+      "users": [
+        "0xffe96f2959dbe4ba767d048e6d6bc0dedf4d3224"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x80766b3096f8db0d95c9c0de83a8cb30e7de1867c9ce4be198a0c4a111def5ce",
+    "args": {
+      "period": 416,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x1d225a107beff9f62c5bd2d3fbf05e829304b804fcfd5881ea94ae6dfb40edba",
+    "args": {
+      "period": 437,
+      "users": [
+        "0xa80a3832916aee1039fbd265570afae1731a58cd"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xd6a8f3a9ac33da23a455de883b896950713ec0a629b84759782a0e63e24e14c2",
+    "args": {
+      "period": 489,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x4caa8a5c2bcc0ec4c977d059263319949bc02db9398cd3d7658a1195747395be",
+    "args": {
+      "period": 532,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xfacf2cb941b31f697ca08a807cf74c5cce8ac42594f2bc50b9bc742b7e655e99",
+    "args": {
+      "period": 608,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf667e8db6951f50257d2f9e870ec8747d4f1dee8b3fba86237d9df92c646d3ce",
+    "args": {
+      "period": 609,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x2ca0175a8d043d76c1dc6d51d8af0cb42f56d3fcc68e67629c2d98484596be7c",
+    "args": {
+      "period": 612,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x90ccdb44f2cd3f529f40e8e4f48f655046cede4a4f86f6610de16c28500b839c",
+    "args": {
+      "period": 632,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6",
+        "0xd4f327302cfc784be74fded3236a835e995e1b3f"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xc989c08bbc849ba574169e3d6291c6ef27fc032bd70ec4473c0d75be6f93d280",
+    "args": {
+      "period": 635,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x3174d7e6d2d64864087c67b2d04de0a545b72fee5e0135a24923a0d8a8072262",
+    "args": {
+      "period": 650,
+      "users": [
+        "0x4c75fcdbd0bcb12662d8c24899dd6267332235da"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xaf286744a2c00293488c5eefc8034abc2d1b008165ce77cc1d442e52fc44519c",
+    "args": {
+      "period": 651,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6",
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb926dcf99018be87aef8427950320560242ecafd06c5a34df98242f1180fb2d9",
+    "args": {
+      "period": 655,
+      "users": [
+        "0xb13e99fb67babc3bf0a494c6e538ced48cb99a3b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xa5edec35e40335dba323b6d3a9ea5e478ef35d5dbc0b3212f6544dece43ce0af",
+    "args": {
+      "period": 660,
+      "users": [
+        "0xb13e99fb67babc3bf0a494c6e538ced48cb99a3b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb07491db8d4f3109af3be3d937a70b6deddd39eadb92830dbf9b101af2f72ae0",
+    "args": {
+      "period": 661,
+      "users": [
+        "0x1e1dbedc93565d686954b5f827e5a3f91a02650d"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x7e22f98472666e1ee6ed142761e2ec6bcf6c77642632ef9f54f0dfa6778eee07",
+    "args": {
+      "period": 662,
+      "users": [
+        "0xba9d80aa3b919f24c36f0f3f26391c790e1986b6",
+        "0x724ff2d9bbd572fb44c4f8bb1b015adc20d18788"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x8d30dae8163124304766dd9ef22b8f33b34f5cba4439214f5eda96ff2b0e8b61",
+    "args": {
+      "period": 665,
+      "users": [
+        "0x1292e184debdf95eb5368f6c0ddd1a8f04f7f555"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x189021a700e641d5797c3593adb9ed92b74631d8e33beb44ac081d65db9f1163",
+    "args": {
+      "period": 725,
+      "users": [
+        "0x724ff2d9bbd572fb44c4f8bb1b015adc20d18788"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x01b4e5c8e135b3eebb5b83f1bf8f15b69f301f2f719dc120cb43319db5f86e48",
+    "args": {
+      "period": 731,
+      "users": [
+        "0x9a09b7eaf9772a102974fcd3a782646b3177ac1c"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x4501057fa8b44a690e73090f56e1fc92f79575186c3be36c504ce2e0bc914109",
+    "args": {
+      "period": 732,
+      "users": [
+        "0x1c0da92cb917ad47d07bf1d650117b3e08a0e1d2"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x7dba64e6ca5639d776a267e4793dca2877a7cd6543aaf140b9c355290be9a83f",
+    "args": {
+      "period": 733,
+      "users": [
+        "0xe9aeff2e55e0b537a89995465cf49eaa4737cfb7",
+        "0x22d2a1fb5a92d19e65177f6d3c73bdaca8e221d6",
+        "0x19d2e14efffcb6629bd93110c4a890fe925c14e7",
+        "0x96a915e66d893a1f3b9b4de419ff406934786a09",
+        "0x96e8128ad1c38546397479fe4d60fc282c433c42",
+        "0xd8a95d1b1e336bf6822b5672d3c7560c2e882928",
+        "0xbab225363436008ad8cc05e7265c37ba4dadfcde",
+        "0x9290ebfebb8b20899729ebd831ddcb7bf82ebd2b",
+        "0xf8057983537f1c24469cbb89b0699d2fbc3bb75d",
+        "0xab300f4a545642c02abfad234166eac59be8c4ff",
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393",
+        "0x04215ccfe280cb1b70e8b1e5ebc2ecb03660b19f",
+        "0x61e8b7c0e3779e1686a829949fcfa3159fb7a5c0"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x9519d8ae6f30589b4a1854c0bc6fdc62f0942e604559327c71aa06f80d9f9b11",
+    "args": {
+      "period": 734,
+      "users": [
+        "0xe9aeff2e55e0b537a89995465cf49eaa4737cfb7",
+        "0x22d2a1fb5a92d19e65177f6d3c73bdaca8e221d6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe08fb7edc1c58a7d09adcb87faed5b165437faf75d47b558b5d0dacca53ce8da",
+    "args": {
+      "period": 735,
+      "users": [
+        "0x620e4b0037870437d856a2a990b601dabf72d2f6",
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf3d58f6d1a5b67da941ab17cc2a49689fb2b95531d80d748014fb35cf486326e",
+    "args": {
+      "period": 737,
+      "users": [
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393",
+        "0xd8e3d05c75802c1bf479e4f260dc36cae606a5a6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x53c9662e3e6672cedf603afac07b42c4d7c57d5ee4a6a008e12224cfc9fdcefd",
+    "args": {
+      "period": 739,
+      "users": [
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393",
+        "0x620e4b0037870437d856a2a990b601dabf72d2f6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x3d77ffed690c5a7078c767f097bb1e7f45ea210f108dd8ed646217f2d0c34b18",
+    "args": {
+      "period": 740,
+      "users": [
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x29eec0607876a33da6b642d9895c271e849276cd5b527916dec6638ff866785e",
+    "args": {
+      "period": 741,
+      "users": [
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x7d83f880360e2e4ca2e3321211341ff7e023491a351a93c9c9989922c963628b",
+    "args": {
+      "period": 742,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x001c0dc4c14f04c7d6303b5cae0100c4e356d4514963b45f6919c218f1a818e4",
+    "args": {
+      "period": 750,
+      "users": [
+        "0xac678452dd3b750c7182c51df143cc6d8eb3fb16"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xe19c2fcaba19591097cc9538685859a88701ae774d08cfbad708df3e1398d697",
+    "args": {
+      "period": 751,
+      "users": [
+        "0x9290ebfebb8b20899729ebd831ddcb7bf82ebd2b",
+        "0xce7df144f3be28b8e3296fb2e567b7cbe7093861",
+        "0x724ff2d9bbd572fb44c4f8bb1b015adc20d18788"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb67516ba5c47124249eda16e7f9b8742782c0c05093b8f8f013a1c0d9e988315",
+    "args": {
+      "period": 752,
+      "users": [
+        "0xac678452dd3b750c7182c51df143cc6d8eb3fb16"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x67e75f9ca580468d210fa00486ac9aa80a42234dc7cb5493300d084d36bb89cf",
+    "args": {
+      "period": 753,
+      "users": [
+        "0x2e67e192b10892cbc6bf32940566e4b5cbf8f93f"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xcd3885abe511a8f41c9c51015c2330e0a746d8a66d77346d334f2253efd0e839",
+    "args": {
+      "period": 754,
+      "users": [
+        "0xbab225363436008ad8cc05e7265c37ba4dadfcde",
+        "0x52c043c7120d7da35ffddf6c5c2359d503cee5f8"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x77ba81eda8bec5658eb8b9c4a58b5c9299f69078022ab734c5b6f5e2c4b37b65",
+    "args": {
+      "period": 755,
+      "users": [
+        "0xef09fbf7657842e8f66af0a9e474e5fb2094654b",
+        "0x2e67e192b10892cbc6bf32940566e4b5cbf8f93f"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x87b9a0bf61fbbfc1a269fb6a92211cf17b0920b60c0d274c1f54caaea0e8bb75",
+    "args": {
+      "period": 758,
+      "users": [
+        "0x4dca25e247cbf5cb68be072e69f2c1329ee24ab6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb149062a9428f742f5aed184525e541915a3bec2b3801c252b6cd4e1e768dfbf",
+    "args": {
+      "period": 762,
+      "users": [
+        "0xf218e3ce1043e54d140b45c5180d5aed378e6393"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xc6ee90fa41955cff00bf65ddb13a3db52c5a88da9e87fddc1d77f0614e4b4971",
+    "args": {
+      "period": 765,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x458faf23b202cdf9e60a815be2b888fc9fd4e8dc6ea71328696a8f0ae30a8219",
+    "args": {
+      "period": 771,
+      "users": [
+        "0xf9c78dae01af727e2f6db9155b942d8ab631df4b"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xf71c42da4327c2ccc4f0d0b62f21b2f61debfb8eb4b5458dfb0e111ad38575a7",
+    "args": {
+      "period": 780,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xd54bb6956737475f185e7b9ef8a4c63f59dc9e11aa948b973975b093c5c3bb21",
+    "args": {
+      "period": 916,
+      "users": [
+        "0xe60ae979eba8a4868fae632464306ddd6b712ae9"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xae86f186249a33eefe3c767e23300a8f5ba58807739592e156b70a2442687b0b",
+    "args": {
+      "period": 935,
+      "users": [
+        "0xcc90efd4be31f49c2e8c43c1fbc2d83f7cb184c6"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xecd3d1eb048b2fbf4ae44bd510a613f7cfb0a21426ecf018608456a3f6bcf158",
+    "args": {
+      "period": 967,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xb5c099dc66bdb3d86f8f877815f96859ff6ad3b97fe2eb2d2592bf78e03e7463",
+    "args": {
+      "period": 971,
+      "users": [
+        "0xb6865560b8a966b50832364edc068d89dd9c1157"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x5680a62ee80ecd23c3d643df704135058d90de9f9fdbcae3de8946646749b40b",
+    "args": {
+      "period": 980,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0xeab8781bcc911aff3ae46382585bf74c1dd3ea328996faf9181493215d21f5f4",
+    "args": {
+      "period": 1018,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x2553d9ad324e8a825e40b3e6e241337ca88e1726fd64c3cc8d1116580ae3d800",
+    "args": {
+      "period": 1020,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x5cef518d1f5672bab03a6bbe22212551a17f4aa44545bda39cb4c35cb62f4f7f",
+    "args": {
+      "period": 1027,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x33e66ed8cde6bc53a33af023506a321e4d5c2d7a2ddc3402c998eff1c24c9cac",
+    "args": {
+      "period": 1028,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  },
+  {
+    "signature": "relayClaims(uint256,address[])",
+    "transactionHash": "0x21a97a784768c71fd4a7238c96c1c0ede5d0104f14ab85faf317021f9b3c0371",
+    "args": {
+      "period": 1041,
+      "users": [
+        "0x4e45b0449f3978fdef0c20158bb4527d2cdf0f98"
+      ]
+    }
+  }
+]

@@ -12,6 +12,8 @@ const DATA_DIR = resolve(
 	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
 )
 
+console.log(`DATA_DIR: ${DATA_DIR}`)
+
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
@@ -60,7 +62,7 @@ async function main() {
 		}, BlockPosted ${timeline.filter((x) => x.kind === 'BlockPosted').length})`,
 	)
 
-	const gasLimitDeposits = 5_000_000
+	const gasLimitDeposits = 10_000_000
 	const gasLimitBlockPost = 5_000_000
 
 	for (const item of timeline) {

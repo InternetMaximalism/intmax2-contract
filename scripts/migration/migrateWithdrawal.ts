@@ -7,21 +7,22 @@ import { join, resolve } from 'path'
 import { Withdrawal } from '../../typechain-types/contracts/Withdrawal'
 import { readDeployedContracts } from '../utils/io'
 
-/* ───────── env ───────── */
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
+console.log(`DATA_DIR: ${DATA_DIR}`)
 
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
-/* ───────── Withdrawal struct (type helper) ───────── */
 type WithdrawalStruct = {
 	nullifier: string
 	recipient: string
 	tokenIndex: number
 	amount: string
 }
-
-/* ─────────  Main ───────── */
 
 async function main() {
 	/* 1) Get contract address */
@@ -37,11 +38,6 @@ async function main() {
 		signer,
 	)) as unknown as Withdrawal
 
-	/* 4) Load chunk JSON */
-	const DATA_DIR = resolve(
-		process.cwd(),
-		`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
-	)
 	const CHUNKS_FILE = join(DATA_DIR, 'withdrawalChunks.json')
 	const chunksJson: Record<string, WithdrawalStruct[]> = JSON.parse(
 		await readFile(CHUNKS_FILE, 'utf8'),

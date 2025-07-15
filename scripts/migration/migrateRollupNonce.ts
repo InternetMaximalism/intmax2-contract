@@ -6,20 +6,22 @@ import { join, resolve } from 'path'
 import { Rollup } from '../../typechain-types/contracts/Rollup'
 import { readDeployedContracts } from '../utils/io'
 
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
+console.log(`DATA_DIR: ${DATA_DIR}`)
+
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
-/*───────────────────────────────────────────────────────────────────*\
-  ■ JSON format
-\*───────────────────────────────────────────────────────────────────*/
 interface BuilderNonceRow {
 	blockBuilder: string
 	builderRegistrationNonce: number // uint32
 	builderNonRegistrationNonce: number // uint32
 }
 
-/*───────────────────────────────────────────────────────────────────*/
 async function main() {
 	const deployed = await readDeployedContracts()
 	if (!deployed.rollup) throw new Error('Rollup contract is not deployed on L2')
@@ -32,15 +34,9 @@ async function main() {
 		signer,
 	)) as unknown as Rollup
 
-	/* 2) Load JSON */
-	const DATA_DIR = resolve(
-		process.cwd(),
-		`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
-	)
 	const JSON_FILE = join(DATA_DIR, 'bockBuilderNonce.json')
 	const rows: BuilderNonceRow[] = JSON.parse(await readFile(JSON_FILE, 'utf8'))
 
-	/* 3) Generate arrays (type ethers.BigNumberish is OK) */
 	const builders: string[] = []
 	const regNonces: number[] = []
 	const nonRegNonces: number[] = []
