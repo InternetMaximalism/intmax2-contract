@@ -1,13 +1,3 @@
-/**
- * scripts/migration/runConsumeAllocationMigration.ts
- *
- * relayClaimChunks.json を読み込み、チャンクごとに
- *   Claim.migrateConsumeUserAllocation(uint256[] period, address[] users)
- * を送信するスクリプト。
- *
- *   $ npx hardhat run scripts/migration/runConsumeAllocationMigration.ts --network <network>
- */
-
 import { str } from 'envalid'
 import { cleanEnv } from 'envalid/dist/envalid'
 import { readFile } from 'fs/promises'
@@ -17,16 +7,13 @@ import { join, resolve } from 'path'
 import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
-/* ───────── env ───────── */
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
-/* ───────── ファイル設定 ───────── */
 const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 const CHUNKS_FILE = join(DATA_DIR, 'relayClaimChunks.json')
 
-/*  { period, user } 型  */
 interface RelayEntry {
 	period: number
 	user: string
