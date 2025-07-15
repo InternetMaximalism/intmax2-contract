@@ -5,7 +5,7 @@ import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
 const env = cleanEnv(process.env, {
-	ADMIN_ADDRESS: str(),
+	ADMIN_PRIVATE_KEY: str(),
 })
 
 async function main() {
@@ -13,9 +13,11 @@ async function main() {
 	if (!deployedL2Contracts.claim) {
 		throw new Error('Claim contract is not deployed on L2')
 	}
+	const signer = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
 	const claim = (await ethers.getContractAt(
 		'Claim',
 		deployedL2Contracts.claim,
+		signer,
 	)) as unknown as Claim
 }
 
