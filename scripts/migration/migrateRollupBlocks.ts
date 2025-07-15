@@ -27,6 +27,7 @@ interface DepositsItem {
 interface BlockPostedItem {
 	kind: 'BlockPosted'
 	ethBlockNumber: number
+	callData: string
 	blockNumber: number
 	prevBlockHash: string
 	blockBuilder: string
@@ -91,6 +92,7 @@ async function main() {
 				item.blockNumber,
 				item.depositTreeRoot,
 				item.signatureHash,
+				item.callData,
 				{
 					gasLimit: gasLimitBlockPost,
 					nonce: nonce++,

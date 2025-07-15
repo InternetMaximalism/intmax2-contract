@@ -5,13 +5,14 @@ const DATA_DIR = resolve(
 	process.cwd(),
 	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
 )
-const BLOCKS_FILE = join(DATA_DIR, 'blockPostedDetailsEvents.json')
-const DEPOSITS_FILE = join(DATA_DIR, 'depositLeafInsertedDetailsEvents.json')
+const BLOCKS_FILE = join(DATA_DIR, 'blockPostedEvents.json')
+const DEPOSITS_FILE = join(DATA_DIR, 'depositLeafInsertedEvents.json')
 const OUT_FILE = join(DATA_DIR, 'postTimeline.json')
 
 interface BlockPostedItem {
 	kind: 'BlockPosted'
 	ethBlockNumber: number
+	callData: string
 	blockNumber: number // L2 block #
 	prevBlockHash: string
 	blockBuilder: string
@@ -29,6 +30,7 @@ interface DepositGroupItem {
 type TimelineItem = BlockPostedItem | DepositGroupItem
 
 type RawBlockPosted = {
+	callData: string
 	blockNumber: number
 	args: {
 		blockNumber: number
@@ -58,6 +60,7 @@ function buildTimeline(
 	const mappedBlocks: BlockPostedItem[] = blocks.map((ev) => ({
 		kind: 'BlockPosted',
 		ethBlockNumber: ev.blockNumber,
+		callData: ev.callData,
 		blockNumber: ev.args.blockNumber,
 		prevBlockHash: ev.args.prevBlockHash,
 		blockBuilder: ev.args.blockBuilder,

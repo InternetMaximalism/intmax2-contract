@@ -450,8 +450,10 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		uint64 _timestamp,
 		uint32 _blockNumber,
 		bytes32 _depositTreeRoot,
-		bytes32 _signatureHash
+		bytes32 _signatureHash,
+		bytes calldata _originalCallData 
 	) external onlyOwner {
+		(_originalCallData);
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
