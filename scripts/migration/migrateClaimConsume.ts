@@ -20,7 +20,6 @@ interface RelayEntry {
 }
 
 async function main() {
-	/* 1) Claim コントラクトを owner signer で取得 */
 	const deployed = await readDeployedContracts()
 	if (!deployed.claim) throw new Error('Claim contract is not deployed on L2')
 
@@ -31,13 +30,11 @@ async function main() {
 		signer,
 	)) as unknown as Claim
 
-	/* 2) migration 完了チェック (optional) */
 	if (await claim.isMigrationCompleted()) {
 		console.log('⚠️  migrateConsumeUserAllocation: already completed. Exit.')
 		return
 	}
 
-	/* 3) チャンク JSON 読み込み */
 	const chunksJson: Record<string, RelayEntry[]> = JSON.parse(
 		await readFile(CHUNKS_FILE, 'utf8'),
 	)
@@ -51,13 +48,11 @@ async function main() {
 		`📦 relayClaimChunks.json  (${chunkIds.length} chunks, ${total} pairs)`,
 	)
 
-	/* 4) tx 共通オプション */
-	const gasLimit = 600_000 // 適宜調整
+	const gasLimit = 600_000
 	let nonce = await ethers.provider.getTransactionCount(
 		await signer.getAddress(),
 	)
 
-	/* 5) 送信ループ */
 	for (const id of chunkIds) {
 		const entries = chunksJson[id]
 		const periods = entries.map((e) => e.period)

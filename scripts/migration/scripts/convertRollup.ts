@@ -1,7 +1,10 @@
 import fs from 'fs/promises'
 import { join, resolve } from 'path'
 
-/* ───────── Type definitions ───────── */
+const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/devnet')
+const BLOCKS_FILE = join(DATA_DIR, 'blockPostedDetailsEvents.json')
+const DEPOSITS_FILE = join(DATA_DIR, 'depositLeafInsertedDetailsEvents.json')
+const OUT_FILE = join(DATA_DIR, 'postTimeline.json')
 
 interface BlockPostedItem {
 	kind: 'BlockPosted'
@@ -21,8 +24,6 @@ interface DepositGroupItem {
 }
 
 type TimelineItem = BlockPostedItem | DepositGroupItem
-
-/* ───────── Input JSON types (minimum) ───────── */
 
 type RawBlockPosted = {
 	blockNumber: number
@@ -122,11 +123,6 @@ function buildTimeline(
 /* ───────── Main ───────── */
 
 async function main() {
-	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
-	const BLOCKS_FILE = join(DATA_DIR, 'blockPostedDetailsEvents.json')
-	const DEPOSITS_FILE = join(DATA_DIR, 'depositLeafInsertedEvents.json')
-	const OUT_FILE = join(DATA_DIR, 'postTimeline.json')
-
 	const [blocksRaw, depositsRaw] = await Promise.all([
 		fs.readFile(BLOCKS_FILE, 'utf8'),
 		fs.readFile(DEPOSITS_FILE, 'utf8'),

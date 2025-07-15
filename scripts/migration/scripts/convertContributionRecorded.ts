@@ -4,7 +4,7 @@ import { join, resolve } from 'path'
 /*───────────────────────────────*
  * Configuration
  *───────────────────────────────*/
-const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
+const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/devnet')
 const IN_FILE = join(DATA_DIR, 'contributionRecordedEvents.json')
 const OUT_FILE = join(DATA_DIR, 'contributionChunks.json')
 const CHUNK_SIZE = 100
