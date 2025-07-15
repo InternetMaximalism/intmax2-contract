@@ -1,17 +1,3 @@
-/**
- * scripts/migration/runBuilderNonceMigration.ts
- *
- * - blockBuilderNonce.json を読み込み
- * - Rollup.migrateBlockBuilderNonce(
- *       address[]  _builder,
- *       uint32[]   _registrationNonces,
- *       uint32[]   _nonRegistrationNonces
- *   )
- *   を送信して確定させる
- *
- *   $ npx hardhat run scripts/migration/runBuilderNonceMigration.ts --network <network>
- */
-
 import { str } from 'envalid'
 import { cleanEnv } from 'envalid/dist/envalid'
 import { readFile } from 'fs/promises'

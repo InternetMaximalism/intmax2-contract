@@ -372,6 +372,14 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 	}
 
+	function finishMigration() external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		isMigrationCompleted = true;
+		emit MigrationCompleted();
+	}
+
 	/**
 	 * @notice Authorizes an upgrade to a new implementation
 	 * @dev Only the owner can authorize upgrades
