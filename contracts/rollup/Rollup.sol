@@ -420,9 +420,18 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		return rateLimitState.getPenalty();
 	}
 
-	function migrateDeposits(
-		bytes32[] calldata _depositHashes,
+
+	function migrateLastProcessedDepositId(
 		uint256 _lastProcessedDepositId
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		lastProcessedDepositId = _lastProcessedDepositId;
+	}
+
+	function migrateDeposits(
+		bytes32[] calldata _depositHashes
 	) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
@@ -432,9 +441,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			emit DepositLeafInserted(depositIndex, _depositHashes[i]);
 			depositIndex++;
 		}
-		lastProcessedDepositId = _lastProcessedDepositId;
 		depositTreeRoot = depositTree.getRoot();
-		emit DepositsProcessed(_lastProcessedDepositId, depositTreeRoot);
 	}
 
 	function migrateBlockPost(
