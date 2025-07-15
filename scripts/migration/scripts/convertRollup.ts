@@ -1,14 +1,7 @@
-/**
- * index.ts
- *   - blockPostedDetailsEvents.json / depositLeafInsertedEvents.json → postTimeline.json
- *   - ethBlockNumber 昇順でタイムラインを構築。
- *   - Deposit が連続する区間は depositIndex 昇順に並べて 1 グループへ。
- */
-
 import fs from 'fs/promises'
 import { join, resolve } from 'path'
 
-/* ───────── 型定義 ───────── */
+/* ───────── Type definitions ───────── */
 
 interface BlockPostedItem {
 	kind: 'BlockPosted'
@@ -23,13 +16,13 @@ interface BlockPostedItem {
 
 interface DepositGroupItem {
 	kind: 'Deposits'
-	ethBlockNumbers: number[] // depositIndex 昇順
-	depositHashes: string[] // ↑ と同じ順
+	ethBlockNumbers: number[] // depositIndex ascending
+	depositHashes: string[] // same order as above
 }
 
 type TimelineItem = BlockPostedItem | DepositGroupItem
 
-/* ───────── 入力 JSON 型 (最低限) ───────── */
+/* ───────── Input JSON types (minimum) ───────── */
 
 type RawBlockPosted = {
 	blockNumber: number
@@ -46,22 +39,18 @@ type RawBlockPosted = {
 type RawDeposit = {
 	blockNumber: number
 	topics: string[] // [0]=eventSig, [1]=depositIndex, [2]=depositHash
-	depositIndex?: number // プロパティで来る場合も考慮
+	depositIndex?: number // consider case when it comes as property
 }
 
-/* ───────── Utility ───────── */
-
-/** topics[1] から depositIndex を BigInt で抽出 */
+/** Extract depositIndex as BigInt from topics[1] */
 const getDepositIndex = (ev: RawDeposit): bigint =>
 	ev.depositIndex !== undefined ? BigInt(ev.depositIndex) : BigInt(ev.topics[1])
-
-/* ───────── タイムライン構築 ───────── */
 
 function buildTimeline(
 	blocks: RawBlockPosted[],
 	deposits: RawDeposit[],
 ): TimelineItem[] {
-	/* BlockPosted を変換 */
+	/* Convert BlockPosted */
 	const mappedBlocks: BlockPostedItem[] = blocks.map((ev) => ({
 		kind: 'BlockPosted',
 		ethBlockNumber: ev.blockNumber,
@@ -73,7 +62,7 @@ function buildTimeline(
 		signatureHash: ev.args.signatureHash,
 	}))
 
-	/* Deposit を中間型へ (depositIndex を保持) */
+	/* Convert Deposit to intermediate type (preserve depositIndex) */
 	type DepositRaw = {
 		kind: 'DepositRaw'
 		ethBlockNumber: number
@@ -87,23 +76,23 @@ function buildTimeline(
 		depositHash: ev.topics[2] as string,
 	}))
 
-	/* ── ソート: ethBlockNumber 昇順 + (Deposit 同士なら depositIndex 昇順) */
+	/* ── Sort: ethBlockNumber ascending + (depositIndex ascending for Deposits) */
 	const combined = [...mappedBlocks, ...mappedDeposits].sort((a, b) => {
 		const ea = (a as any).ethBlockNumber
 		const eb = (b as any).ethBlockNumber
 		if (ea !== eb) return ea - eb
 
-		// 同じ ethBlockNumber で Deposit 同士なら depositIndex で並べ替え
+		// Sort by depositIndex for Deposits with same ethBlockNumber
 		if ((a as any).kind === 'DepositRaw' && (b as any).kind === 'DepositRaw') {
 			const ia = (a as DepositRaw).depositIndex
 			const ib = (b as DepositRaw).depositIndex
 			return ia < ib ? -1 : ia > ib ? 1 : 0
 		}
-		// それ以外は順不同で OK
+		// Any order is OK for others
 		return 0
 	})
 
-	/* ── Deposit 連続区間をまとめる (depositIndex はすでに昇順) */
+	/* ── Group consecutive Deposit sections (depositIndex already ascending) */
 	const timeline: TimelineItem[] = []
 	let buf: DepositRaw[] = []
 

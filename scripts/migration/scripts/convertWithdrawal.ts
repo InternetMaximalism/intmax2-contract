@@ -8,7 +8,7 @@ const OUT_FILE = join(DATA_DIR, 'withdrawalChunks.json')
 const CHUNK_SIZE = 100
 
 type RawEvent = {
-	blockNumber: number // ソートに使う
+	blockNumber: number // used for sorting
 	args: {
 		withdrawal: {
 			nullifier: string
@@ -26,7 +26,6 @@ type Withdrawal = {
 	amount: string
 }
 
-/* ───────── 100 件ずつに分割 ───────── */
 const chunkArray = <T>(src: T[], size: number): T[][] => {
 	const out: T[][] = []
 	for (let i = 0; i < src.length; i += size) out.push(src.slice(i, i + size))
@@ -34,7 +33,7 @@ const chunkArray = <T>(src: T[], size: number): T[][] => {
 }
 
 async function main() {
-	/* 1) 2 ファイルを読み込んでマージ */
+	/* 1) Load and merge 2 files */
 	const [claimableRaw, directRaw] = await Promise.all([
 		readFile(CLAIMABLE_FILE, 'utf8'),
 		readFile(DIRECT_FILE, 'utf8'),
@@ -45,16 +44,16 @@ async function main() {
 		...JSON.parse(directRaw),
 	]
 
-	/* 2) ブロック番号昇順で並べて withdrawal を抽出 */
+	/* 2) Sort by block number ascending and extract withdrawal */
 	const withdrawals: Withdrawal[] = events
 		.sort((a, b) => a.blockNumber - b.blockNumber)
 		.map((e) => e.args.withdrawal)
 
-	/* 3) 100 件ごとにチャンク化 → {"0":[...], "1":[...]} 形式 */
+	/* 3) Chunk into 100 items each → {"0":[...], "1":[...]} format */
 	const chunks = chunkArray(withdrawals, CHUNK_SIZE)
 	const outJson = Object.fromEntries(chunks.map((c, i) => [i.toString(), c]))
 
-	/* 4) 保存 */
+	/* 4) Save */
 	await writeFile(OUT_FILE, JSON.stringify(outJson, null, 2))
 	console.log(
 		`✅  ${OUT_FILE} written  (total ${withdrawals.length} withdrawals → ${chunks.length} chunks)`,

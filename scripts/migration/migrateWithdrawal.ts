@@ -13,7 +13,7 @@ const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
-/* ───────── Withdrawal struct (タイプヘルパ) ───────── */
+/* ───────── Withdrawal struct (type helper) ───────── */
 type WithdrawalStruct = {
 	nullifier: string
 	recipient: string
@@ -24,7 +24,7 @@ type WithdrawalStruct = {
 /* ─────────  Main ───────── */
 
 async function main() {
-	/* 1) コントラクトアドレス取得 */
+	/* 1) Get contract address */
 	const deployed = await readDeployedContracts()
 	if (!deployed.withdrawal)
 		throw new Error('Withdrawal contract is not deployed on L2')
@@ -37,7 +37,7 @@ async function main() {
 		signer,
 	)) as unknown as Withdrawal
 
-	/* 4) チャンク JSON 読み込み */
+	/* 4) Load chunk JSON */
 	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 	const CHUNKS_FILE = join(DATA_DIR, 'withdrawalChunks.json')
 	const chunksJson: Record<string, WithdrawalStruct[]> = JSON.parse(
@@ -55,12 +55,12 @@ async function main() {
 		)} withdrawals)`,
 	)
 
-	/* 5) 共通 tx オプション */
+	/* 5) Common tx options */
 	let nonce = await ethers.provider.getTransactionCount(
 		await signer.getAddress(),
 	)
 
-	/* 6) 送信ループ */
+	/* 6) Send loop */
 	for (const id of chunkIds) {
 		const chunk = chunksJson[id]
 		console.log(`🚀 migrateWithdrawals  chunk #${id}  (${chunk.length} items)`)

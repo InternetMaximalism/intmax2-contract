@@ -11,7 +11,7 @@ const env = cleanEnv(process.env, {
 })
 
 /*───────────────────────────────────────────────────────────────────*\
-  ■ JSON 形式
+  ■ JSON format
 \*───────────────────────────────────────────────────────────────────*/
 interface BuilderNonceRow {
 	blockBuilder: string
@@ -32,12 +32,12 @@ async function main() {
 		signer,
 	)) as unknown as Rollup
 
-	/* 2) JSON 読み込み */
+	/* 2) Load JSON */
 	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 	const JSON_FILE = join(DATA_DIR, 'bockBuilderNonce.json')
 	const rows: BuilderNonceRow[] = JSON.parse(await readFile(JSON_FILE, 'utf8'))
 
-	/* 3) 配列生成 (型は ethers.BigNumberish で OK) */
+	/* 3) Generate arrays (type ethers.BigNumberish is OK) */
 	const builders: string[] = []
 	const regNonces: number[] = []
 	const nonRegNonces: number[] = []

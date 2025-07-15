@@ -2,18 +2,15 @@ import { readFile, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 
 /*───────────────────────────────*
- * 設定
+ * Configuration
  *───────────────────────────────*/
 const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 const IN_FILE = join(DATA_DIR, 'contributionRecordedEvents.json')
 const OUT_FILE = join(DATA_DIR, 'contributionChunks.json')
 const CHUNK_SIZE = 100
 
-/*───────────────────────────────*
- * 型
- *───────────────────────────────*/
 type RawEvent = {
-	blockNumber: number // ソート用
+	blockNumber: number // for sorting
 	args: {
 		period: number
 		recipient: string
@@ -27,7 +24,6 @@ type Contribution = {
 	depositAmount: string
 }
 
-/*───────────────────────────────*/
 const chunkArray = <T>(arr: T[], size: number): T[][] => {
 	const out: T[][] = []
 	for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
@@ -35,10 +31,10 @@ const chunkArray = <T>(arr: T[], size: number): T[][] => {
 }
 
 async function main(): Promise<void> {
-	/* 1) JSON 読み込み */
+	/* 1) Load JSON */
 	const events: RawEvent[] = JSON.parse(await readFile(IN_FILE, 'utf8'))
 
-	/* 2) ブロック番号昇順に整列し、必要フィールドを抽出 */
+	/* 2) Sort by block number ascending and extract required fields */
 	const contributions: Contribution[] = events
 		.sort((a, b) => a.blockNumber - b.blockNumber)
 		.map((ev) => ({
@@ -47,12 +43,12 @@ async function main(): Promise<void> {
 			depositAmount: ev.args.depositAmount,
 		}))
 
-	/* 3) 100 件ずつチャンク化し、{"0":[…], "1":[…]} に変換 */
+	/* 3) Chunk into 100 items each and convert to {"0":[…], "1":[…]} */
 	const chunked = Object.fromEntries(
 		chunkArray(contributions, CHUNK_SIZE).map((c, i) => [i.toString(), c]),
 	)
 
-	/* 4) 保存 */
+	/* 4) Save */
 	await writeFile(OUT_FILE, JSON.stringify(chunked, null, 2))
 	console.log(
 		`✅  contributionChunks.json written  (${contributions.length} records → ${Object.keys(chunked).length} chunks)`,

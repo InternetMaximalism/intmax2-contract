@@ -1,14 +1,10 @@
 import { readFile, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 
-/* ───────── 設定 ───────── */
-
 const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 const IN_FILE = join(DATA_DIR, 'allClaimNullifiers.json')
 const OUT_FILE = join(DATA_DIR, 'claimChunks.json')
 const CHUNK_SIZE = 100
-
-/* ───────── 共通ユーティリティ ───────── */
 
 const chunkArray = <T>(src: T[], size: number): T[][] => {
 	const out: T[][] = []
@@ -16,10 +12,8 @@ const chunkArray = <T>(src: T[], size: number): T[][] => {
 	return out
 }
 
-/* ───────── メイン ───────── */
-
 async function main(): Promise<void> {
-	/* 1) 読み込み & パース */
+	/* 1) Load & parse */
 	const raw = JSON.parse(await readFile(IN_FILE, 'utf8')) as {
 		allNullifiers: string[]
 	}
@@ -28,11 +22,11 @@ async function main(): Promise<void> {
 	if (!Array.isArray(nullifiers) || nullifiers.length === 0)
 		throw new Error('allNullifiers is empty or not an array')
 
-	/* 2) 100 件ずつに分割して {"0":[…], "1":[…]} へ */
+	/* 2) Split into 100 items each -> {"0":[…], "1":[…]} */
 	const chunks = chunkArray(nullifiers, CHUNK_SIZE)
 	const outJson = Object.fromEntries(chunks.map((c, i) => [i.toString(), c]))
 
-	/* 3) 保存 */
+	/* 3) Save */
 	await writeFile(OUT_FILE, JSON.stringify(outJson, null, 2))
 	console.log(
 		`✅  claimChunks.json written  (${nullifiers.length} nullifiers → ${chunks.length} chunks)`,

@@ -1,9 +1,7 @@
 /**
  * scripts/migration/runNullifierMigration.ts
  *
- * claimChunks.json を読み込み、チャンクごとに
- *   Claim.migrateNullifiers(bytes32[])
- * を送信する。
+ * Load claimChunks.json and send Claim.migrateNullifiers(bytes32[]) for each chunk.
  *
  *   $ npx hardhat run scripts/migration/runNullifierMigration.ts --network <network>
  */
@@ -18,17 +16,17 @@ import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
 /*───────────────────────────────────*\
-  ■ env: ADMIN_PRIVATE_KEY 必須
+  ■ env: ADMIN_PRIVATE_KEY required
 \*───────────────────────────────────*/
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
 /*───────────────────────────────────*\
-  ■ 既存 main に追記
+  ■ main function
 \*───────────────────────────────────*/
 async function main() {
-	/* 0) コントラクトアドレスを取得 */
+	/* 0) Get contract address */
 	const deployedL2Contracts = await readDeployedContracts()
 	if (!deployedL2Contracts.claim) {
 		throw new Error('Claim contract is not deployed on L2')
@@ -43,14 +41,14 @@ async function main() {
 		signer,
 	)) as unknown as Claim
 
-	/* 2) migration 状態チェック (optional) */
+	/* 2) migration status check (optional) */
 	const isDone = await claim.isMigrationCompleted()
 	if (isDone) {
 		console.log('⚠️  migrateNullifiers: already completed. Exit.')
 		return
 	}
 
-	/* 3) チャンク JSON を読み込み */
+	/* 3) Load chunk JSON */
 	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 	const CHUNKS_FILE = join(DATA_DIR, 'claimChunks.json')
 	const chunksJson: Record<string, string[]> = JSON.parse(
@@ -68,12 +66,12 @@ async function main() {
 		)} nullifiers)`,
 	)
 
-	/* 4) tx 共通オプション */
+	/* 4) tx common options */
 	let nonce = await ethers.provider.getTransactionCount(
 		await signer.getAddress(),
 	)
 
-	/* 5) 送信ループ */
+	/* 5) Send loop */
 	for (const id of chunkIds) {
 		const chunk = chunksJson[id]
 		console.log(`🚀 migrateNullifiers  chunk #${id}  (${chunk.length} items)`)

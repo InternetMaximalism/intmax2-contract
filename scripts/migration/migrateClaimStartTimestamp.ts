@@ -10,7 +10,7 @@ const env = cleanEnv(process.env, {
 })
 
 async function main() {
-	/* 0) コントラクトアドレスを取得 */
+	/* 0) Get contract address */
 	const deployedL2Contracts = await readDeployedContracts()
 	if (!deployedL2Contracts.claim) {
 		throw new Error('Claim contract is not deployed on L2')
