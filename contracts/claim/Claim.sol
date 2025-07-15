@@ -368,7 +368,7 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		for (uint256 i = 0; i < periodNumbers.length; i++) {
 			uint256 period = periodNumbers[i];
 			address user = users[i];
-			allocationState.consumeUserAllocation(period, user);
+			allocationState.userContributions[period][user] = 0;
 		}
 	}
 
