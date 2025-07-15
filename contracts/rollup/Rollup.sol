@@ -466,6 +466,26 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
+	function migrateBlockBuilderNonce(
+		address[] calldata _builder,
+		uint32[] calldata _registrationNonces,
+		uint32[] calldata _nonRegistrationNonces
+	) external onlyOwner {
+		if (isMigrationCompleted) {
+			revert AlreadyMigrated();
+		}
+		if (
+			_builder.length != _registrationNonces.length ||
+			_builder.length != _nonRegistrationNonces.length
+		) {
+			revert InvalidInput();
+		}
+		for (uint256 i = 0; i < _builder.length; i++) {
+			builderRegistrationNonce[_builder[i]] = _registrationNonces[i];
+			builderNonRegistrationNonce[_builder[i]] = _nonRegistrationNonces[i];
+		}
+	}
+
 	function finishMigration() external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
