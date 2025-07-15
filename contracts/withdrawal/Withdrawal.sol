@@ -339,19 +339,8 @@ contract Withdrawal is
 		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
 	}
 
-	function migrateNullifiers(
-		bytes32[] calldata _nullifiers
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		for (uint256 i = 0; i < _nullifiers.length; i++) {
-			nullifiers[_nullifiers[i]] = true;
-		}
-	}
-
 	function migrateWithdrawals(
-		WithdrawalLib.Withdrawal[] memory withdrawals
+		WithdrawalLib.Withdrawal[] calldata withdrawals
 	) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
