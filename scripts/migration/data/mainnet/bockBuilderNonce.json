@@ -1,0 +1,27 @@
+[
+  {
+    "blockBuilder": "0x9aC5289697C0FAe66a31337c0447BEA38BffA5Ee",
+    "builderRegistrationNonce": 591,
+    "builderNonRegistrationNonce": 101
+  },
+  {
+    "blockBuilder": "0xa5DE22AEf9770067cc5284d94Dab623c3cEfa049",
+    "builderRegistrationNonce": 561,
+    "builderNonRegistrationNonce": 111
+  },
+  {
+    "blockBuilder": "0x9D9142BeccF7A5d2aFa320890FDD47d9Ba92A926",
+    "builderRegistrationNonce": 526,
+    "builderNonRegistrationNonce": 72
+  },
+  {
+    "blockBuilder": "0x5b147ac3d1b04Ba1Ebda1594A9FFe89A7d48367E",
+    "builderRegistrationNonce": 467,
+    "builderNonRegistrationNonce": 66
+  },
+  {
+    "blockBuilder": "0x95DBf3ef936B793cea4cE3273449132f995ec04E",
+    "builderRegistrationNonce": 6,
+    "builderNonRegistrationNonce": 5
+  }
+]

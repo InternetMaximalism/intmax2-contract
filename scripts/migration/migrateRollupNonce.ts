@@ -1,0 +1,80 @@
+/**
+ * scripts/migration/runBuilderNonceMigration.ts
+ *
+ * - blockBuilderNonce.json を読み込み
+ * - Rollup.migrateBlockBuilderNonce(
+ *       address[]  _builder,
+ *       uint32[]   _registrationNonces,
+ *       uint32[]   _nonRegistrationNonces
+ *   )
+ *   を送信して確定させる
+ *
+ *   $ npx hardhat run scripts/migration/runBuilderNonceMigration.ts --network <network>
+ */
+
+import { str } from 'envalid'
+import { cleanEnv } from 'envalid/dist/envalid'
+import { readFile } from 'fs/promises'
+import { ethers } from 'hardhat'
+import { join, resolve } from 'path'
+import { Rollup } from '../../typechain-types/contracts/Rollup'
+import { readDeployedContracts } from '../utils/io'
+
+const env = cleanEnv(process.env, {
+	ADMIN_PRIVATE_KEY: str(),
+})
+
+/*───────────────────────────────────────────────────────────────────*\
+  ■ JSON 形式
+\*───────────────────────────────────────────────────────────────────*/
+interface BuilderNonceRow {
+	blockBuilder: string
+	builderRegistrationNonce: number // uint32
+	builderNonRegistrationNonce: number // uint32
+}
+
+/*───────────────────────────────────────────────────────────────────*/
+async function main() {
+	const deployed = await readDeployedContracts()
+	if (!deployed.rollup) throw new Error('Rollup contract is not deployed on L2')
+
+	const signer = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
+
+	const rollup = (await ethers.getContractAt(
+		'Rollup',
+		deployed.rollup,
+		signer,
+	)) as unknown as Rollup
+
+	/* 2) JSON 読み込み */
+	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
+	const JSON_FILE = join(DATA_DIR, 'bockBuilderNonce.json')
+	const rows: BuilderNonceRow[] = JSON.parse(await readFile(JSON_FILE, 'utf8'))
+
+	/* 3) 配列生成 (型は ethers.BigNumberish で OK) */
+	const builders: string[] = []
+	const regNonces: number[] = []
+	const nonRegNonces: number[] = []
+
+	for (const r of rows) {
+		builders.push(r.blockBuilder)
+		regNonces.push(r.builderRegistrationNonce)
+		nonRegNonces.push(r.builderNonRegistrationNonce)
+	}
+
+	console.log(
+		`📝 migrateBlockBuilderNonce  builders=${builders.length}  (tx pending…)`,
+	)
+	const tx = await rollup.migrateBlockBuilderNonce(
+		builders,
+		regNonces,
+		nonRegNonces,
+	)
+	await tx.wait()
+	console.log(`✅  tx mined: ${tx.hash}`)
+}
+
+main().catch((err) => {
+	console.error(err)
+	process.exitCode = 1
+})
