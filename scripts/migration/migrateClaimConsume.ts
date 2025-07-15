@@ -11,7 +11,10 @@ const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
 
-const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
 const CHUNKS_FILE = join(DATA_DIR, 'relayClaimChunks.json')
 
 interface RelayEntry {

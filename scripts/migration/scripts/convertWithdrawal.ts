@@ -1,7 +1,10 @@
 import { readFile, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 
-const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/devnet')
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
 const CLAIMABLE_FILE = join(DATA_DIR, 'claimableWithdrawalQueuedEvents.json')
 const DIRECT_FILE = join(DATA_DIR, 'directWithdrawalQueuedEvents.json')
 const OUT_FILE = join(DATA_DIR, 'withdrawalChunks.json')

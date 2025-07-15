@@ -33,7 +33,10 @@ async function main() {
 	)) as unknown as Rollup
 
 	/* 2) Load JSON */
-	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
+	const DATA_DIR = resolve(
+		process.cwd(),
+		`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+	)
 	const JSON_FILE = join(DATA_DIR, 'bockBuilderNonce.json')
 	const rows: BuilderNonceRow[] = JSON.parse(await readFile(JSON_FILE, 'utf8'))
 

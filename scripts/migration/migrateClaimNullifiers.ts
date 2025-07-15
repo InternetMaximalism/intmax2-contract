@@ -1,11 +1,3 @@
-/**
- * scripts/migration/runNullifierMigration.ts
- *
- * Load claimChunks.json and send Claim.migrateNullifiers(bytes32[]) for each chunk.
- *
- *   $ npx hardhat run scripts/migration/runNullifierMigration.ts --network <network>
- */
-
 import { str } from 'envalid'
 import { cleanEnv } from 'envalid/dist/envalid'
 import { readFile } from 'fs/promises'
@@ -15,9 +7,12 @@ import { join, resolve } from 'path'
 import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
-/*───────────────────────────────────*\
-  ■ env: ADMIN_PRIVATE_KEY required
-\*───────────────────────────────────*/
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
+const CHUNKS_FILE = join(DATA_DIR, 'claimChunks.json')
+
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
@@ -49,8 +44,7 @@ async function main() {
 	}
 
 	/* 3) Load chunk JSON */
-	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
-	const CHUNKS_FILE = join(DATA_DIR, 'claimChunks.json')
+
 	const chunksJson: Record<string, string[]> = JSON.parse(
 		await readFile(CHUNKS_FILE, 'utf8'),
 	)

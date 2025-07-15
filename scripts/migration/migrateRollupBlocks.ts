@@ -7,6 +7,11 @@ import { join, resolve } from 'path'
 import { Rollup } from '../../typechain-types/contracts/Rollup'
 import { readDeployedContracts } from '../utils/io'
 
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
+
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
 })
@@ -45,7 +50,6 @@ async function main() {
 		signer,
 	)) as unknown as Rollup
 
-	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
 	const timeline: TimelineItem[] = JSON.parse(
 		await readFile(join(DATA_DIR, 'postTimeline.json'), 'utf8'),
 	)

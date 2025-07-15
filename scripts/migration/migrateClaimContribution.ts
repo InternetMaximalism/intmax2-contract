@@ -7,7 +7,11 @@ import { join, resolve } from 'path'
 import { Claim } from '../../typechain-types/contracts/Claim'
 import { readDeployedContracts } from '../utils/io'
 
-/* ───────────────── env ───────────────── */
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
+const CHUNKS_FILE = join(DATA_DIR, 'contributionChunks.json')
 
 const env = cleanEnv(process.env, {
 	ADMIN_PRIVATE_KEY: str(),
@@ -26,9 +30,6 @@ async function main() {
 		signer,
 	)) as unknown as Claim
 
-	/* 1) contributionChunks.json 読み込み */
-	const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/mainnet')
-	const CHUNKS_FILE = join(DATA_DIR, 'contributionChunks.json')
 	const chunksJson: Record<
 		string,
 		{ period: number; recipient: string; depositAmount: string }[]

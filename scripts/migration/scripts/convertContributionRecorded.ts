@@ -1,10 +1,10 @@
 import { readFile, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 
-/*───────────────────────────────*
- * Configuration
- *───────────────────────────────*/
-const DATA_DIR = resolve(process.cwd(), 'scripts/migration/data/devnet')
+const DATA_DIR = resolve(
+	process.cwd(),
+	`scripts/migration/data/${process.env.NETWORK || 'mainnet'}`,
+)
 const IN_FILE = join(DATA_DIR, 'contributionRecordedEvents.json')
 const OUT_FILE = join(DATA_DIR, 'contributionChunks.json')
 const CHUNK_SIZE = 100
