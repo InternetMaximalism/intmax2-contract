@@ -355,7 +355,7 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 	}
 
-	function migrateComsumeUserAllocation(
+	function migrateConsumeUserAllocation(
 		uint256[] calldata periodNumbers,
 		address[] calldata users
 	) external onlyOwner {
