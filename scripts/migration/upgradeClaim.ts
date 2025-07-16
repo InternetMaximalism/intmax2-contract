@@ -9,10 +9,6 @@ const env = cleanEnv(process.env, {
 })
 
 async function main() {
-	if (!env.ADMIN_PRIVATE_KEY) {
-		throw new Error('ADMIN_PRIVATE_KEY is not set in the environment variables')
-	}
-
 	const deployed = await readDeployedContracts()
 
 	const signer = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)

@@ -10,8 +10,8 @@ const env = cleanEnv(process.env, {
 })
 
 async function main() {
-	let deployedL2Contracts = await readDeployedContracts()
-	let deployedL1Contracts = await readDeployedContracts(getCounterPartNetwork())
+	let deployedL1Contracts = await readDeployedContracts()
+	let deployedL2Contracts = await readDeployedContracts(getCounterPartNetwork())
 
 	const signer = new ethers.Wallet(env.ADMIN_PRIVATE_KEY, ethers.provider)
 	if (!deployedL1Contracts.liquidity)
