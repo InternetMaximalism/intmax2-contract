@@ -24,8 +24,8 @@ async function main() {
 		signer,
 	)) as unknown as Rollup
 
-	const lastProcessedDepositId = 3723
-	// const lastProcessedDepositId = 703
+	// const lastProcessedDepositId = 3723
+	const lastProcessedDepositId = 710
 	const tx = await rollup.migrateLastProcessedDepositId(lastProcessedDepositId)
 	console.log(
 		`📦 migrateLastProcessedDepositId: tx sent (hash: ${tx.hash}, nonce: ${nonce})`,

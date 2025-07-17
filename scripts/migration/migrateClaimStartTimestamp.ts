@@ -25,8 +25,8 @@ async function main() {
 		signer,
 	)) as unknown as Claim
 
-	// const startTimestamp = 1750464000
-	const startTimestamp = 1748052000
+	const startTimestamp = 1750464000
+	// const startTimestamp = 1748052000
 
 	const tx = await claim.migrateStartTimestamp(startTimestamp)
 	await tx.wait()

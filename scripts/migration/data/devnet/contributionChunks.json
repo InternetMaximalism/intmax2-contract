@@ -746,6 +746,16 @@
       "period": 1132,
       "recipient": "0xcC90Efd4be31F49c2e8c43C1fBc2D83f7cb184C6",
       "depositAmount": "100000000000000000"
+    },
+    {
+      "period": 1282,
+      "recipient": "0x419C6dE1B031CCC7492fa6521042E105916E921C",
+      "depositAmount": "100000000000000000"
+    },
+    {
+      "period": 1282,
+      "recipient": "0x0d8E5b23537E36A98489BCC59ab8eD2a5C252658",
+      "depositAmount": "100000000000000000"
     }
   ]
 }

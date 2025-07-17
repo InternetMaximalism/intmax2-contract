@@ -1,6 +1,18 @@
 {
   "0": [
     {
+      "nullifier": "0x1c66c5286f4281fd778a9f91ab3a7278b095aab77525c8383a4662ecd4569fc3",
+      "recipient": "0xb6865560b8a966b50832364eDC068D89DD9c1157",
+      "tokenIndex": 6,
+      "amount": "10"
+    },
+    {
+      "nullifier": "0x9c46dee42e38504b4264ac5846db669ec440209eee28dc114a360bbe1b4831ad",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 8,
+      "amount": "1"
+    },
+    {
       "nullifier": "0x17c78180ced90de48e89efc150f6f434caa2a9b3a108b51b4dde6b98f8f219ca",
       "recipient": "0x0000000000000000000000000000000000000003",
       "tokenIndex": 0,
@@ -403,12 +415,6 @@
       "amount": "133319078937334"
     },
     {
-      "nullifier": "0x1c66c5286f4281fd778a9f91ab3a7278b095aab77525c8383a4662ecd4569fc3",
-      "recipient": "0xb6865560b8a966b50832364eDC068D89DD9c1157",
-      "tokenIndex": 6,
-      "amount": "10"
-    },
-    {
       "nullifier": "0x38edcf206f00a39bf07c837501c357028c93d908a5f04165579b1c8f8729d3ea",
       "recipient": "0xa80a3832916aeE1039fbd265570AFAE1731A58Cd",
       "tokenIndex": 0,
@@ -589,12 +595,6 @@
       "amount": "998329453660199968"
     },
     {
-      "nullifier": "0x9c46dee42e38504b4264ac5846db669ec440209eee28dc114a360bbe1b4831ad",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 8,
-      "amount": "1"
-    },
-    {
       "nullifier": "0xca19df34344b9c2bc9d55560363bea2dd5d2c2c7727ffda33c62cd63e581f1cc",
       "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
       "tokenIndex": 0,
@@ -602,6 +602,18 @@
     }
   ],
   "1": [
+    {
+      "nullifier": "0x69619968261a9f639d8e143415fd6633230bd9b33ac3c6321443229dfe2a1bea",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 13,
+      "amount": "10000000000"
+    },
+    {
+      "nullifier": "0x6c8b7fd9b7864bf3810a867b7da2ea446d07636a8e0334c56e61b496f96a08d5",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 13,
+      "amount": "10000000000"
+    },
     {
       "nullifier": "0x1b84fb94b0c0cb98b4171dac9fb79470ff84aee4bca60286d63d3bf9a7583a4c",
       "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
@@ -763,18 +775,6 @@
       "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
       "tokenIndex": 0,
       "amount": "1000000000000"
-    },
-    {
-      "nullifier": "0x69619968261a9f639d8e143415fd6633230bd9b33ac3c6321443229dfe2a1bea",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 13,
-      "amount": "10000000000"
-    },
-    {
-      "nullifier": "0x6c8b7fd9b7864bf3810a867b7da2ea446d07636a8e0334c56e61b496f96a08d5",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 13,
-      "amount": "10000000000"
     },
     {
       "nullifier": "0xe54ad866c5a489eb0f5314535f09983858ce9b300a1feedbea50245c0fb3f352",
@@ -1807,6 +1807,36 @@
   ],
   "3": [
     {
+      "nullifier": "0xea26068f572cc995ea60f873e7b4666df20838dfe4ee205add427b004f93eaf4",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 14,
+      "amount": "2"
+    },
+    {
+      "nullifier": "0x0c4349a8e4879068435f0671a661a1f324c9882b8d6efdd9e82c7f6f19f223e7",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 14,
+      "amount": "1"
+    },
+    {
+      "nullifier": "0x0c32d26b6b40f09f898341fed341d2e04c1cdde825adb6e146f6f4bea939e892",
+      "recipient": "0xcC90Efd4be31F49c2e8c43C1fBc2D83f7cb184C6",
+      "tokenIndex": 12,
+      "amount": "2"
+    },
+    {
+      "nullifier": "0xcfa8991352f5a4cc133c91e689d3f565784dc8f3f7f43379732ea1f3ca8ded2b",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 13,
+      "amount": "1000000000"
+    },
+    {
+      "nullifier": "0x3175a60f60fdcfb9eb29cfa7c2afc001a6bd3481983a3d97cc7819b7f46fc11d",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 7,
+      "amount": "1"
+    },
+    {
       "nullifier": "0x175b705315978ff76f5c48f4feffd51ae690b483c050ebe15068f298cf6daf5c",
       "recipient": "0xe5a40679eA28D8d3FdB0dC26dc9f0bEDC97bfAde",
       "tokenIndex": 0,
@@ -2089,12 +2119,6 @@
       "amount": "200000000000000000"
     },
     {
-      "nullifier": "0xea26068f572cc995ea60f873e7b4666df20838dfe4ee205add427b004f93eaf4",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 14,
-      "amount": "2"
-    },
-    {
       "nullifier": "0x108e0a072e91caf89604e3fc35a86650254ebca80337b28c9d851f74ef09306b",
       "recipient": "0xcC90Efd4be31F49c2e8c43C1fBc2D83f7cb184C6",
       "tokenIndex": 0,
@@ -2105,24 +2129,6 @@
       "recipient": "0xbb8CBa944d089B000e79611987B6FFbbdeD0D352",
       "tokenIndex": 0,
       "amount": "100002948608000014"
-    },
-    {
-      "nullifier": "0x0c4349a8e4879068435f0671a661a1f324c9882b8d6efdd9e82c7f6f19f223e7",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 14,
-      "amount": "1"
-    },
-    {
-      "nullifier": "0x0c32d26b6b40f09f898341fed341d2e04c1cdde825adb6e146f6f4bea939e892",
-      "recipient": "0xcC90Efd4be31F49c2e8c43C1fBc2D83f7cb184C6",
-      "tokenIndex": 12,
-      "amount": "2"
-    },
-    {
-      "nullifier": "0xcfa8991352f5a4cc133c91e689d3f565784dc8f3f7f43379732ea1f3ca8ded2b",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 13,
-      "amount": "1000000000"
     },
     {
       "nullifier": "0xca56bd51603b3896450d36194eaf35b1d6125c631cb7761cd99e2ec19f654506",
@@ -2141,12 +2147,6 @@
       "recipient": "0x03B7108Db5d479F358E1CAA4b652826B6a4b22C8",
       "tokenIndex": 0,
       "amount": "100001639500200014"
-    },
-    {
-      "nullifier": "0x3175a60f60fdcfb9eb29cfa7c2afc001a6bd3481983a3d97cc7819b7f46fc11d",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 7,
-      "amount": "1"
     },
     {
       "nullifier": "0xbd02877d6ef8dd9227f5ba920086d79cd82baea75dbaba470e17b033196dd1c1",
@@ -2408,6 +2408,12 @@
     }
   ],
   "4": [
+    {
+      "nullifier": "0x2afe64cf140edd9a2421919f87ada4ffc5e04f7f122aba608171169b3bb28809",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 14,
+      "amount": "2"
+    },
     {
       "nullifier": "0xb9fb69498c7c095bac71fb6c3896f8acbef98fe8cae2960bce4ff411966dcb4d",
       "recipient": "0x4C75FCdBd0bCB12662d8C24899Dd6267332235Da",
@@ -2871,12 +2877,6 @@
       "amount": "1000000000000"
     },
     {
-      "nullifier": "0x2afe64cf140edd9a2421919f87ada4ffc5e04f7f122aba608171169b3bb28809",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 14,
-      "amount": "2"
-    },
-    {
       "nullifier": "0x2fe3b2753d46b27ad5c875c28bf7c94a25b590abd05b7b65a13532e63d26ec9b",
       "recipient": "0x29c670bAe625C833B9F36eC8c1628dFf30c2fE09",
       "tokenIndex": 0,
@@ -3011,6 +3011,18 @@
   ],
   "5": [
     {
+      "nullifier": "0x33ac1a8d324737cb0cf35d96eb7af0a463bbc302989b7f25a6107a577cac2cb0",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 13,
+      "amount": "10000000000"
+    },
+    {
+      "nullifier": "0x583676e07469edd5bd926684f32a850ca66543c262c1e88bd3de4823c5d30ef4",
+      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
+      "tokenIndex": 13,
+      "amount": "1001000000"
+    },
+    {
       "nullifier": "0xb56fe01504747f9c72bc92ce2d8134cb558297baa43a73088a649297dee3b5d2",
       "recipient": "0x4C75FCdBd0bCB12662d8C24899Dd6267332235Da",
       "tokenIndex": 0,
@@ -3099,12 +3111,6 @@
       "recipient": "0x4C75FCdBd0bCB12662d8C24899Dd6267332235Da",
       "tokenIndex": 0,
       "amount": "100000000000"
-    },
-    {
-      "nullifier": "0x33ac1a8d324737cb0cf35d96eb7af0a463bbc302989b7f25a6107a577cac2cb0",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 13,
-      "amount": "10000000000"
     },
     {
       "nullifier": "0x083af93bb21fc32e3f4e139203996a0893a158c21f090e8ad8da88d56f317cc8",
@@ -3539,12 +3545,6 @@
       "amount": "199999999999999968"
     },
     {
-      "nullifier": "0x583676e07469edd5bd926684f32a850ca66543c262c1e88bd3de4823c5d30ef4",
-      "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
-      "tokenIndex": 13,
-      "amount": "1001000000"
-    },
-    {
       "nullifier": "0xb458a8319c8da52ac8b8b1709995f60901073dc9beab67ae8eefa750fd6512a0",
       "recipient": "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B",
       "tokenIndex": 0,
@@ -3665,6 +3665,12 @@
       "recipient": "0x4C75FCdBd0bCB12662d8C24899Dd6267332235Da",
       "tokenIndex": 0,
       "amount": "100000000000"
+    },
+    {
+      "nullifier": "0x813a844f696828ce4b6a39b72f85f1b22dfe13dbc06f16cf037725cc83e01aa6",
+      "recipient": "0x79863DFb773B7A9f4034F4c2Ab5a9236dd619668",
+      "tokenIndex": 0,
+      "amount": "10000000000000"
     }
   ]
 }

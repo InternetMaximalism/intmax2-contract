@@ -29,19 +29,21 @@ async function main() {
 	const newImplementation = await newImplementationFactory.deploy()
     await newImplementation.waitForDeployment()
 
-	const newImplementationAddress = await newImplementation.getAddress()
-	console.log(
-		`Upgrading Liquidity contract to new implementation at ${newImplementationAddress}`,
-	)
+	console.log(`New Liquidity implementation deployed at ${await newImplementation.getAddress()}`)
 
-	const upgradeTx = await liquidity.upgradeToAndCall(
-		newImplementationAddress,
-		'0x',
-	)
-	await upgradeTx.wait()
-	console.log(
-		`Liquidity contract upgraded successfully to ${newImplementationAddress}`,
-	)
+	// const newImplementationAddress = await newImplementation.getAddress()
+	// console.log(
+	// 	`Upgrading Liquidity contract to new implementation at ${newImplementationAddress}`,
+	// )
+
+	// const upgradeTx = await liquidity.upgradeToAndCall(
+	// 	newImplementationAddress,
+	// 	'0x',
+	// )
+	// await upgradeTx.wait()
+	// console.log(
+	// 	`Liquidity contract upgraded successfully to ${newImplementationAddress}`,
+	// )
 }
 
 main().catch((error) => {
