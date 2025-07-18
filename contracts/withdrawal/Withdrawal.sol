@@ -22,11 +22,7 @@ import {Byte32Lib} from "../common/Byte32Lib.sol";
  * @notice Contract for processing withdrawals from L2 to L1 in the Intmax2 protocol
  * @dev Handles verification of withdrawal proofs and relays withdrawal information to the Liquidity contract on L1
  */
-contract Withdrawal is
-	IWithdrawal,
-	UUPSUpgradeable,
-	OwnableUpgradeable
-{
+contract Withdrawal is IWithdrawal, UUPSUpgradeable, OwnableUpgradeable {
 	using EnumerableSet for EnumerableSet.UintSet;
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using ChainedWithdrawalLib for ChainedWithdrawalLib.ChainedWithdrawal[];
