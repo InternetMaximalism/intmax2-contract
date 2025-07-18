@@ -1,0 +1,61 @@
+{
+  "totalEvents": 419,
+  "validWithdrawals": 410,
+  "invalidWithdrawals": 9,
+  "invalidDetails": [
+    {
+      "txHash": "0x84af1867b55d99c81e76d51136d6a2074609d26366832da7fb87242920553cc8",
+      "blockNumber": 17189115,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752432902
+    },
+    {
+      "txHash": "0x81b6f6cf86e03c3ab9f8b05b024a34fb9efbd1630debfb764b25736b340c15c3",
+      "blockNumber": 17189122,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752432940
+    },
+    {
+      "txHash": "0x1a53a780e1cf3ccf383de8e0318723cbcbc5ee541b2333328ecef0bea4eee844",
+      "blockNumber": 17189136,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752432990
+    },
+    {
+      "txHash": "0x68a87d39ab6ff0998c04f9fd180dbc7d7135a5d05aa26014dae6c8d5d0279af9",
+      "blockNumber": 17189146,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752433023
+    },
+    {
+      "txHash": "0x4f48c2b8e102a6967c737a67c6884dcc190a4e16253703d02c42eb327b91ad2a",
+      "blockNumber": 17189153,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752433047
+    },
+    {
+      "txHash": "0xce3d341979891f1397d4c25ababf081451b36668f5b1f05370e48f8e39da1dd0",
+      "blockNumber": 17189907,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752436033
+    },
+    {
+      "txHash": "0x01743438b3db49adcc059b6dbe5218a644fa5d71fc7ddb02589454c9721ef089",
+      "blockNumber": 17189913,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752436051
+    },
+    {
+      "txHash": "0xde114345bfb14a6d0340882455286bbb04b2a32248a0e582154bf20df9565947",
+      "blockNumber": 17189916,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752436065
+    },
+    {
+      "txHash": "0x2b115f77b54d502fcb13184be340111cc92683a8fa63c0055075a86b72c106e3",
+      "blockNumber": 17189927,
+      "actualMsgSender": "0x23c2e617588e2312a9d05714e91e0c1e157fb586",
+      "timestamp": 1752436081
+    }
+  ]
+}

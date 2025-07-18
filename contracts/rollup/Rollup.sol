@@ -4,7 +4,6 @@ pragma solidity 0.8.27;
 import {IRollup} from "./IRollup.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
 import {IContribution} from "../contribution/IContribution.sol";
-import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -19,7 +18,7 @@ import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
  * @notice Implementation of the Intmax2 L2 rollup contract
  * @dev Manages block submission, deposit processing, and maintains the state of the rollup chain
  */
-contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
+contract Rollup is IRollup, OwnableUpgradeable, UUPSUpgradeable {
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
 	using RateLimiterLib for RateLimiterLib.RateLimitState;
@@ -418,89 +417,6 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 
 	function getPenalty() external view returns (uint256) {
 		return rateLimitState.getPenalty();
-	}
-
-
-	function migrateLastProcessedDepositId(
-		uint256 _lastProcessedDepositId
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		lastProcessedDepositId = _lastProcessedDepositId;
-	}
-
-	function migrateDeposits(
-		bytes32[] calldata _depositHashes
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		for (uint256 i = 0; i < _depositHashes.length; i++) {
-			depositTree.deposit(_depositHashes[i]);
-			emit DepositLeafInserted(depositIndex, _depositHashes[i]);
-			depositIndex++;
-		}
-		depositTreeRoot = depositTree.getRoot();
-	}
-
-	function migrateBlockPost(
-		bytes32 _prevBlockHash,
-		address _sender,
-		uint64 _timestamp,
-		uint32 _blockNumber,
-		bytes32 _depositTreeRoot,
-		bytes32 _signatureHash,
-		bytes calldata _originalCallData 
-	) external onlyOwner {
-		(_originalCallData);
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		if (
-			_blockNumber != blockHashes.getBlockNumber() ||
-			_prevBlockHash != blockHashes.getPrevHash() ||
-			_depositTreeRoot != depositTreeRoot
-		) {
-			revert InvalidInput();
-		}
-		blockHashes.pushBlockHash(_depositTreeRoot, _signatureHash, _timestamp);
-		emit BlockPosted(
-			_prevBlockHash,
-			_sender,
-			_timestamp,
-			_blockNumber,
-			_depositTreeRoot,
-			_signatureHash
-		);
-	}
-
-	function migrateBlockBuilderNonce(
-		address[] calldata _builder,
-		uint32[] calldata _registrationNonces,
-		uint32[] calldata _nonRegistrationNonces
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		if (
-			_builder.length != _registrationNonces.length ||
-			_builder.length != _nonRegistrationNonces.length
-		) {
-			revert InvalidInput();
-		}
-		for (uint256 i = 0; i < _builder.length; i++) {
-			builderRegistrationNonce[_builder[i]] = _registrationNonces[i];
-			builderNonRegistrationNonce[_builder[i]] = _nonRegistrationNonces[i];
-		}
-	}
-
-	function finishMigration() external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		isMigrationCompleted = true;
-		emit MigrationCompleted();
 	}
 
 	/**

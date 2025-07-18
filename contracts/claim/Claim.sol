@@ -12,7 +12,6 @@ import {ILiquidity} from "../liquidity/ILiquidity.sol";
 import {IRollup} from "../rollup/IRollup.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
-import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -23,7 +22,7 @@ import {WithdrawalLib} from "../common/WithdrawalLib.sol";
 import {Byte32Lib} from "../common/Byte32Lib.sol";
 import {AllocationLib} from "./lib/AllocationLib.sol";
 
-contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
+contract Claim is IClaim, UUPSUpgradeable, OwnableUpgradeable {
 	using WithdrawalLib for WithdrawalLib.Withdrawal;
 	using ChainedClaimLib for ChainedClaimLib.ChainedClaim[];
 	using ClaimProofPublicInputsLib for ClaimProofPublicInputsLib.ClaimProofPublicInputs;
@@ -313,80 +312,6 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		returns (AllocationLib.AllocationConstants memory)
 	{
 		return allocationState.getAllocationConstants();
-	}
-
-	function migrateStartTimestamp(uint256 _startTimestamp) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		allocationState.startTimestamp = _startTimestamp;
-	}
-
-	function migrateNullifiers(
-		bytes32[] calldata _nullifiers
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		for (uint256 i = 0; i < _nullifiers.length; i++) {
-			nullifiers[_nullifiers[i]] = true;
-		}
-	}
-
-	function migrateContributions(
-		uint256[] calldata periodNumbers,
-		address[] calldata users,
-		uint256[] calldata depositAmounts
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		if (
-			periodNumbers.length != users.length ||
-			periodNumbers.length != depositAmounts.length
-		) {
-			revert InvalidInput();
-		}
-		for (uint256 i = 0; i < periodNumbers.length; i++) {
-			uint256 period = periodNumbers[i];
-			address user = users[i];
-			uint256 depositAmount = depositAmounts[i];
-			allocationState.migrateContribution(period, user, depositAmount);
-		}
-	}
-
-	function migrateConsumeUserAllocation(
-		uint256[] calldata periodNumbers,
-		address[] calldata users
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		if (periodNumbers.length != users.length) {
-			revert InvalidInput();
-		}
-		for (uint256 i = 0; i < periodNumbers.length; i++) {
-			uint256 period = periodNumbers[i];
-			address user = users[i];
-			allocationState.userContributions[period][user] = 0;
-		}
-	}
-
-	function migrateNullifierNonce(
-		uint256 _nullifierNonce
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		nullifierNonce = _nullifierNonce;
-	}
-
-	function finishMigration() external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		isMigrationCompleted = true;
-		emit MigrationCompleted();
 	}
 
 	/**

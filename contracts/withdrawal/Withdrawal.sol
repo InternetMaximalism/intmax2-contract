@@ -7,7 +7,6 @@ import {ILiquidity} from "../liquidity/ILiquidity.sol";
 import {IRollup} from "../rollup/IRollup.sol";
 import {IContribution} from "../contribution/IContribution.sol";
 import {IL2ScrollMessenger} from "@scroll-tech/contracts/L2/IL2ScrollMessenger.sol";
-import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -25,7 +24,6 @@ import {Byte32Lib} from "../common/Byte32Lib.sol";
  */
 contract Withdrawal is
 	IWithdrawal,
-	IMigration,
 	UUPSUpgradeable,
 	OwnableUpgradeable
 {
@@ -337,43 +335,6 @@ contract Withdrawal is
 			}
 		}
 		emit DirectWithdrawalTokenIndicesRemoved(tokenIndices);
-	}
-
-	function migrateWithdrawals(
-		WithdrawalLib.Withdrawal[] calldata withdrawals
-	) external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		for (uint256 i = 0; i < withdrawals.length; i++) {
-			WithdrawalLib.Withdrawal memory withdrawal = withdrawals[i];
-			if (nullifiers[withdrawal.nullifier]) {
-				continue; // already withdrawn
-			}
-			nullifiers[withdrawal.nullifier] = true;
-			if (_isDirectWithdrawalToken(withdrawal.tokenIndex)) {
-				emit DirectWithdrawalQueued(
-					withdrawal.getHash(),
-					withdrawal.recipient,
-					withdrawal
-				);
-			} else {
-				bytes32 withdrawalHash = withdrawal.getHash();
-				emit ClaimableWithdrawalQueued(
-					withdrawalHash,
-					withdrawal.recipient,
-					withdrawal
-				);
-			}
-		}
-	}
-
-	function finishMigration() external onlyOwner {
-		if (isMigrationCompleted) {
-			revert AlreadyMigrated();
-		}
-		isMigrationCompleted = true;
-		emit MigrationCompleted();
 	}
 
 	/**
