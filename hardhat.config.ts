@@ -69,7 +69,6 @@ const config: HardhatUserConfig = {
 				chainId: 534352,
 				urls: {
 					apiURL: 'https://api.scrollscan.com/api',
-					// apiURL: 'https://api.etherscan.io/v2/api?chainid=534352/',
 					browserURL: 'https://scrollscan.com/',
 				},
 			},
@@ -78,7 +77,6 @@ const config: HardhatUserConfig = {
 				chainId: 534351,
 				urls: {
 					apiURL: 'https://api-sepolia.scrollscan.com/api',
-					// apiURL: 'https://api.etherscan.io/v2/api?chainid=534351/',
 					browserURL: 'https://sepolia.scrollscan.com/',
 				},
 			},
