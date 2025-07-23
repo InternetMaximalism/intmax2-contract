@@ -1,9 +1,5 @@
-import { ethers, upgrades, network } from 'hardhat'
+import { ethers } from 'hardhat'
 import { readDeployedContracts } from '../utils/io'
-
-if (network.name !== 'scrollSepolia') {
-	throw new Error('This script should be run on scrollSepolia network')
-}
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
@@ -11,9 +7,12 @@ async function main() {
 		throw new Error('withdrawal contract should be deployed')
 	}
 	const newImplementationFactory = await ethers.getContractFactory('Withdrawal')
-	await upgrades.upgradeProxy(
-		deployedContracts.withdrawal,
-		newImplementationFactory,
+
+	const newImplementation = await newImplementationFactory.deploy()
+	await newImplementation.waitForDeployment()
+	console.log(
+		'New Withdrawal implementation deployed at:',
+		await newImplementation.getAddress(),
 	)
 }
 
