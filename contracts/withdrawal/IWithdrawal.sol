@@ -108,6 +108,12 @@ interface IWithdrawal {
 	event DirectWithdrawalTokenIndicesRemoved(uint256[] tokenIndices);
 
 	/**
+	 * @notice Emitted when the circuit digest is updated
+	 * @param circuitDigest The new circuit digest value
+	 */
+	event CircuitDigestUpdated(uint256 indexed circuitDigest);
+
+	/**
 	 * @notice Submit and verify a withdrawal proof from Intmax2 L2
 	 * @dev Processes the withdrawals and relays them to the Liquidity contract on L1
 	 * @param withdrawals Array of chained withdrawals to process

@@ -28,11 +28,13 @@ library WithdrawalProofPublicInputsLib {
 		WithdrawalProofPublicInputs memory inputs
 	) internal pure returns (uint256) {
 		return
-			uint256(keccak256(
-				abi.encodePacked(
-					inputs.lastWithdrawalHash,
-					inputs.withdrawalAggregator
+			uint256(
+				keccak256(
+					abi.encodePacked(
+						inputs.lastWithdrawalHash,
+						inputs.withdrawalAggregator
+					)
 				)
-			)) & ((1 << 253) - 1);
+			) & ((1 << 253) - 1);
 	}
 }

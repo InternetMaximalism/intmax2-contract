@@ -62,6 +62,12 @@ interface IClaim {
 	);
 
 	/**
+	 * @notice Emitted when the circuit digest is updated
+	 * @param circuitDigest The new circuit digest value
+	s */
+	event CircuitDigestUpdated(uint256 indexed circuitDigest);
+
+	/**
 	 * @notice Updates the claim verifier address
 	 * @dev Only the contract owner can update the verifier
 	 * @param _claimVerifier Address of the new claim verifier

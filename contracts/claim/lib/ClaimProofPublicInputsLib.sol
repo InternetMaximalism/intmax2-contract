@@ -26,8 +26,13 @@ library ClaimProofPublicInputsLib {
 		ClaimProofPublicInputs memory inputs
 	) internal pure returns (uint256) {
 		return
-			uint256(keccak256(
-				abi.encodePacked(inputs.lastClaimHash, inputs.claimAggregator)
-			)) & ((1 << 253) - 1);
+			uint256(
+				keccak256(
+					abi.encodePacked(
+						inputs.lastClaimHash,
+						inputs.claimAggregator
+					)
+				)
+			) & ((1 << 253) - 1);
 	}
 }
