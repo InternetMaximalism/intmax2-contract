@@ -1,7 +1,7 @@
-import { ethers, network, upgrades } from 'hardhat'
+import { bool, cleanEnv, num, str } from 'envalid'
+import { ethers, upgrades } from 'hardhat'
 import { readDeployedContracts, writeDeployedContracts } from '../utils/io'
 import { sleep } from '../utils/sleep'
-import { bool, cleanEnv, num, str } from 'envalid'
 
 const env = cleanEnv(process.env, {
 	ADMIN_ADDRESS: str(),
@@ -110,44 +110,19 @@ async function main() {
 		await sleep(env.SLEEP_TIME)
 	}
 
-	let WithdrawalPlonkVerifier_
-	let ClaimPlonkVerifier_
+	let PlonkVerifier_
 	if (env.PLONK_VERIFIER_TYPE === 'mock') {
-		WithdrawalPlonkVerifier_ =
-			await ethers.getContractFactory('MockPlonkVerifier')
-		ClaimPlonkVerifier_ = await ethers.getContractFactory('MockPlonkVerifier')
-	} else if (env.PLONK_VERIFIER_TYPE === 'faster-mining') {
-		WithdrawalPlonkVerifier_ = await ethers.getContractFactory(
-			'WithdrawalPlonkVerifier',
-		)
-		ClaimPlonkVerifier_ = await ethers.getContractFactory(
-			'FasterClaimPlonkVerifier',
-		)
-	} else if (env.PLONK_VERIFIER_TYPE === 'normal') {
-		WithdrawalPlonkVerifier_ = await ethers.getContractFactory(
-			'WithdrawalPlonkVerifier',
-		)
-		ClaimPlonkVerifier_ = await ethers.getContractFactory('ClaimPlonkVerifier')
+		PlonkVerifier_ = await ethers.getContractFactory('MockPlonkVerifier')
+	} else {
+		PlonkVerifier_ = await ethers.getContractFactory('PlonkVerifier')
 	}
 
-	if (!deployedContracts.withdrawalPlonkVerifier) {
-		console.log('deploying withdrawalPlonkVerifier')
-		const withdrawalVerifier = await WithdrawalPlonkVerifier_.deploy()
+	if (!deployedContracts.plonkVerifier) {
+		console.log('deploying plonkVerifier')
+		const verifier = await PlonkVerifier_.deploy()
 		const deployedContracts = await readDeployedContracts()
 		const newContractAddresses = {
-			withdrawalPlonkVerifier: await withdrawalVerifier.getAddress(),
-			...deployedContracts,
-		}
-		await writeDeployedContracts(newContractAddresses)
-		await sleep(env.SLEEP_TIME)
-	}
-
-	if (!deployedContracts.claimPlonkVerifier) {
-		console.log('deploying claimPlonkVerifier')
-		const claimVerifier = await ClaimPlonkVerifier_.deploy()
-		const deployedContracts = await readDeployedContracts()
-		const newContractAddresses = {
-			claimPlonkVerifier: await claimVerifier.getAddress(),
+			plonkVerifier: await verifier.getAddress(),
 			...deployedContracts,
 		}
 		await writeDeployedContracts(newContractAddresses)

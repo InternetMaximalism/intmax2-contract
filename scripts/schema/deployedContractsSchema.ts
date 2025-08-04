@@ -23,11 +23,8 @@ export const DeployedContractsSchema = z
 			'L2 contribution contract address',
 		),
 		testErc20: ethereumAddressSchema.describe('Test ERC20 contract address'),
-		withdrawalPlonkVerifier: ethereumAddressSchema.describe(
-			'PLONK verifier for withdrawal contract address',
-		),
-		claimPlonkVerifier: ethereumAddressSchema.describe(
-			'PLONK verifier for claim contract address',
+		plonkVerifier: ethereumAddressSchema.describe(
+			'PLONK verifier contract address',
 		),
 		rollup: ethereumAddressSchema.describe('Rollup contract address'),
 		withdrawal: ethereumAddressSchema.describe('Withdrawal contract address'),
