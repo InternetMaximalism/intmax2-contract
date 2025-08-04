@@ -204,6 +204,12 @@ interface ILiquidity {
 	event WithdrawalFeeRatioSet(uint32 indexed tokenIndex, uint256 feeRatio);
 
 	/**
+	 * @notice Event emitted when the rollup contract is updated
+	 * @param rollup The address of the new rollup contract
+	 */
+	event RollupUpdated(address indexed rollup);
+
+	/**
 	 * @notice Pauses all deposit operations
 	 * @dev Only callable by the admin role
 	 */
