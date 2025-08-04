@@ -27,23 +27,11 @@ async function main() {
 
 	const newImplementationFactory = await ethers.getContractFactory('Liquidity')
 	const newImplementation = await newImplementationFactory.deploy()
-    await newImplementation.waitForDeployment()
+	await newImplementation.waitForDeployment()
 
-	console.log(`New Liquidity implementation deployed at ${await newImplementation.getAddress()}`)
-
-	// const newImplementationAddress = await newImplementation.getAddress()
-	// console.log(
-	// 	`Upgrading Liquidity contract to new implementation at ${newImplementationAddress}`,
-	// )
-
-	// const upgradeTx = await liquidity.upgradeToAndCall(
-	// 	newImplementationAddress,
-	// 	'0x',
-	// )
-	// await upgradeTx.wait()
-	// console.log(
-	// 	`Liquidity contract upgraded successfully to ${newImplementationAddress}`,
-	// )
+	console.log(
+		`New Liquidity implementation deployed at ${await newImplementation.getAddress()}`,
+	)
 }
 
 main().catch((error) => {

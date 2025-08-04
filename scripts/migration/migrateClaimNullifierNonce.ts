@@ -26,7 +26,7 @@ async function main() {
 	)) as unknown as Claim
 
 	const nullifierNonce = 952
-	// const nullifierNonce = 136 
+	// const nullifierNonce = 136
 
 	const tx = await claim.migrateNullifierNonce(nullifierNonce)
 	await tx.wait()
