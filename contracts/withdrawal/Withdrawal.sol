@@ -84,6 +84,8 @@ contract Withdrawal is
 
 	bool public isMigrationCompleted;
 
+	uint256 public circuitDigest;
+
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
@@ -291,7 +293,10 @@ contract Withdrawal is
 		if (publicInputs.withdrawalAggregator != _msgSender()) {
 			revert WithdrawalAggregatorMismatch();
 		}
-		if (!withdrawalVerifier.Verify(proof, publicInputs.getHash().split())) {
+		uint256[] memory pis = new uint256[](2);
+		pis[0] = circuitDigest;
+		pis[1] = publicInputs.getHash();
+		if (!withdrawalVerifier.Verify(proof, pis)) {
 			revert WithdrawalProofVerificationFailed();
 		}
 	}

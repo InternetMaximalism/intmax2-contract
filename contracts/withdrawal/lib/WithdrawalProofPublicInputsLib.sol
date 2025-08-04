@@ -22,17 +22,17 @@ library WithdrawalProofPublicInputsLib {
 	 * @notice Computes the hash of the WithdrawalProofPublicInputs
 	 * @dev This hash is used as input to the zero-knowledge proof verification
 	 * @param inputs The WithdrawalProofPublicInputs struct to be hashed
-	 * @return bytes32 The resulting hash that will be split into uint256 array for the verifier
+	 * @return bytes32 The resulting hash that is masked to fit within 253 bits
 	 */
 	function getHash(
 		WithdrawalProofPublicInputs memory inputs
-	) internal pure returns (bytes32) {
+	) internal pure returns (uint256) {
 		return
-			keccak256(
+			uint256(keccak256(
 				abi.encodePacked(
 					inputs.lastWithdrawalHash,
 					inputs.withdrawalAggregator
 				)
-			);
+			)) & ((1 << 253) - 1);
 	}
 }

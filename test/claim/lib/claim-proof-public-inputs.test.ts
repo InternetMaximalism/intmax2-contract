@@ -19,7 +19,7 @@ describe('ClaimProofPublicInputsLibTest', () => {
 			expect(
 				await lib.getHash(encodeBytes32String('arg1'), ethers.ZeroAddress),
 			).to.be.equal(
-				'0xd715f19b6a5b20d5d567063de333780e7cd74aec6dccabbeaa2c8851b16f488a',
+				'10441966816637373847548462612560686192032977703521318278231144091840607635594',
 			)
 		})
 	})

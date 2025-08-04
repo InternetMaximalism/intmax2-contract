@@ -1,6 +1,6 @@
+import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers'
 import { WithdrawalProofPublicInputsLibTest } from '../../../typechain-types'
 
 describe('WithdrawalProofPublicInputsLib', () => {
@@ -66,8 +66,10 @@ describe('WithdrawalProofPublicInputsLib', () => {
 					[lastWithdrawalHash, withdrawalAggregator],
 				),
 			)
+			const mask = (1n << 253n) - 1n
+			const maskedHash = BigInt(manualHash) & mask
 
-			expect(contractHash).to.equal(manualHash)
+			expect(contractHash).to.equal(maskedHash)
 		})
 	})
 

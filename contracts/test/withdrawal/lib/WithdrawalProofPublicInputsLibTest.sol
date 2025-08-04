@@ -7,7 +7,7 @@ contract WithdrawalProofPublicInputsLibTest {
 	function getHash(
 		bytes32 lastWithdrawalHash,
 		address withdrawalAggregator
-	) external pure returns (bytes32) {
+	) external pure returns (uint256) {
 		WithdrawalProofPublicInputsLib.WithdrawalProofPublicInputs
 			memory inputs = WithdrawalProofPublicInputsLib
 				.WithdrawalProofPublicInputs({

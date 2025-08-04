@@ -42,8 +42,7 @@ async function main() {
 		!deployedL2Contracts.withdrawal ||
 		!deployedL2Contracts.claim ||
 		!deployedL2Contracts.blockBuilderRegistry ||
-		!deployedL2Contracts.withdrawalPlonkVerifier ||
-		!deployedL2Contracts.claimPlonkVerifier ||
+		!deployedL2Contracts.plonkVerifier ||
 		!deployedL2Contracts.l2Contribution
 	) {
 		throw new Error('all l2 contracts should be deployed')
@@ -99,7 +98,7 @@ async function main() {
 		const tx = await withdrawal.initialize(
 			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
-			deployedL2Contracts.withdrawalPlonkVerifier,
+			deployedL2Contracts.plonkVerifier,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
 			deployedL2Contracts.l2Contribution,
@@ -114,7 +113,7 @@ async function main() {
 		const tx = await claim.initialize(
 			env.ADMIN_ADDRESS,
 			await getL2MessengerAddress(),
-			deployedL2Contracts.claimPlonkVerifier,
+			deployedL2Contracts.plonkVerifier,
 			deployedL1Contracts.liquidity,
 			deployedL2Contracts.rollup,
 			deployedL2Contracts.l2Contribution,

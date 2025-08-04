@@ -20,14 +20,14 @@ library ClaimProofPublicInputsLib {
 	 * @notice Computes the hash of the ClaimProofPublicInputs for verification
 	 * @dev Used in the ZK proof verification process
 	 * @param inputs The ClaimProofPublicInputs to be hashed
-	 * @return bytes32 The resulting hash used for verification
+	 * @return bytes32 The resulting hash that is masked to fit within 253 bits
 	 */
 	function getHash(
 		ClaimProofPublicInputs memory inputs
-	) internal pure returns (bytes32) {
+	) internal pure returns (uint256) {
 		return
-			keccak256(
+			uint256(keccak256(
 				abi.encodePacked(inputs.lastClaimHash, inputs.claimAggregator)
-			);
+			)) & ((1 << 253) - 1);
 	}
 }
