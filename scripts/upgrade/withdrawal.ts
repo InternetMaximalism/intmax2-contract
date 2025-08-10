@@ -3,9 +3,9 @@ import { readDeployedContracts } from '../utils/io'
 
 async function main() {
 	const deployedContracts = await readDeployedContracts()
-	if (!deployedContracts.withdrawal) {
-		throw new Error('withdrawal contract should be deployed')
-	}
+	// if (!deployedContracts.withdrawal) {
+	// 	throw new Error('withdrawal contract should be deployed')
+	// }
 	const newImplementationFactory = await ethers.getContractFactory('Withdrawal')
 
 	const newImplementation = await newImplementationFactory.deploy()

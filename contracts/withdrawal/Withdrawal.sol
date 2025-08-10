@@ -381,6 +381,11 @@ contract Withdrawal is
 		emit MigrationCompleted();
 	}
 
+	function setCircuitDigest(uint256 _circuitDigest) external onlyOwner {
+		circuitDigest = _circuitDigest;
+		emit CircuitDigestUpdated(_circuitDigest);
+	}
+
 	/**
 	 * @notice Authorizes an upgrade to a new implementation
 	 * @dev Can only be called by the contract owner

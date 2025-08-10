@@ -420,7 +420,6 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		return rateLimitState.getPenalty();
 	}
 
-
 	function migrateLastProcessedDepositId(
 		uint256 _lastProcessedDepositId
 	) external onlyOwner {
@@ -451,7 +450,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		uint32 _blockNumber,
 		bytes32 _depositTreeRoot,
 		bytes32 _signatureHash,
-		bytes calldata _originalCallData 
+		bytes calldata _originalCallData
 	) external onlyOwner {
 		(_originalCallData);
 		if (isMigrationCompleted) {
@@ -491,7 +490,9 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		}
 		for (uint256 i = 0; i < _builder.length; i++) {
 			builderRegistrationNonce[_builder[i]] = _registrationNonces[i];
-			builderNonRegistrationNonce[_builder[i]] = _nonRegistrationNonces[i];
+			builderNonRegistrationNonce[_builder[i]] = _nonRegistrationNonces[
+				i
+			];
 		}
 	}
 

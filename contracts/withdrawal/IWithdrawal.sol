@@ -68,6 +68,11 @@ interface IWithdrawal {
 	event VerifierUpdated(address indexed withdrawalVerifier);
 
 	/**
+	 * @notice Emitted when circuit digest is updated
+	 */
+	event CircuitDigestUpdated(uint256 circuitDigest);
+
+	/**
 	 * @notice Emitted when a claimable withdrawal is queued
 	 * @dev Triggered for withdrawals of tokens not in the direct withdrawal list
 	 * @param withdrawalHash The hash of the withdrawal, used as an identifier
