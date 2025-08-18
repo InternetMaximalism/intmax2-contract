@@ -50,6 +50,11 @@ interface IClaim {
 	event VerifierUpdated(address indexed claimVerifier);
 
 	/**
+	 * @notice Emitted when circuit digest is updated
+	 */
+	event CircuitDigestUpdated(uint256 circuitDigest);
+
+	/**
 	 * @notice Emitted when a direct withdrawal is queued
 	 * @param withdrawalHash The hash of the withdrawal
 	 * @param recipient The address of the recipient

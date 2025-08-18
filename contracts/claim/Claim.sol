@@ -79,6 +79,8 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 
 	uint32 public constant REWARD_TOKEN_INDEX = 1;
 
+	uint256 public circuitDigest;
+
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() {
 		_disableInitializers();
@@ -288,7 +290,10 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		if (publicInputs.claimAggregator != _msgSender()) {
 			revert ClaimAggregatorMismatch();
 		}
-		if (!claimVerifier.Verify(proof, publicInputs.getHash().split())) {
+		uint256[] memory pis = new uint256[](2);
+		pis[0] = circuitDigest;
+		pis[1] = publicInputs.getHash();
+		if (!claimVerifier.Verify(proof, pis)) {
 			revert ClaimProofVerificationFailed();
 		}
 	}
@@ -372,9 +377,7 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 	}
 
-	function migrateNullifierNonce(
-		uint256 _nullifierNonce
-	) external onlyOwner {
+	function migrateNullifierNonce(uint256 _nullifierNonce) external onlyOwner {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
@@ -387,6 +390,11 @@ contract Claim is IClaim, IMigration, UUPSUpgradeable, OwnableUpgradeable {
 		}
 		isMigrationCompleted = true;
 		emit MigrationCompleted();
+	}
+
+	function setCircuitDigest(uint256 _circuitDigest) external onlyOwner {
+		circuitDigest = _circuitDigest;
+		emit CircuitDigestUpdated(_circuitDigest);
 	}
 
 	/**

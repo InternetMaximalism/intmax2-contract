@@ -7,7 +7,7 @@ contract ClaimProofPublicInputsLibTest {
 	function getHash(
 		bytes32 lastClaimHash,
 		address claimAggregator
-	) external pure returns (bytes32) {
+	) external pure returns (uint256) {
 		ClaimProofPublicInputsLib.ClaimProofPublicInputs
 			memory inputs = ClaimProofPublicInputsLib.ClaimProofPublicInputs({
 				lastClaimHash: lastClaimHash,
