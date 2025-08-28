@@ -94,6 +94,13 @@ interface ILiquidity {
 	error WithdrawalFeeRatioExceedsLimit();
 
 	/**
+	 * @notice Error thrown when native token transfer fails
+	 * @param recipient The address that was supposed to receive the native tokens
+	 * @param amount The amount of native tokens that were attempted to be transferred
+	 */
+	error NativeTokenTransferFailed(address recipient, uint256 amount);
+
+	/**
 	 * @notice Event emitted when a deposit is made
 	 * @param depositId The unique identifier for the deposit
 	 * @param sender The address that made the deposit

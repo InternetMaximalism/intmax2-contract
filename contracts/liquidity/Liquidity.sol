@@ -541,7 +541,11 @@ contract Liquidity is
 		uint256 tokenId
 	) private {
 		if (tokenType == TokenType.NATIVE) {
-			payable(recipient).transfer(amount);
+			// solhint-disable-next-line avoid-low-level-calls
+			(bool success, ) = payable(recipient).call{value: amount}("");
+			if (!success) {
+				revert NativeTokenTransferFailed(recipient, amount);
+			}
 		} else if (tokenType == TokenType.ERC20) {
 			IERC20(token).safeTransfer(recipient, amount);
 		} else if (tokenType == TokenType.ERC721) {
