@@ -181,6 +181,8 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			revert Expired();
 		}
 		_collectPenaltyFee();
+		bytes32 prevBlockHash = blockHashes.getPrevHash();
+		bytes32 depositTreeRootCached = depositTreeRoot;
 		BlockPostData memory blockPostData = BlockPostData({
 			isRegistrationBlock: true,
 			txTreeRoot: txTreeRoot,
@@ -190,18 +192,19 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			senderFlags: senderFlags
 		});
 		bytes32 publicKeysHash = _hashPaddedSenderPublicKeys(senderPublicKeys);
-		bytes32 accountIdsHash = 0;
 		_postBlock(
 			blockPostData,
 			publicKeysHash,
-			accountIdsHash,
+			bytes32(0),
 			aggregatedPublicKey,
 			aggregatedSignature,
 			messagePoint
 		);
 		emit FullBlockPosted(
 			blockHashes.getBlockNumber() - 1,
+			prevBlockHash,
 			uint64(block.timestamp),
+			depositTreeRootCached,
 			blockPostData,
 			aggregatedPublicKey,
 			aggregatedSignature,
@@ -211,7 +214,6 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			new bytes(0)
 		);
 	}
-
 
 	function postNonRegistrationBlock(
 		bytes32 txTreeRoot,
@@ -228,6 +230,8 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			revert Expired();
 		}
 		_collectPenaltyFee();
+		bytes32 prevBlockHash = blockHashes.getPrevHash();
+		bytes32 depositTreeRootCached = depositTreeRoot;
 		BlockPostData memory blockPostData = BlockPostData({
 			isRegistrationBlock: false,
 			txTreeRoot: txTreeRoot,
@@ -236,18 +240,19 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			builderNonce: builderNonce,
 			senderFlags: senderFlags
 		});
-		bytes32 accountIdsHash = _hashPaddedAccountIds(senderAccountIds);
 		_postBlock(
 			blockPostData,
 			publicKeysHash,
-			accountIdsHash,
+			_hashPaddedAccountIds(senderAccountIds),
 			aggregatedPublicKey,
 			aggregatedSignature,
 			messagePoint
 		);
 		emit FullBlockPosted(
 			blockHashes.getBlockNumber() - 1,
+			prevBlockHash,
 			uint64(block.timestamp),
+			depositTreeRootCached,
 			blockPostData,
 			aggregatedPublicKey,
 			aggregatedSignature,
@@ -258,7 +263,6 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
-
 	function processDeposits(
 		uint256 _lastProcessedDepositId,
 		bytes32[] calldata depositHashes
@@ -268,7 +272,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		for (uint256 i = 0; i < depositHashes.length; i++) {
 			depositTree.deposit(depositHashes[i]);
 			emit DepositLeafInserted(depositIndexCached, depositHashes[i]);
-			emit FullDepositLeafInserted(
+			emit DepositLeafInsertedWithBlockNumber(
 				depositIndexCached,
 				depositHashes[i],
 				nextBlockNumber
@@ -480,7 +484,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		for (uint256 i = 0; i < _depositHashes.length; i++) {
 			depositTree.deposit(_depositHashes[i]);
 			emit DepositLeafInserted(depositIndex, _depositHashes[i]);
-			emit FullDepositLeafInserted(
+			emit DepositLeafInsertedWithBlockNumber(
 				depositIndex,
 				_depositHashes[i],
 				nextBlockNumber

@@ -96,13 +96,13 @@ interface IRollup {
 	);
 
 	/**
-	 * @notice Event emitted when a full deposit leaf is inserted into the deposit tree
+	 * @notice Event emitted when a deposit leaf is inserted with the next block number context
 	 * @dev Emitted when a deposit causes the next block number to increment
 	 * @param depositIndex The index of the deposit in the deposit tree
 	 * @param depositHash The hash of the deposit data
 	 * @param nextBlockNumber The next block number after processing this deposit
 	 */
-	event FullDepositLeafInserted(
+	event DepositLeafInsertedWithBlockNumber(
 		uint32 indexed depositIndex,
 		bytes32 indexed depositHash,
 		uint32 indexed nextBlockNumber
@@ -131,7 +131,9 @@ interface IRollup {
 	 * @notice Event emitted when a full block is posted (registration or non-registration)
 	 * @dev Contains detailed information about the posted block
 	 * @param blockNumber The sequential number of the posted block
+	 * @param prevBlockHash The hash of the previous block in the chain
 	 * @param timestamp The timestamp when the block was posted
+	 * @param depositTreeRoot The root of the deposit tree at the time of block posting
 	 * @param blockData Struct containing block parameters
 	 * @param aggregatedPublicKey The aggregated public key for signature verification
 	 * @param aggregatedSignature The aggregated signature of all participating senders
@@ -142,7 +144,9 @@ interface IRollup {
 	 */
 	event FullBlockPosted(
 		uint32 indexed blockNumber,
+		bytes32 indexed prevBlockHash,
 		uint64 timestamp,
+		bytes32 depositTreeRoot,
 		BlockPostData blockData,
 		bytes32[2] aggregatedPublicKey,
 		bytes32[4] aggregatedSignature,
