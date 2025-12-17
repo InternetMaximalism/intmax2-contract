@@ -193,15 +193,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		if (length > NUM_SENDERS_IN_BLOCK) {
 			revert TooManySenderPublicKeys();
 		}
-
-		uint256[NUM_SENDERS_IN_BLOCK] memory paddedKeys;
-		for (uint256 i = 0; i < length; i++) {
-			paddedKeys[i] = senderPublicKeys[i];
-		}
-		for (uint256 i = length; i < NUM_SENDERS_IN_BLOCK; i++) {
-			paddedKeys[i] = 1;
-		}
-		bytes32 publicKeysHash = keccak256(abi.encodePacked(paddedKeys));
+		bytes32 publicKeysHash = 0;
 		bytes32 accountIdsHash = 0;
 		_postBlock(
 			blockPostData,
@@ -210,6 +202,17 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			aggregatedPublicKey,
 			aggregatedSignature,
 			messagePoint
+		);
+		emit FullBlockPosted(
+			blockHashes.getBlockNumber() - 1,
+			uint64(block.timestamp),
+			blockPostData,
+			aggregatedPublicKey,
+			aggregatedSignature,
+			messagePoint,
+			senderPublicKeys,
+			publicKeysHash,
+			new bytes(0)
 		);
 	}
 
@@ -236,6 +239,31 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			builderNonce: builderNonce,
 			senderFlags: senderFlags
 		});
+		bytes32 accountIdsHash = _hashPaddedAccountIds(senderAccountIds);
+		_postBlock(
+			blockPostData,
+			publicKeysHash,
+			accountIdsHash,
+			aggregatedPublicKey,
+			aggregatedSignature,
+			messagePoint
+		);
+		emit FullBlockPosted(
+			blockHashes.getBlockNumber() - 1,
+			uint64(block.timestamp),
+			blockPostData,
+			aggregatedPublicKey,
+			aggregatedSignature,
+			messagePoint,
+			new uint256[](0),
+			publicKeysHash,
+			senderAccountIds
+		);
+	}
+
+	function _hashPaddedAccountIds(
+		bytes calldata senderAccountIds
+	) private pure returns (bytes32) {
 		uint256 length = senderAccountIds.length;
 		if (length > FULL_ACCOUNT_IDS_BYTES) {
 			revert TooManyAccountIds();
@@ -251,25 +279,23 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		for (uint256 i = length; i < FULL_ACCOUNT_IDS_BYTES; i += 5) {
 			paddedAccountIds[i + 4] = 0x01;
 		}
-		bytes32 accountIdsHash = keccak256(paddedAccountIds);
-		_postBlock(
-			blockPostData,
-			publicKeysHash,
-			accountIdsHash,
-			aggregatedPublicKey,
-			aggregatedSignature,
-			messagePoint
-		);
+		return keccak256(paddedAccountIds);
 	}
 
 	function processDeposits(
 		uint256 _lastProcessedDepositId,
 		bytes32[] calldata depositHashes
 	) external onlyLiquidityContract {
+		uint32 nextBlockNumber = blockHashes.getBlockNumber();
 		uint32 depositIndexCached = depositIndex;
 		for (uint256 i = 0; i < depositHashes.length; i++) {
 			depositTree.deposit(depositHashes[i]);
 			emit DepositLeafInserted(depositIndexCached, depositHashes[i]);
+			emit FullDepositLeafInserted(
+				depositIndexCached,
+				depositHashes[i],
+				nextBlockNumber
+			);
 			depositIndexCached++;
 		}
 		depositIndex = depositIndexCached;
@@ -435,9 +461,15 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		if (isMigrationCompleted) {
 			revert AlreadyMigrated();
 		}
+		uint32 nextBlockNumber = blockHashes.getBlockNumber();
 		for (uint256 i = 0; i < _depositHashes.length; i++) {
 			depositTree.deposit(_depositHashes[i]);
 			emit DepositLeafInserted(depositIndex, _depositHashes[i]);
+			emit FullDepositLeafInserted(
+				depositIndex,
+				_depositHashes[i],
+				nextBlockNumber
+			);
 			depositIndex++;
 		}
 		depositTreeRoot = depositTree.getRoot();
