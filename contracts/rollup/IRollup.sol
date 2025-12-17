@@ -96,6 +96,19 @@ interface IRollup {
 	);
 
 	/**
+	 * @notice Event emitted when a full deposit leaf is inserted into the deposit tree
+	 * @dev Emitted when a deposit causes the next block number to increment
+	 * @param depositIndex The index of the deposit in the deposit tree
+	 * @param depositHash The hash of the deposit data
+	 * @param nextBlockNumber The next block number after processing this deposit
+	 */
+	event FullDepositLeafInserted(
+		uint32 indexed depositIndex,
+		bytes32 indexed depositHash,
+		uint32 indexed nextBlockNumber
+	);
+
+	/**
 	 * @notice Event emitted when a new block is posted to the rollup chain
 	 * @dev Contains all essential information about the newly posted block
 	 * @param prevBlockHash The hash of the previous block in the chain
@@ -112,6 +125,31 @@ interface IRollup {
 		uint256 blockNumber,
 		bytes32 depositTreeRoot,
 		bytes32 signatureHash
+	);
+
+	/**
+	 * @notice Event emitted when a full block is posted (registration or non-registration)
+	 * @dev Contains detailed information about the posted block
+	 * @param blockNumber The sequential number of the posted block
+	 * @param timestamp The timestamp when the block was posted
+	 * @param blockData Struct containing block parameters
+	 * @param aggregatedPublicKey The aggregated public key for signature verification
+	 * @param aggregatedSignature The aggregated signature of all participating senders
+	 * @param messagePoint The hash of the tx tree root mapped to G2 curve point
+	 * @param senderPublicKeys Array of public keys for new senders (registration blocks)
+	 * @param publicKeysHash The hash of the public keys used in this block (non-registration blocks)
+	 * @param senderAccountIds Byte array of account IDs (5 bytes per account, non-registration blocks)
+	 */
+	event FullBlockPosted(
+		uint32 indexed blockNumber,
+		uint64 timestamp,
+		BlockPostData blockData,
+		bytes32[2] aggregatedPublicKey,
+		bytes32[4] aggregatedSignature,
+		bytes32[4] messagePoint,
+		uint256[] senderPublicKeys,
+		bytes32 publicKeysHash,
+		bytes senderAccountIds
 	);
 
 	/**
