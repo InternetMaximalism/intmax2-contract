@@ -189,11 +189,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			builderNonce: builderNonce,
 			senderFlags: senderFlags
 		});
-		uint256 length = senderPublicKeys.length;
-		if (length > NUM_SENDERS_IN_BLOCK) {
-			revert TooManySenderPublicKeys();
-		}
-		bytes32 publicKeysHash = 0;
+		bytes32 publicKeysHash = _hashPaddedSenderPublicKeys(senderPublicKeys);
 		bytes32 accountIdsHash = 0;
 		_postBlock(
 			blockPostData,
@@ -215,6 +211,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 			new bytes(0)
 		);
 	}
+
 
 	function postNonRegistrationBlock(
 		bytes32 txTreeRoot,
@@ -261,26 +258,6 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		);
 	}
 
-	function _hashPaddedAccountIds(
-		bytes calldata senderAccountIds
-	) private pure returns (bytes32) {
-		uint256 length = senderAccountIds.length;
-		if (length > FULL_ACCOUNT_IDS_BYTES) {
-			revert TooManyAccountIds();
-		}
-		if (length % 5 != 0) {
-			revert SenderAccountIdsInvalidLength();
-		}
-		bytes memory paddedAccountIds = new bytes(FULL_ACCOUNT_IDS_BYTES);
-		for (uint256 i = 0; i < length; i++) {
-			paddedAccountIds[i] = senderAccountIds[i];
-		}
-		// Pad with 5-byte representation of 1 (0x0000000001)
-		for (uint256 i = length; i < FULL_ACCOUNT_IDS_BYTES; i += 5) {
-			paddedAccountIds[i + 4] = 0x01;
-		}
-		return keccak256(paddedAccountIds);
-	}
 
 	function processDeposits(
 		uint256 _lastProcessedDepositId,
@@ -303,6 +280,44 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32 newDepositTreeRoot = depositTree.getRoot();
 		depositTreeRoot = newDepositTreeRoot;
 		emit DepositsProcessed(_lastProcessedDepositId, newDepositTreeRoot);
+	}
+
+	function _hashPaddedSenderPublicKeys(
+		uint256[] calldata senderPublicKeys
+	) private pure returns (bytes32) {
+		uint256 length = senderPublicKeys.length;
+		if (length > NUM_SENDERS_IN_BLOCK) {
+			revert TooManySenderPublicKeys();
+		}
+		uint256[NUM_SENDERS_IN_BLOCK] memory paddedKeys;
+		for (uint256 i = 0; i < length; i++) {
+			paddedKeys[i] = senderPublicKeys[i];
+		}
+		for (uint256 i = length; i < NUM_SENDERS_IN_BLOCK; i++) {
+			paddedKeys[i] = 1;
+		}
+		return keccak256(abi.encodePacked(paddedKeys));
+	}
+
+	function _hashPaddedAccountIds(
+		bytes calldata senderAccountIds
+	) private pure returns (bytes32) {
+		uint256 length = senderAccountIds.length;
+		if (length > FULL_ACCOUNT_IDS_BYTES) {
+			revert TooManyAccountIds();
+		}
+		if (length % 5 != 0) {
+			revert SenderAccountIdsInvalidLength();
+		}
+		bytes memory paddedAccountIds = new bytes(FULL_ACCOUNT_IDS_BYTES);
+		for (uint256 i = 0; i < length; i++) {
+			paddedAccountIds[i] = senderAccountIds[i];
+		}
+		// Pad with 5-byte representation of 1 (0x0000000001)
+		for (uint256 i = length; i < FULL_ACCOUNT_IDS_BYTES; i += 5) {
+			paddedAccountIds[i + 4] = 0x01;
+		}
+		return keccak256(paddedAccountIds);
 	}
 
 	/**
