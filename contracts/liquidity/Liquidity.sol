@@ -430,7 +430,7 @@ contract Liquidity is
 
 	function claimWithdrawals(
 		WithdrawalLib.Withdrawal[] calldata withdrawals
-	) external {
+	) external whenNotPaused {
 		for (uint256 i = 0; i < withdrawals.length; i++) {
 			WithdrawalLib.Withdrawal memory w = withdrawals[i];
 			bytes32 withdrawalHash = w.getHash();

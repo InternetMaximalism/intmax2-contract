@@ -12,7 +12,6 @@ const env = cleanEnv(process.env, {
 	DEPLOYER_PRIVATE_KEY: str(),
 	ALCHEMY_KEY: str(),
 	ETHERSCAN_API_KEY: str(),
-	SCROLLSCAN_API_KEY: str(),
 })
 
 const accounts = [env.DEPLOYER_PRIVATE_KEY]
@@ -57,19 +56,13 @@ const config: HardhatUserConfig = {
 		exclude: ['test'],
 	},
 	etherscan: {
-		apiKey: {
-			mainnet: env.ETHERSCAN_API_KEY,
-			sepolia: env.ETHERSCAN_API_KEY,
-			scroll: env.SCROLLSCAN_API_KEY,
-			scrollSepolia: env.SCROLLSCAN_API_KEY,
-		},
+		apiKey: env.ETHERSCAN_API_KEY,
 		customChains: [
 			{
 				network: 'scroll',
 				chainId: 534352,
 				urls: {
-					apiURL: 'https://api.scrollscan.com/api',
-					// apiURL: 'https://api.etherscan.io/v2/api?chainid=534352/',
+					apiURL: 'https://api.etherscan.io/v2/api?chainid=534352',
 					browserURL: 'https://scrollscan.com/',
 				},
 			},
@@ -77,8 +70,7 @@ const config: HardhatUserConfig = {
 				network: 'scrollSepolia',
 				chainId: 534351,
 				urls: {
-					apiURL: 'https://api-sepolia.scrollscan.com/api',
-					// apiURL: 'https://api.etherscan.io/v2/api?chainid=534351/',
+					apiURL: 'https://api.etherscan.io/v2/api?chainid=534351',
 					browserURL: 'https://sepolia.scrollscan.com/',
 				},
 			},
