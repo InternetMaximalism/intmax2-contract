@@ -1356,6 +1356,123 @@ describe('Rollup', () => {
 		})
 	})
 
+	describe('pauseBlockPosting', () => {
+		describe('success', () => {
+			it('owner can pause block posting', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await rollup.connect(admin).pauseBlockPosting()
+				expect(await rollup.paused()).to.be.true
+			})
+			it('owner can unpause block posting', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin } = await getSigners()
+				await rollup.connect(admin).pauseBlockPosting()
+				await rollup.connect(admin).unpauseBlockPosting()
+				expect(await rollup.paused()).to.be.false
+			})
+			it('postRegistrationBlock should revert when paused', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin } = await getSigners()
+				const inputs = await generateValidInputs()
+				await rollup.connect(admin).pauseBlockPosting()
+				await expect(
+					rollup.postRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.expiry,
+						inputs.builderNonce,
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.senderPublicKeys,
+					),
+				).to.be.revertedWithCustomError(rollup, 'EnforcedPause')
+			})
+			it('postNonRegistrationBlock should revert when paused', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin } = await getSigners()
+				const timestamp = await time.latest()
+				const inputs = {
+					txTreeRoot:
+						'0xe9fe591a2052682636a8019b6be712fd1e000544be4acfd8fc6bcaf8d750f7a0',
+					expiry: timestamp + 100,
+					builderNonce: 1,
+					senderFlags: '0xf6f27cffbbdff9cea5bc062a276505e2',
+					aggregatedPublicKey: [
+						block1.signature.aggPubkey[0],
+						block1.signature.aggPubkey[1],
+					] as [string, string],
+					aggregatedSignature: [
+						block1.signature.aggSignature[0],
+						block1.signature.aggSignature[1],
+						block1.signature.aggSignature[2],
+						block1.signature.aggSignature[3],
+					] as [string, string, string, string],
+					messagePoint: [
+						block1.signature.messagePoint[0],
+						block1.signature.messagePoint[1],
+						block1.signature.messagePoint[2],
+						block1.signature.messagePoint[3],
+					] as [string, string, string, string],
+					publicKeysHash:
+						'0xc4edb51053c87905b17da182fe87c0432e2dcbe7b3620eb4f6ae585ba0b49797',
+					senderAccountIds: '0x0102030405060708090a0b0c0d0e0f',
+				}
+				await rollup.connect(admin).pauseBlockPosting()
+				await expect(
+					rollup.postNonRegistrationBlock(
+						inputs.txTreeRoot,
+						inputs.expiry,
+						inputs.builderNonce,
+						inputs.senderFlags,
+						inputs.aggregatedPublicKey,
+						inputs.aggregatedSignature,
+						inputs.messagePoint,
+						inputs.publicKeysHash,
+						inputs.senderAccountIds,
+					),
+				).to.be.revertedWithCustomError(rollup, 'EnforcedPause')
+			})
+			it('postRegistrationBlock should work after unpause', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin } = await getSigners()
+				const inputs = await generateValidInputs()
+				await rollup.connect(admin).pauseBlockPosting()
+				await rollup.connect(admin).unpauseBlockPosting()
+				await rollup.postRegistrationBlock(
+					inputs.txTreeRoot,
+					inputs.expiry,
+					inputs.builderNonce,
+					inputs.senderFlags,
+					inputs.aggregatedPublicKey,
+					inputs.aggregatedSignature,
+					inputs.messagePoint,
+					inputs.senderPublicKeys,
+				)
+				const blockNumber = await rollup.getLatestBlockNumber()
+				expect(blockNumber).to.equal(1)
+			})
+		})
+		describe('fail', () => {
+			it('non-owner cannot pause', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { user1 } = await getSigners()
+				await expect(rollup.connect(user1).pauseBlockPosting())
+					.to.be.revertedWithCustomError(rollup, 'OwnableUnauthorizedAccount')
+					.withArgs(user1.address)
+			})
+			it('non-owner cannot unpause', async () => {
+				const [rollup] = await loadFixture(setup)
+				const { admin, user1 } = await getSigners()
+				await rollup.connect(admin).pauseBlockPosting()
+				await expect(rollup.connect(user1).unpauseBlockPosting())
+					.to.be.revertedWithCustomError(rollup, 'OwnableUnauthorizedAccount')
+					.withArgs(user1.address)
+			})
+		})
+	})
+
 	describe('upgrade', () => {
 		it('channel contract is upgradable', async () => {
 			const [rollup] = await loadFixture(setup)
