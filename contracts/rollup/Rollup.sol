@@ -8,6 +8,7 @@ import {IMigration} from "../common/IMigration.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {DepositTreeLib} from "./lib/DepositTreeLib.sol";
 import {BlockHashLib} from "./lib/BlockHashLib.sol";
@@ -19,7 +20,13 @@ import {RateLimiterLib} from "./lib/RateLimiterLib.sol";
  * @notice Implementation of the Intmax2 L2 rollup contract
  * @dev Manages block submission, deposit processing, and maintains the state of the rollup chain
  */
-contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
+contract Rollup is
+	IRollup,
+	IMigration,
+	OwnableUpgradeable,
+	UUPSUpgradeable,
+	PausableUpgradeable
+{
 	using BlockHashLib for bytes32[];
 	using DepositTreeLib for DepositTreeLib.DepositTree;
 	using RateLimiterLib for RateLimiterLib.RateLimitState;
@@ -153,6 +160,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		}
 		__Ownable_init(_admin);
 		__UUPSUpgradeable_init();
+		__Pausable_init();
 		depositTree.initialize();
 		l2ScrollMessenger = IL2ScrollMessenger(_scrollMessenger);
 		liquidity = _liquidity;
@@ -176,7 +184,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata aggregatedSignature,
 		bytes32[4] calldata messagePoint,
 		uint256[] calldata senderPublicKeys
-	) external payable {
+	) external payable whenNotPaused {
 		if (expiry != 0 && expiry <= block.timestamp) {
 			revert Expired();
 		}
@@ -223,7 +231,7 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		bytes32[4] calldata messagePoint,
 		bytes32 publicKeysHash,
 		bytes calldata senderAccountIds
-	) external payable {
+	) external payable whenNotPaused {
 		if (expiry != 0 && expiry <= block.timestamp) {
 			revert Expired();
 		}
@@ -384,6 +392,22 @@ contract Rollup is IRollup, IMigration, OwnableUpgradeable, UUPSUpgradeable {
 		if (excessFee > 0) {
 			payable(_msgSender()).transfer(excessFee);
 		}
+	}
+
+	/**
+	 * @notice Pauses block posting on the rollup chain
+	 * @dev Can only be called by the contract owner. Prevents postRegistrationBlock and postNonRegistrationBlock from being called.
+	 */
+	function pauseBlockPosting() external onlyOwner {
+		_pause();
+	}
+
+	/**
+	 * @notice Unpauses block posting on the rollup chain
+	 * @dev Can only be called by the contract owner. Resumes normal block posting operations.
+	 */
+	function unpauseBlockPosting() external onlyOwner {
+		_unpause();
 	}
 
 	/**

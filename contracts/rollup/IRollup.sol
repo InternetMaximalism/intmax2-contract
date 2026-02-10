@@ -182,6 +182,18 @@ interface IRollup {
 	) external payable;
 
 	/**
+	 * @notice Pauses block posting on the rollup chain
+	 * @dev Can only be called by the contract owner
+	 */
+	function pauseBlockPosting() external;
+
+	/**
+	 * @notice Unpauses block posting on the rollup chain
+	 * @dev Can only be called by the contract owner
+	 */
+	function unpauseBlockPosting() external;
+
+	/**
 	 * @notice Sets the rate limiter constants for the rollup chain
 	 * @dev Can only be called by the contract owner
 	 * @param thresholdInterval The threshold block submission interval in seconds
