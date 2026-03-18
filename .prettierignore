@@ -4,3 +4,6 @@ typechain
 artifacts/
 typechain-types/
 cache/
+.claude/
+docs/index.md
+contracts/verifiers/PlonkVerifier.sol
