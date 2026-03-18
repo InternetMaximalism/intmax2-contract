@@ -14,6 +14,34 @@ import {
 } from '../../typechain-types'
 
 describe('Claim', () => {
+	const GENESIS_TIMESTAMP = 1722999120n
+	const PHASE0_REWARD_PER_DAY = ethers.parseEther('8937500')
+	const NUM_PHASES = 7
+	const PHASE0_PERIOD = 16n
+
+	const calculateExpectedAllocationPerPeriod = (
+		startTimestamp: bigint,
+		periodInterval: bigint,
+		periodNumber: bigint,
+	): bigint => {
+		const SECONDS_IN_A_DAY = 86400n
+		let elapsedDays =
+			(startTimestamp + periodNumber * periodInterval - GENESIS_TIMESTAMP) /
+			SECONDS_IN_A_DAY
+		let rewardPerDay = PHASE0_REWARD_PER_DAY
+
+		for (let i = 0; i < NUM_PHASES; i++) {
+			const phaseDays = PHASE0_PERIOD << BigInt(i)
+			if (elapsedDays < phaseDays) {
+				break
+			}
+			elapsedDays -= phaseDays
+			rewardPerDay /= 2n
+		}
+
+		return (rewardPerDay * periodInterval) / SECONDS_IN_A_DAY
+	}
+
 	type TestObjects = {
 		claim: Claim
 		scrollMessenger: L2ScrollMessengerTestForClaim
@@ -583,8 +611,11 @@ describe('Claim', () => {
 			const { claim } = await loadFixture(setup)
 			const user = ethers.Wallet.createRandom().address
 			const info = await claim.getAllocationInfo(0, user)
+			const constants = await claim.getAllocationConstants()
+			const expectedAllocationPerPeriod =
+				calculateExpectedAllocationPerPeriod(constants[0], constants[1], 0n)
 			expect(info[0]).to.equal(0n)
-			expect(info[1]).to.equal(23274739583333333333333n)
+			expect(info[1]).to.equal(expectedAllocationPerPeriod)
 			expect(info[2]).to.equal(0n)
 			expect(info[3]).to.equal(0n)
 		})
